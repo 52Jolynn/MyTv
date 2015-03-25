@@ -13,10 +13,12 @@ public class Constant {
 	public final static String EPG_URL = "http://tv.cntv.cn/epg";
 	public final static String PROGRAM_TABLE_FILE_DIR = "program_tables";
 	public final static String PROGRAM_TABLE_FILE_NAME = "program_table";
-	public final static String PROGRAM_TABLE_FILE_PATH = Constant.class
-			.getResource("/").getPath() + PROGRAM_TABLE_FILE_DIR;
-
-	public final static class CntvEpg {
-		public final static String EPG_TV_CLASS = "sanjiao";
-	}
+	public final static String CLASS_PATH = Constant.class.getResource("/")
+			.getPath();
+	public final static String PROGRAM_TABLE_FILE_PATH = CLASS_PATH
+			+ PROGRAM_TABLE_FILE_DIR;
+	public final static String MY_TV_LIST_FILE_NAME = CLASS_PATH
+			+ "mytvlist.dat";
+	public final static String SQL_FILE = "db";
+	public final static String APP_NAME = "mytvlist";
 }
