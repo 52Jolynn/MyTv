@@ -2,9 +2,7 @@ package com.laudandjolynn.mytvlist;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Enumeration;
@@ -13,12 +11,10 @@ import java.util.ResourceBundle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.gargoylesoftware.htmlunit.BrowserVersion;
-import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
-import com.gargoylesoftware.htmlunit.NicelyResynchronizingAjaxController;
-import com.gargoylesoftware.htmlunit.Page;
-import com.gargoylesoftware.htmlunit.WebClient;
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import com.laudandjolynn.mytvlist.utils.Constant;
+import com.laudandjolynn.mytvlist.utils.FileUtils;
+import com.laudandjolynn.mytvlist.utils.MyTvListException;
+import com.laudandjolynn.mytvlist.utils.Utils;
 
 /**
  * @author: Laud
@@ -31,15 +27,19 @@ public class MyTvList {
 			.getLogger(MyTvList.class);
 
 	public static void main(String[] args) {
+		logger.info("start My TV Program Table crawler.");
 		start();
 	}
 
 	private static void start() {
 		initdb();
-		initTvList();
+		getProgramTableOfToday();
 	}
 
-	private static void initTvList() {
+	/**
+	 * 获取当天的节目表
+	 */
+	private static void getProgramTableOfToday() {
 		File dirFile = new File(Constant.PROGRAM_TABLES_FILE_PATH);
 		if (!dirFile.exists()) {
 			dirFile.mkdir();
@@ -50,32 +50,13 @@ public class MyTvList {
 			logger.debug(fileName + " have already exists.");
 			return;
 		}
-		WebClient webClient = new WebClient(BrowserVersion.CHROME);
-		webClient.getOptions().setJavaScriptEnabled(true);
-		webClient.getOptions().setCssEnabled(false);
-		webClient.getOptions().setThrowExceptionOnScriptError(false);
-		webClient.setAjaxController(new NicelyResynchronizingAjaxController());
-		Page page = null;
+
 		try {
-			logger.debug("begin to get page: " + Constant.EPG_URL);
-			page = webClient.getPage(Constant.EPG_URL);
-		} catch (FailingHttpStatusCodeException e) {
-			throw new MyTvListException("can't connect to " + Constant.EPG_URL,
-					e);
-		} catch (MalformedURLException e) {
-			throw new MyTvListException("invalid url " + Constant.EPG_URL, e);
-		} catch (IOException e) {
-			throw new MyTvListException("error occur while connect to "
-					+ Constant.EPG_URL, e);
-		}
-		if (page instanceof HtmlPage) {
-			HtmlPage htmlPage = (HtmlPage) page;
-			try {
-				logger.debug("write html to file: " + fileName);
-				FileUtils.writeWithNIO(htmlPage.asXml(), "UTF-8", fileName);
-			} catch (Exception e) {
-				logger.error("fail to save debug file ", e);
-			}
+			logger.debug("write html to file: " + fileName);
+			FileUtils.writeWithNIO(Crawler.crawlAsXml(Constant.EPG_URL),
+					"UTF-8", fileName);
+		} catch (Exception e) {
+			logger.error("fail to save debug file ", e);
 		}
 	}
 
@@ -95,11 +76,9 @@ public class MyTvList {
 			throw new MyTvListException("db driver class is not found.", e);
 		}
 
-		Connection conn = null;
+		Connection conn = Utils.getConnection();
 		Statement stmt = null;
 		try {
-			conn = DriverManager.getConnection("jdbc:sqlite:"
-					+ Constant.CLASS_PATH + "mytvlist.db");
 			conn.setAutoCommit(false);
 			stmt = conn.createStatement();
 			ResourceBundle bundle = ResourceBundle.getBundle(Constant.SQL_FILE);
