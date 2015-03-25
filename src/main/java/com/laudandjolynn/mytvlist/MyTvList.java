@@ -40,13 +40,14 @@ public class MyTvList {
 	}
 
 	private static void initTvList() {
-		File dirFile = new File(Constant.PROGRAM_TABLE_FILE_PATH);
+		File dirFile = new File(Constant.PROGRAM_TABLES_FILE_PATH);
 		if (!dirFile.exists()) {
 			dirFile.mkdir();
 		}
 		String fileName = Constant.PROGRAM_TABLE_FILE_PATH + Utils.today();
 		File file = new File(fileName);
 		if (file.exists()) {
+			logger.debug(fileName + " have already exists.");
 			return;
 		}
 		WebClient webClient = new WebClient(BrowserVersion.CHROME);
@@ -56,6 +57,7 @@ public class MyTvList {
 		webClient.setAjaxController(new NicelyResynchronizingAjaxController());
 		Page page = null;
 		try {
+			logger.debug("begin to get page: " + Constant.EPG_URL);
 			page = webClient.getPage(Constant.EPG_URL);
 		} catch (FailingHttpStatusCodeException e) {
 			throw new MyTvListException("can't connect to " + Constant.EPG_URL,
@@ -69,6 +71,7 @@ public class MyTvList {
 		if (page instanceof HtmlPage) {
 			HtmlPage htmlPage = (HtmlPage) page;
 			try {
+				logger.debug("write html to file: " + fileName);
 				FileUtils.writeWithNIO(htmlPage.asXml(), "UTF-8", fileName);
 			} catch (Exception e) {
 				logger.error("fail to save debug file ", e);
@@ -82,7 +85,7 @@ public class MyTvList {
 	private static void initdb() {
 		File mytvlist = new File(Constant.MY_TV_LIST_FILE_NAME);
 		if (mytvlist.exists()) {
-			logger.info("db have already init.");
+			logger.debug("db have already init.");
 			return;
 		}
 
