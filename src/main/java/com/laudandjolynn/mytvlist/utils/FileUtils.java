@@ -36,6 +36,18 @@ public class FileUtils {
 	private final static String DEFAULT_CHARSET_NAME = "UTF-8";
 
 	/**
+	 * 删除文件
+	 * 
+	 * @param filePath
+	 */
+	public static void delete(String filePath) {
+		File file = new File(filePath);
+		if (file.exists()) {
+			file.delete();
+		}
+	}
+
+	/**
 	 * 读取本地文件，NIO方式
 	 * 
 	 * @param filePath
