@@ -13,6 +13,7 @@ import java.util.Date;
 import java.util.List;
 
 import com.laudandjolynn.mytvlist.Init;
+import com.laudandjolynn.mytvlist.exception.MyTvListException;
 import com.laudandjolynn.mytvlist.model.ProgramTable;
 import com.laudandjolynn.mytvlist.model.TvStation;
 
@@ -54,6 +55,45 @@ public class Utils {
 	}
 
 	/**
+	 * 获取电视台分类
+	 * 
+	 * @return
+	 */
+	public static List<String> getTvStationClassify() {
+		String sql = "select classify from tv_station group by classify";
+		Connection conn = Utils.getConnection();
+		Statement stmt = null;
+		List<String> classifies = new ArrayList<String>();
+		try {
+			stmt = conn.createStatement();
+			ResultSet rs = stmt.executeQuery(sql);
+			while (rs.next()) {
+				classifies.add(rs.getString(1));
+			}
+		} catch (SQLException e) {
+			throw new MyTvListException(e);
+		} finally {
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (SQLException e) {
+					throw new MyTvListException(e);
+				}
+			}
+
+			if (conn != null) {
+				try {
+					conn.close();
+				} catch (SQLException e) {
+					throw new MyTvListException(e);
+				}
+			}
+		}
+
+		return classifies;
+	}
+
+	/**
 	 * 获取所有电视台
 	 * 
 	 * @return
@@ -70,7 +110,7 @@ public class Utils {
 				TvStation station = new TvStation();
 				station.setId(rs.getInt(1));
 				station.setName(rs.getString(2));
-				station.setOwner(rs.getString(3));
+				station.setClassify(rs.getString(3));
 				stations.add(station);
 			}
 		} catch (SQLException e) {
@@ -115,7 +155,7 @@ public class Utils {
 				station = new TvStation();
 				station.setId(rs.getInt(1));
 				station.setName(rs.getString(2));
-				station.setOwner(rs.getString(3));
+				station.setClassify(rs.getString(3));
 			}
 			rs.close();
 		} catch (SQLException e) {
@@ -152,7 +192,7 @@ public class Utils {
 			return null;
 		}
 		Connection conn = Utils.getConnection();
-		String insertSql = "insert into tv_station (name,owner) values(?,?)";
+		String insertSql = "insert into tv_station (name,classify) values(?,?)";
 		PreparedStatement insertStmt = null;
 		try {
 			conn.setAutoCommit(false);
@@ -164,7 +204,7 @@ public class Utils {
 					continue;
 				}
 				insertStmt.setString(1, station.getName());
-				insertStmt.setString(2, station.getOwner());
+				insertStmt.setString(2, station.getClassify());
 				insertStmt.addBatch();
 			}
 			int[] r = insertStmt.executeBatch();

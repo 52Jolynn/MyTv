@@ -10,17 +10,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.laudandjolynn.mytvlist.epg.EpgParser;
+import com.laudandjolynn.mytvlist.exception.MyTvListException;
 import com.laudandjolynn.mytvlist.model.TvStation;
 import com.laudandjolynn.mytvlist.utils.Constant;
-import com.laudandjolynn.mytvlist.utils.Crawler;
-import com.laudandjolynn.mytvlist.utils.EpgParser;
 import com.laudandjolynn.mytvlist.utils.FileUtils;
-import com.laudandjolynn.mytvlist.utils.MyTvListException;
 import com.laudandjolynn.mytvlist.utils.Utils;
 
 /**
@@ -29,28 +27,34 @@ import com.laudandjolynn.mytvlist.utils.Utils;
  * @date: 2015年3月26日 下午1:33:14
  * @copyright: www.laudandjolynn.com
  */
-public class Init implements Before {
+public class Init {
 	private final static Logger logger = LoggerFactory.getLogger(Init.class);
-	private final AtomicBoolean ready = new AtomicBoolean(false);
-	private final static Init instance = new Init();
 	private final static Map<String, TvStation> ALL_TV_STATION = new HashMap<String, TvStation>();
 
 	private Init() {
 	}
 
 	public static Init getIntance() {
-		return instance;
+		return InitSingltonHolder.INIT;
+	}
+
+	private final static class InitSingltonHolder {
+		private final static Init INIT = new Init();
 	}
 
 	/**
 	 * 初始化应用基础数据
 	 */
 	public void init() {
+		// 初始化数据库
 		this.initDb();
+		// 初始化其他数据
 		this.initData();
-		ready.set(true);
 	}
 
+	/**
+	 * 初始化数据库
+	 */
 	private void initDb() {
 		File mytvlist = new File(Constant.MY_TV_LIST_FILE_NAME);
 		if (mytvlist.exists()) {
@@ -116,6 +120,9 @@ public class Init implements Before {
 		}
 	}
 
+	/**
+	 * 初始化应用数据
+	 */
 	private void initData() {
 		// 首次抓取
 		String html = Crawler.crawlAsXml(Constant.EPG_URL);
@@ -156,11 +163,6 @@ public class Init implements Before {
 	 */
 	public TvStation getStation(String stationName) {
 		return ALL_TV_STATION.get(stationName);
-	}
-
-	@Override
-	public boolean isReady() {
-		return ready.get();
 	}
 
 }

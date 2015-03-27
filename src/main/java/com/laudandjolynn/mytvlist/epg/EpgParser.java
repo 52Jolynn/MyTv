@@ -1,4 +1,4 @@
-package com.laudandjolynn.mytvlist.utils;
+package com.laudandjolynn.mytvlist.epg;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,12 +26,13 @@ public class EpgParser {
 	 */
 	public static List<TvStation> parseTvStation(String html) {
 		Document doc = Jsoup.parse(html);
-		Elements ownerElements = doc.select("ul.weishi a[href]");
+		Elements classifyElements = doc.select("ul.weishi a[href]");
 		Elements stationElements = doc.select("div.md_left_right");
 		List<TvStation> resultList = new ArrayList<TvStation>();
-		for (int i = 0, size = ownerElements == null ? 0 : ownerElements.size(); i < size; i++) {
-			Element ownerElement = ownerElements.get(i);
-			String owner = ownerElement.text();
+		for (int i = 0, size = classifyElements == null ? 0 : classifyElements
+				.size(); i < size; i++) {
+			Element classifyElement = classifyElements.get(i);
+			String classify = classifyElement.text();
 			Element stationElement = stationElements.get(i);
 			Elements stationTextElements = stationElement
 					.select("dl h3 a[href]");
@@ -39,7 +40,7 @@ public class EpgParser {
 					: stationTextElements.size(); j < ssize; j++) {
 				TvStation tv = new TvStation();
 				tv.setName(stationTextElements.get(j).text());
-				tv.setOwner(owner);
+				tv.setClassify(classify);
 				resultList.add(tv);
 			}
 		}

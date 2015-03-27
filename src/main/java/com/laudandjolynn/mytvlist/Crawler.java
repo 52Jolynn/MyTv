@@ -1,4 +1,4 @@
-package com.laudandjolynn.mytvlist.utils;
+package com.laudandjolynn.mytvlist;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -12,6 +12,7 @@ import com.gargoylesoftware.htmlunit.NicelyResynchronizingAjaxController;
 import com.gargoylesoftware.htmlunit.Page;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import com.laudandjolynn.mytvlist.exception.MyTvListException;
 
 /**
  * @author: Laud
@@ -42,23 +43,22 @@ public class Crawler {
 	 * @param url
 	 * @return
 	 */
-	protected static Page crawl(String url) {
+	public static Page crawl(String url) {
 		WebClient webClient = new WebClient(BrowserVersion.CHROME);
 		webClient.getOptions().setJavaScriptEnabled(true);
 		webClient.getOptions().setCssEnabled(false);
 		webClient.getOptions().setThrowExceptionOnScriptError(false);
 		webClient.setAjaxController(new NicelyResynchronizingAjaxController());
 		try {
-			logger.debug("begin to get page: " + Constant.EPG_URL);
-			return webClient.getPage(Constant.EPG_URL);
+			logger.debug("begin to get page: " + url);
+			return webClient.getPage(url);
 		} catch (FailingHttpStatusCodeException e) {
-			throw new MyTvListException("can't connect to " + Constant.EPG_URL,
-					e);
+			throw new MyTvListException("can't connect to " + url, e);
 		} catch (MalformedURLException e) {
-			throw new MyTvListException("invalid url " + Constant.EPG_URL, e);
+			throw new MyTvListException("invalid url " + url, e);
 		} catch (IOException e) {
-			throw new MyTvListException("error occur while connect to "
-					+ Constant.EPG_URL, e);
+			throw new MyTvListException("error occur while connect to " + url,
+					e);
 		}
 	}
 }

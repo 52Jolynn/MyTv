@@ -9,7 +9,7 @@ package com.laudandjolynn.mytvlist.model;
 public class TvStation {
 	private int id;
 	private String name;
-	private String owner;
+	private String classify;
 
 	public int getId() {
 		return id;
@@ -27,18 +27,18 @@ public class TvStation {
 		this.name = name;
 	}
 
-	public String getOwner() {
-		return owner;
+	public String getClassify() {
+		return classify;
 	}
 
-	public void setOwner(String owner) {
-		this.owner = owner;
+	public void setClassify(String classify) {
+		this.classify = classify;
 	}
 
 	@Override
 	public String toString() {
-		return "TvStation [id=" + id + ", name=" + name + ", owner=" + owner
-				+ "]";
+		return "TvStation [id=" + id + ", name=" + name + ", classify="
+				+ classify + "]";
 	}
 
 }
