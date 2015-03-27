@@ -122,6 +122,8 @@ public class EpgCrawler {
 				HtmlPage specPage = anchor.click();
 				String html = specPage.asXml();
 				List<ProgramTable> ptList = EpgParser.parseProgramTable(html);
+				ProgramTable[] ptArray = new ProgramTable[ptList.size()];
+				Utils.save(ptList.toArray(ptArray));
 				Utils.outputCrawlData(searchValue, html);
 				return ptList;
 			} catch (IOException e) {
