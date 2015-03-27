@@ -19,6 +19,7 @@ public class MyTvList {
 	}
 
 	private static void start() {
+		Init.getIntance().init();
 	}
 
 }

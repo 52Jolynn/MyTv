@@ -6,13 +6,19 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.laudandjolynn.mytvlist.model.TvStation;
 import com.laudandjolynn.mytvlist.utils.Constant;
+import com.laudandjolynn.mytvlist.utils.Crawler;
+import com.laudandjolynn.mytvlist.utils.EpgParser;
 import com.laudandjolynn.mytvlist.utils.FileUtils;
 import com.laudandjolynn.mytvlist.utils.MyTvListException;
 import com.laudandjolynn.mytvlist.utils.Utils;
@@ -27,6 +33,7 @@ public class Init implements Before {
 	private final static Logger logger = LoggerFactory.getLogger(Init.class);
 	private final AtomicBoolean ready = new AtomicBoolean(false);
 	private final static Init instance = new Init();
+	private final static Map<String, TvStation> ALL_TV_STATION = new HashMap<String, TvStation>();
 
 	private Init() {
 	}
@@ -110,24 +117,45 @@ public class Init implements Before {
 	}
 
 	private void initData() {
-		File dirFile = new File(Constant.PROGRAM_TABLES_FILE_PATH);
-		if (!dirFile.exists()) {
-			dirFile.mkdir();
-		}
-		String fileName = Constant.PROGRAM_TABLE_FILE_PATH + Utils.today();
-		File file = new File(fileName);
-		if (file.exists()) {
-			logger.debug(fileName + " have already exists.");
-			return;
-		}
+		// 首次抓取
+		String html = Crawler.crawlAsXml(Constant.EPG_URL);
+		List<TvStation> stations = EpgParser.parseTvStation(html);
+		// 写或更新数据到tv_station表
+		TvStation[] stationArray = new TvStation[stations.size()];
+		Utils.save(stations.toArray(stationArray));
+		this.addAllTvStation2Cache(stations);
+		Utils.outputCrawlData(Utils.today(), html);
+	}
 
-		try {
-			logger.debug("write html to file: " + fileName);
-			FileUtils.writeWithNIO(Crawler.crawlAsXml(Constant.EPG_URL),
-					"UTF-8", fileName);
-		} catch (Exception e) {
-			logger.error("fail to save debug file ", e);
+	/**
+	 * 缓存所有电视台
+	 * 
+	 * @param stations
+	 */
+	protected void addAllTvStation2Cache(List<TvStation> stations) {
+		for (TvStation station : stations) {
+			ALL_TV_STATION.put(station.getName(), station);
 		}
+	}
+
+	/**
+	 * 判断电视台是否已经在数据库中存在
+	 * 
+	 * @param stationName
+	 * @return
+	 */
+	public boolean isStationExists(String stationName) {
+		return ALL_TV_STATION.containsKey(stationName);
+	}
+
+	/**
+	 * 根据名称获取电视台對象
+	 * 
+	 * @param stationName
+	 * @return
+	 */
+	public TvStation getStation(String stationName) {
+		return ALL_TV_STATION.get(stationName);
 	}
 
 	@Override

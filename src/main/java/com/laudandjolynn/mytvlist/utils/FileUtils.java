@@ -33,7 +33,7 @@ public class FileUtils {
 	/**
 	 * 默认编码类型
 	 */
-	private final static String DEFAULT_CHARSET_NAME = "UTF-8";
+	public final static String DEFAULT_CHARSET_NAME = "UTF-8";
 
 	/**
 	 * 删除文件

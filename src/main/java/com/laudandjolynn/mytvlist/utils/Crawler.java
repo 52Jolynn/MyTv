@@ -1,4 +1,4 @@
-package com.laudandjolynn.mytvlist;
+package com.laudandjolynn.mytvlist.utils;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -12,8 +12,6 @@ import com.gargoylesoftware.htmlunit.NicelyResynchronizingAjaxController;
 import com.gargoylesoftware.htmlunit.Page;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
-import com.laudandjolynn.mytvlist.utils.Constant;
-import com.laudandjolynn.mytvlist.utils.MyTvListException;
 
 /**
  * @author: Laud
