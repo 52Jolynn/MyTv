@@ -18,9 +18,9 @@ import com.laudandjolynn.mytvlist.utils.Utils;
  * @date: 2015年3月25日 上午9:12:56
  * @copyright: www.laudandjolynn.com
  */
-public class MyTvList {
+public class Main {
 	private final static Logger logger = LoggerFactory
-			.getLogger(MyTvList.class);
+			.getLogger(Main.class);
 
 	public static void main(String[] args) {
 		logger.info("start My TV Program Table Crawler.");
