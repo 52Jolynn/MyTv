@@ -1,5 +1,6 @@
 package com.laudandjolynn.mytvlist;
 
+import java.util.Date;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -8,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.laudandjolynn.mytvlist.epg.EpgCrawler;
+import com.laudandjolynn.mytvlist.utils.DateUtils;
 import com.laudandjolynn.mytvlist.utils.Utils;
 
 /**
@@ -19,20 +21,24 @@ import com.laudandjolynn.mytvlist.utils.Utils;
 public class MyTvList {
 	private final static Logger logger = LoggerFactory
 			.getLogger(MyTvList.class);
-	private final static long DAY_MILLIS = 86400000;
 
 	public static void main(String[] args) {
 		logger.info("start My TV Program Table Crawler.");
 		// 启动应用
 		startService();
+		// 抓取当天电视节目表
+		logger.info("query program table of today. " + "today is "
+				+ Utils.today());
+		EpgCrawler.crawlAllProgramTable(Utils.today());
 		// 启动每天定时任务
+		logger.info("create everyday crawl task.");
 		createEverydayCron();
 		logger.info("My TV Program Table Crawler is running.");
 		while (true) {
 			try {
-				Thread.sleep(10);
+				Thread.sleep(100);
 			} catch (InterruptedException e) {
-				// TODO 处理中断
+				logger.error("My TV Program has stop.", e);
 			}
 		}
 	}
@@ -49,12 +55,14 @@ public class MyTvList {
 	 */
 	private static void createEverydayCron() {
 		ScheduledExecutorService scheduled = new ScheduledThreadPoolExecutor(1);
+		long initDelay = DateUtils.string2Date(Utils.tommorow() + "00:00:00")
+				.getTime() - new Date().getTime();
 		scheduled.scheduleWithFixedDelay(new Runnable() {
 
 			@Override
 			public void run() {
 				EpgCrawler.crawlAllProgramTable(Utils.today());
 			}
-		}, 0, DAY_MILLIS, TimeUnit.DAYS);
+		}, initDelay, 1, TimeUnit.DAYS);
 	}
 }

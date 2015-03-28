@@ -9,7 +9,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.Calendar;
 import java.util.List;
 
 import com.laudandjolynn.mytvlist.Init;
@@ -30,7 +30,19 @@ public class Utils {
 	 * @return
 	 */
 	public static String today() {
-		return DateUtils.date2String(new Date(), "yyyy-MM-dd");
+		return DateUtils.date2String(Calendar.getInstance().getTime(),
+				"yyyy-MM-dd");
+	}
+
+	/**
+	 * 获取明天的日期字符串，yyyy-MM-dd
+	 * 
+	 * @return
+	 */
+	public static String tommorow() {
+		Calendar calendar = Calendar.getInstance();
+		calendar.add(Calendar.DAY_OF_MONTH, 1);
+		return DateUtils.date2String(calendar.getTime(), "yyyy-MM-dd");
 	}
 
 	/**
@@ -303,10 +315,64 @@ public class Utils {
 	}
 
 	/**
+	 * 获取指定电视台节目表
+	 * 
+	 * @param stationName
+	 *            电视台
+	 * @param date
+	 *            日期，yyyy-MM-dd
+	 * @return
+	 */
+	public static List<ProgramTable> getProgramTable(String stationName,
+			String date) {
+		String sql = "select id,station,stationName,program,airtime,week from program_table where stationName='"
+				+ stationName + "' and aritime='" + date + "'";
+		Connection conn = Utils.getConnection();
+		Statement stmt = null;
+		try {
+			stmt = conn.createStatement();
+			ResultSet rs = stmt.executeQuery(sql);
+			List<ProgramTable> resultList = new ArrayList<ProgramTable>();
+			while (rs.next()) {
+				ProgramTable pt = new ProgramTable();
+				pt.setId(rs.getLong(1));
+				pt.setStation(rs.getInt(2));
+				pt.setStationName(rs.getString(3));
+				pt.setProgram(rs.getString(4));
+				pt.setAirTime(rs.getString(5));
+				pt.setWeek(rs.getInt(6));
+				resultList.add(pt);
+			}
+			rs.close();
+			return resultList;
+		} catch (SQLException e) {
+			throw new MyTvListException(e);
+		} finally {
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (SQLException e) {
+					throw new MyTvListException(e);
+				}
+			}
+
+			if (conn != null) {
+				try {
+					conn.close();
+				} catch (SQLException e) {
+					throw new MyTvListException(e);
+				}
+			}
+		}
+	}
+
+	/**
 	 * 判断电视节目表是否已抓取
 	 * 
 	 * @param stationName
+	 *            电视台名称
 	 * @param date
+	 *            日期，yyyy-MM-dd
 	 * @return
 	 */
 	public static boolean isProgramTableExists(String stationName, String date) {
@@ -339,7 +405,6 @@ public class Utils {
 				}
 			}
 		}
-
 	}
 
 	/**
