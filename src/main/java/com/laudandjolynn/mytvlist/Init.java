@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
@@ -14,8 +15,10 @@ import java.util.ResourceBundle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.laudandjolynn.mytvlist.epg.EpgCrawler;
 import com.laudandjolynn.mytvlist.epg.EpgParser;
 import com.laudandjolynn.mytvlist.exception.MyTvListException;
+import com.laudandjolynn.mytvlist.model.ProgramTable;
 import com.laudandjolynn.mytvlist.model.TvStation;
 import com.laudandjolynn.mytvlist.utils.Constant;
 import com.laudandjolynn.mytvlist.utils.FileUtils;
@@ -125,13 +128,27 @@ public class Init {
 	 */
 	private void initData() {
 		// 首次抓取
-		String html = Crawler.crawlAsXml(Constant.EPG_URL);
-		List<TvStation> stations = EpgParser.parseTvStation(html);
-		// 写或更新数据到tv_station表
-		TvStation[] stationArray = new TvStation[stations.size()];
-		Utils.save(stations.toArray(stationArray));
+		List<TvStation> stations = Utils.getAllStation();
+		if ((stations == null ? 0 : stations.size()) == 0) {
+			String html = Crawler.crawlAsXml(Constant.EPG_URL);
+			stations = EpgParser.parseTvStation(html);
+			// 写数据到tv_station表
+			TvStation[] stationArray = new TvStation[stations.size()];
+			Utils.save(stations.toArray(stationArray));
+			Utils.outputCrawlData(Utils.today(), html);
+		}
 		this.addAllTvStation2Cache(stations);
-		Utils.outputCrawlData(Utils.today(), html);
+		// 保存当天电视节目表
+		logger.info("query program table of today. " + "today is "
+				+ Utils.today());
+		List<ProgramTable> ptList = EpgCrawler.crawlAllProgramTable(Utils
+				.today());
+		ProgramTable[] ptArray = new ProgramTable[ptList.size()];
+		Utils.save(ptList.toArray(ptArray));
+	}
+
+	public Collection<TvStation> getAllCacheTvStation() {
+		return ALL_TV_STATION.values();
 	}
 
 	/**
@@ -139,7 +156,7 @@ public class Init {
 	 * 
 	 * @param stations
 	 */
-	protected void addAllTvStation2Cache(List<TvStation> stations) {
+	private void addAllTvStation2Cache(List<TvStation> stations) {
 		for (TvStation station : stations) {
 			ALL_TV_STATION.put(station.getName(), station);
 		}

@@ -19,17 +19,12 @@ import com.laudandjolynn.mytvlist.utils.Utils;
  * @copyright: www.laudandjolynn.com
  */
 public class Main {
-	private final static Logger logger = LoggerFactory
-			.getLogger(Main.class);
+	private final static Logger logger = LoggerFactory.getLogger(Main.class);
 
 	public static void main(String[] args) {
 		logger.info("start My TV Program Table Crawler.");
 		// 启动应用
 		startService();
-		// 抓取当天电视节目表
-		logger.info("query program table of today. " + "today is "
-				+ Utils.today());
-		EpgCrawler.crawlAllProgramTable(Utils.today());
 		// 启动每天定时任务
 		logger.info("create everyday crawl task.");
 		createEverydayCron();

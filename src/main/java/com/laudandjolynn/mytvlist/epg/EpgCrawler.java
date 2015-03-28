@@ -2,6 +2,7 @@ package com.laudandjolynn.mytvlist.epg;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -14,6 +15,7 @@ import com.gargoylesoftware.htmlunit.html.DomElement;
 import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.laudandjolynn.mytvlist.Crawler;
+import com.laudandjolynn.mytvlist.Init;
 import com.laudandjolynn.mytvlist.exception.MyTvListException;
 import com.laudandjolynn.mytvlist.model.ProgramTable;
 import com.laudandjolynn.mytvlist.model.TvStation;
@@ -39,7 +41,7 @@ public class EpgCrawler {
 	 * @return
 	 */
 	public static List<ProgramTable> crawlAllProgramTable(String date) {
-		List<TvStation> stations = Utils.getAllStation();
+		Collection<TvStation> stations = Init.getIntance().getAllCacheTvStation();
 		List<ProgramTable> resultList = new ArrayList<ProgramTable>();
 		for (TvStation station : stations) {
 			resultList.addAll(crawlProgramTable(station, date));
@@ -87,10 +89,10 @@ public class EpgCrawler {
 			if (dateObj == null) {
 				return null;
 			}
-			String searchValue = DateFormatUtils.format(dateObj, "yyyy-MM-dd");
-			logger.info("crawl program table of " + searchValue);
+			String queryDate = DateFormatUtils.format(dateObj, "yyyy-MM-dd");
+			logger.info("crawl program table of " + queryDate);
 			String stationName = station.getName();
-			if (Utils.isProgramTableExists(stationName, searchValue)) {
+			if (Utils.isProgramTableExists(stationName, queryDate)) {
 				logger.debug("the TV station's program table of " + stationName
 						+ " have been saved in db.");
 				return null;
@@ -113,24 +115,27 @@ public class EpgCrawler {
 					break;
 				}
 			}
-			DomElement element = htmlPage.getElementById("date");
-			element.setNodeValue(searchValue);
-			element.setTextContent(searchValue);
-			List<?> list = htmlPage.getByXPath("//div[@id='search_1']/a");
-			HtmlAnchor anchor = (HtmlAnchor) list.get(0);
-			try {
-				HtmlPage specPage = anchor.click();
-				String html = specPage.asXml();
-				List<ProgramTable> ptList = EpgParser.parseProgramTable(html);
-				ProgramTable[] ptArray = new ProgramTable[ptList.size()];
-				Utils.save(ptList.toArray(ptArray));
-				Utils.outputCrawlData(searchValue, html);
-				return ptList;
-			} catch (IOException e) {
-				throw new MyTvListException(
-						"error occur while search program table of "
-								+ stationName + " at spec date: " + date, e);
+
+			if (queryDate != Utils.today()) {
+				DomElement element = htmlPage.getElementById("date");
+				element.setNodeValue(queryDate);
+				element.setTextContent(queryDate);
+				List<?> list = htmlPage.getByXPath("//div[@id='search_1']/a");
+				HtmlAnchor anchor = (HtmlAnchor) list.get(0);
+				try {
+					htmlPage = anchor.click();
+				} catch (IOException e) {
+					throw new MyTvListException(
+							"error occur while search program table of "
+									+ stationName + " at spec date: " + date, e);
+				}
 			}
+			String html = htmlPage.asXml();
+			List<ProgramTable> ptList = EpgParser.parseProgramTable(html);
+			ProgramTable[] ptArray = new ProgramTable[ptList.size()];
+			Utils.save(ptList.toArray(ptArray));
+			Utils.outputCrawlData(queryDate, html);
+			return ptList;
 		}
 		return null;
 	}

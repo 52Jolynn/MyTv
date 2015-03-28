@@ -193,6 +193,45 @@ public class Utils {
 	}
 
 	/**
+	 * 判断电视台在数据库是否存在
+	 * 
+	 * @param stationName
+	 *            电视台名称
+	 * @return
+	 */
+	public static boolean isStationExists(String stationName) {
+		String sql = "select * from tv_station where name='" + stationName
+				+ "'";
+		Connection conn = Utils.getConnection();
+		Statement stmt = null;
+		try {
+			stmt = conn.createStatement();
+			ResultSet rs = stmt.executeQuery(sql);
+			boolean exists = rs.next();
+			rs.close();
+			return exists;
+		} catch (SQLException e) {
+			throw new MyTvListException(e);
+		} finally {
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (SQLException e) {
+					throw new MyTvListException(e);
+				}
+			}
+
+			if (conn != null) {
+				try {
+					conn.close();
+				} catch (SQLException e) {
+					throw new MyTvListException(e);
+				}
+			}
+		}
+	}
+
+	/**
 	 * 保存电视台信息
 	 * 
 	 * @param stations
@@ -212,7 +251,8 @@ public class Utils {
 			for (int i = 0; i < len; i++) {
 				TvStation station = stations[i];
 				String stationName = station.getName();
-				if (Init.getIntance().isStationExists(stationName)) {
+				if (Init.getIntance().isStationExists(stationName)
+						|| isStationExists(stationName)) {
 					continue;
 				}
 				insertStmt.setString(1, station.getName());
@@ -271,10 +311,12 @@ public class Utils {
 			for (int i = 0; i < len; i++) {
 				ProgramTable pt = programTables[i];
 				String stationName = pt.getStationName();
-				if (Init.getIntance().isStationExists(stationName)) {
-					insertStmt.setInt(1,
-							Init.getIntance().getStation(stationName).getId());
+				if (isProgramTableExists(stationName, pt.getAirTime())
+						|| !Init.getIntance().isStationExists(stationName)) {
+					continue;
 				}
+				int id = Init.getIntance().getStation(stationName).getId();
+				insertStmt.setInt(1, id);
 
 				insertStmt.setString(2, pt.getStationName());
 				insertStmt.setString(3, pt.getProgram());
@@ -377,7 +419,7 @@ public class Utils {
 	 */
 	public static boolean isProgramTableExists(String stationName, String date) {
 		String sql = "select * from program_table where stationName='"
-				+ stationName + "' and aritime='" + date + "'";
+				+ stationName + "' and airtime='" + date + "'";
 		Connection conn = Utils.getConnection();
 		Statement stmt = null;
 		try {
