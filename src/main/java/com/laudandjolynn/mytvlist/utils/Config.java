@@ -21,7 +21,11 @@ public class Config {
 				if (!value.endsWith(File.separator)) {
 					value += File.separator;
 				}
-				Constant.CRAWL_FILE_PATH = value + Constant.CRAWL_FILE_NAME;
+				Constant.CRAWL_FILE_PATH = value + Constant.CRAWL_FILE_DIR;
+				File file = new File(Constant.CRAWL_FILE_PATH);
+				if (!file.exists()) {
+					file.mkdirs();
+				}
 			}
 		}
 	}

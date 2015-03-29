@@ -22,6 +22,27 @@ public class DateUtils {
 	public static final String DEFAULT_DATE_PATTERN = "yyyy-MM-dd HH:mm:ss";
 
 	/**
+	 * 获取当天的日期字符串，yyyy-MM-dd
+	 * 
+	 * @return
+	 */
+	public static String today() {
+		return DateUtils.date2String(Calendar.getInstance().getTime(),
+				"yyyy-MM-dd");
+	}
+
+	/**
+	 * 获取明天的日期字符串，yyyy-MM-dd
+	 * 
+	 * @return
+	 */
+	public static String tommorow() {
+		Calendar calendar = Calendar.getInstance();
+		calendar.add(Calendar.DAY_OF_MONTH, 1);
+		return DateUtils.date2String(calendar.getTime(), "yyyy-MM-dd");
+	}
+
+	/**
 	 * 字符串转为时间
 	 * 
 	 * @param date

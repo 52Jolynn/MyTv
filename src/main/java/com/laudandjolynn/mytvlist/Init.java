@@ -5,24 +5,31 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.gargoylesoftware.htmlunit.Page;
+import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.laudandjolynn.mytvlist.epg.EpgCrawler;
+import com.laudandjolynn.mytvlist.epg.EpgDao;
 import com.laudandjolynn.mytvlist.epg.EpgParser;
 import com.laudandjolynn.mytvlist.exception.MyTvListException;
 import com.laudandjolynn.mytvlist.model.ProgramTable;
 import com.laudandjolynn.mytvlist.model.TvStation;
 import com.laudandjolynn.mytvlist.utils.Constant;
+import com.laudandjolynn.mytvlist.utils.DateUtils;
 import com.laudandjolynn.mytvlist.utils.FileUtils;
-import com.laudandjolynn.mytvlist.utils.Utils;
 
 /**
  * @author: Laud
@@ -55,11 +62,31 @@ public class Init {
 		this.initData();
 	}
 
+	private List<String> loadSql() {
+		ResourceBundle bundle = ResourceBundle.getBundle(Constant.SQL_FILE);
+		Enumeration<String> enumeration = bundle.getKeys();
+		SortedSet<String> sqlSet = new TreeSet<String>(
+				new Comparator<String>() {
+					@Override
+					public int compare(String o1, String o2) {
+						if (o1.startsWith("create table")) {
+							return -1;
+						} else {
+							return 1;
+						}
+					}
+				});
+		while (enumeration.hasMoreElements()) {
+			sqlSet.add(bundle.getString(enumeration.nextElement()));
+		}
+		return new ArrayList<String>(sqlSet);
+	}
+
 	/**
 	 * 初始化数据库
 	 */
 	private void initDb() {
-		File mytvlist = new File(Constant.MY_TV_LIST_FILE_NAME);
+		File mytvlist = new File(Constant.MY_TV_DATA_FILE_PATH);
 		if (mytvlist.exists()) {
 			logger.debug("db have already init.");
 			return;
@@ -71,15 +98,13 @@ public class Init {
 			throw new MyTvListException("db driver class is not found.", e);
 		}
 
-		Connection conn = Utils.getConnection();
+		Connection conn = EpgDao.getConnection();
 		Statement stmt = null;
 		try {
 			conn.setAutoCommit(false);
 			stmt = conn.createStatement();
-			ResourceBundle bundle = ResourceBundle.getBundle(Constant.SQL_FILE);
-			Enumeration<String> enumeration = bundle.getKeys();
-			while (enumeration.hasMoreElements()) {
-				String sql = bundle.getString(enumeration.nextElement());
+			List<String> sqlList = loadSql();
+			for (String sql : sqlList) {
 				stmt.addBatch(sql);
 				logger.info("execute sql: " + sql);
 			}
@@ -87,9 +112,9 @@ public class Init {
 			conn.commit();
 			try {
 				FileUtils.write(Constant.APP_NAME.getBytes(),
-						Constant.MY_TV_LIST_FILE_NAME);
+						Constant.MY_TV_DATA_FILE_PATH);
 			} catch (IOException e) {
-				FileUtils.delete(Constant.MY_TV_LIST_FILE_NAME);
+				mytvlist.deleteOnExit();
 				throw new MyTvListException(e);
 			}
 		} catch (SQLException e) {
@@ -101,6 +126,7 @@ public class Init {
 							"error occur while rollback transaction.", e);
 				}
 			}
+			mytvlist.deleteOnExit();
 			throw new MyTvListException("error occur while execute sql on db.",
 					e);
 		} finally {
@@ -128,23 +154,29 @@ public class Init {
 	 */
 	private void initData() {
 		// 首次抓取
-		List<TvStation> stations = Utils.getAllStation();
+		Page page = Crawler.crawl(Constant.EPG_URL);
+		if (!page.isHtmlPage()) {
+			return;
+		}
+		HtmlPage htmlPage = (HtmlPage) page;
+		List<TvStation> stations = EpgDao.getAllStation();
 		if ((stations == null ? 0 : stations.size()) == 0) {
-			String html = Crawler.crawlAsXml(Constant.EPG_URL);
+			String html = htmlPage.asXml();
 			stations = EpgParser.parseTvStation(html);
 			// 写数据到tv_station表
 			TvStation[] stationArray = new TvStation[stations.size()];
-			Utils.save(stations.toArray(stationArray));
-			Utils.outputCrawlData(Utils.today(), html);
+			EpgDao.save(stations.toArray(stationArray));
+			EpgDao.outputCrawlData(DateUtils.today(), html);
 		}
 		this.addAllTvStation2Cache(stations);
+
 		// 保存当天电视节目表
 		logger.info("query program table of today. " + "today is "
-				+ Utils.today());
-		List<ProgramTable> ptList = EpgCrawler.crawlAllProgramTable(Utils
-				.today());
+				+ DateUtils.today());
+		List<ProgramTable> ptList = EpgCrawler.crawlAllProgramTableByPage(
+				htmlPage, DateUtils.today());
 		ProgramTable[] ptArray = new ProgramTable[ptList.size()];
-		Utils.save(ptList.toArray(ptArray));
+		EpgDao.save(ptList.toArray(ptArray));
 	}
 
 	public Collection<TvStation> getAllCacheTvStation() {

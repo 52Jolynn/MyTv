@@ -16,12 +16,13 @@ public class Constant {
 	// 数据文件目录
 	public final static String MY_TV_DATA_PATH = Constant.class
 			.getResource("/").getPath() + "data" + File.separator;
-	public final static String MY_TV_LIST_FILE_NAME = MY_TV_DATA_PATH
+	// 数据文件
+	public final static String MY_TV_DATA_FILE_PATH = MY_TV_DATA_PATH
 			+ "mytvlist.dat";
-	// 电视节目表目录
-	public final static String CRAWL_FILE_NAME = "crawlfile";
+	// 电视节目表文件路径
+	public final static String CRAWL_FILE_DIR = "crawlfiles";
 	public static String CRAWL_FILE_PATH = Constant.MY_TV_DATA_PATH
-			+ CRAWL_FILE_NAME;
+			+ CRAWL_FILE_DIR + File.separator;
 	// 数据库文件名
 	public final static String SQL_FILE = "db";
 	public final static String APP_NAME = "mytvlist";
@@ -30,6 +31,11 @@ public class Constant {
 
 	static {
 		File file = new File(MY_TV_DATA_PATH);
+		if (!file.exists()) {
+			file.mkdirs();
+		}
+
+		file = new File(CRAWL_FILE_PATH);
 		if (!file.exists()) {
 			file.mkdirs();
 		}

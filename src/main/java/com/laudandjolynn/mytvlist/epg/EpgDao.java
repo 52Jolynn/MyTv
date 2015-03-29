@@ -1,6 +1,5 @@
-package com.laudandjolynn.mytvlist.utils;
+package com.laudandjolynn.mytvlist.epg;
 
-import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -9,13 +8,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 
 import com.laudandjolynn.mytvlist.Init;
 import com.laudandjolynn.mytvlist.exception.MyTvListException;
 import com.laudandjolynn.mytvlist.model.ProgramTable;
 import com.laudandjolynn.mytvlist.model.TvStation;
+import com.laudandjolynn.mytvlist.utils.Constant;
+import com.laudandjolynn.mytvlist.utils.FileUtils;
 
 /**
  * @author: Laud
@@ -23,27 +23,7 @@ import com.laudandjolynn.mytvlist.model.TvStation;
  * @date: 2015年3月25日 下午1:24:54
  * @copyright: www.laudandjolynn.com
  */
-public class Utils {
-	/**
-	 * 获取当天的日期字符串，yyyy-MM-dd
-	 * 
-	 * @return
-	 */
-	public static String today() {
-		return DateUtils.date2String(Calendar.getInstance().getTime(),
-				"yyyy-MM-dd");
-	}
-
-	/**
-	 * 获取明天的日期字符串，yyyy-MM-dd
-	 * 
-	 * @return
-	 */
-	public static String tommorow() {
-		Calendar calendar = Calendar.getInstance();
-		calendar.add(Calendar.DAY_OF_MONTH, 1);
-		return DateUtils.date2String(calendar.getTime(), "yyyy-MM-dd");
-	}
+public class EpgDao {
 
 	/**
 	 * 获取数据库连接
@@ -73,7 +53,7 @@ public class Utils {
 	 */
 	public static List<String> getTvStationClassify() {
 		String sql = "select classify from tv_station group by classify";
-		Connection conn = Utils.getConnection();
+		Connection conn = EpgDao.getConnection();
 		Statement stmt = null;
 		List<String> classifies = new ArrayList<String>();
 		try {
@@ -112,7 +92,7 @@ public class Utils {
 	 */
 	public static List<TvStation> getAllStation() {
 		String sql = "select * from tv_station";
-		Connection conn = Utils.getConnection();
+		Connection conn = EpgDao.getConnection();
 		Statement stmt = null;
 		List<TvStation> stations = new ArrayList<TvStation>();
 		try {
@@ -158,7 +138,7 @@ public class Utils {
 		String sql = "select * from tv_station where name='" + stationName
 				+ "'";
 		TvStation station = null;
-		Connection conn = Utils.getConnection();
+		Connection conn = EpgDao.getConnection();
 		Statement stmt = null;
 		try {
 			stmt = conn.createStatement();
@@ -202,7 +182,7 @@ public class Utils {
 	public static boolean isStationExists(String stationName) {
 		String sql = "select * from tv_station where name='" + stationName
 				+ "'";
-		Connection conn = Utils.getConnection();
+		Connection conn = EpgDao.getConnection();
 		Statement stmt = null;
 		try {
 			stmt = conn.createStatement();
@@ -242,7 +222,7 @@ public class Utils {
 		if (len <= 0) {
 			return null;
 		}
-		Connection conn = Utils.getConnection();
+		Connection conn = EpgDao.getConnection();
 		String insertSql = "insert into tv_station (name,classify) values(?,?)";
 		PreparedStatement insertStmt = null;
 		try {
@@ -302,7 +282,7 @@ public class Utils {
 		if (len <= 0) {
 			return null;
 		}
-		Connection conn = Utils.getConnection();
+		Connection conn = EpgDao.getConnection();
 		String insertSql = "insert into program_table (station,stationName,program,airtime,week) values(?,?,?,?,?)";
 		PreparedStatement insertStmt = null;
 		try {
@@ -369,7 +349,7 @@ public class Utils {
 			String date) {
 		String sql = "select id,station,stationName,program,airtime,week from program_table where stationName='"
 				+ stationName + "' and aritime='" + date + "'";
-		Connection conn = Utils.getConnection();
+		Connection conn = EpgDao.getConnection();
 		Statement stmt = null;
 		try {
 			stmt = conn.createStatement();
@@ -420,7 +400,7 @@ public class Utils {
 	public static boolean isProgramTableExists(String stationName, String date) {
 		String sql = "select * from program_table where stationName='"
 				+ stationName + "' and airtime='" + date + "'";
-		Connection conn = Utils.getConnection();
+		Connection conn = EpgDao.getConnection();
 		Statement stmt = null;
 		try {
 			stmt = conn.createStatement();
@@ -453,17 +433,13 @@ public class Utils {
 	 * 输出抓取数据到文件
 	 * 
 	 * @param date
+	 *            日期，yyyy-MM-dd
 	 * @param data
+	 *            数据
 	 */
 	public static void outputCrawlData(String date, String data) {
-		String crawlFileDir = Constant.CRAWL_FILE_PATH + Constant.UNDERLINE
-				+ Utils.today() + File.separator;
-		File crawlFile = new File(crawlFileDir);
-		if (!crawlFile.exists()) {
-			crawlFile.mkdirs();
-		}
-		String crawlFilePath = crawlFileDir + date + Constant.UNDERLINE
-				+ System.nanoTime();
+		String crawlFilePath = Constant.CRAWL_FILE_PATH + date
+				+ Constant.UNDERLINE + System.nanoTime();
 		try {
 			FileUtils.writeWithNIO(data, FileUtils.DEFAULT_CHARSET_NAME,
 					crawlFilePath);

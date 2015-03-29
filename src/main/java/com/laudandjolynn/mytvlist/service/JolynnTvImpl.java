@@ -4,10 +4,10 @@ import java.util.List;
 
 import org.json.JSONArray;
 
+import com.laudandjolynn.mytvlist.epg.EpgDao;
 import com.laudandjolynn.mytvlist.epg.EpgTaskManager;
 import com.laudandjolynn.mytvlist.model.ProgramTable;
 import com.laudandjolynn.mytvlist.model.TvStation;
-import com.laudandjolynn.mytvlist.utils.Utils;
 
 /**
  * @author: Laud
@@ -19,14 +19,14 @@ public class JolynnTvImpl implements JolynnTv {
 
 	@Override
 	public String getTvStationClassify() {
-		List<String> classifies = Utils.getTvStationClassify();
+		List<String> classifies = EpgDao.getTvStationClassify();
 		JSONArray array = new JSONArray(classifies);
 		return array.toString();
 	}
 
 	@Override
 	public String getAllTvStation() {
-		List<TvStation> stations = Utils.getAllStation();
+		List<TvStation> stations = EpgDao.getAllStation();
 		JSONArray array = new JSONArray(stations);
 		return array.toString();
 	}

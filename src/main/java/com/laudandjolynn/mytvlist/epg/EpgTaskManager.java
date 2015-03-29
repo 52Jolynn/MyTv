@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 import com.laudandjolynn.mytvlist.exception.MyTvListException;
 import com.laudandjolynn.mytvlist.model.EpgTask;
 import com.laudandjolynn.mytvlist.model.ProgramTable;
-import com.laudandjolynn.mytvlist.utils.Utils;
 
 /**
  * @author: Laud
@@ -53,8 +52,8 @@ public class EpgTaskManager {
 	public List<ProgramTable> queryProgramTable(final String stationName,
 			final String date) {
 		logger.info("query program table of " + stationName + " at " + date);
-		if (Utils.isProgramTableExists(stationName, date)) {
-			return Utils.getProgramTable(stationName, date);
+		if (EpgDao.isProgramTableExists(stationName, date)) {
+			return EpgDao.getProgramTable(stationName, date);
 		}
 		EpgTask epgTask = new EpgTask(stationName, date);
 		if (CURRENT_EPG_TASK.contains(epgTask)) {
@@ -79,7 +78,7 @@ public class EpgTaskManager {
 
 				logger.debug(epgTask
 						+ " has receive notification and try to get program table from db.");
-				return Utils.getProgramTable(stationName, date);
+				return EpgDao.getProgramTable(stationName, date);
 			}
 		}
 

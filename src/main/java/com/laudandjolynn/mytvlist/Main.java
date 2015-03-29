@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 
 import com.laudandjolynn.mytvlist.epg.EpgCrawler;
 import com.laudandjolynn.mytvlist.utils.DateUtils;
-import com.laudandjolynn.mytvlist.utils.Utils;
 
 /**
  * @author: Laud
@@ -50,13 +49,14 @@ public class Main {
 	 */
 	private static void createEverydayCron() {
 		ScheduledExecutorService scheduled = new ScheduledThreadPoolExecutor(1);
-		long initDelay = DateUtils.string2Date(Utils.tommorow() + "00:00:00")
-				.getTime() - new Date().getTime();
+		long initDelay = DateUtils.string2Date(
+				DateUtils.tommorow() + " 00:00:00").getTime()
+				- new Date().getTime();
 		scheduled.scheduleWithFixedDelay(new Runnable() {
 
 			@Override
 			public void run() {
-				EpgCrawler.crawlAllProgramTable(Utils.today());
+				EpgCrawler.crawlAllProgramTable(DateUtils.today());
 			}
 		}, initDelay, 1, TimeUnit.DAYS);
 	}
