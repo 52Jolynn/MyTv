@@ -23,6 +23,7 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.laudandjolynn.mytvlist.epg.EpgCrawler;
 import com.laudandjolynn.mytvlist.epg.EpgDao;
 import com.laudandjolynn.mytvlist.epg.EpgParser;
+import com.laudandjolynn.mytvlist.epg.EpgService;
 import com.laudandjolynn.mytvlist.exception.MyTvListException;
 import com.laudandjolynn.mytvlist.model.ProgramTable;
 import com.laudandjolynn.mytvlist.model.TvStation;
@@ -149,7 +150,7 @@ public class Init {
 	 * 初始化应用数据
 	 */
 	private void initData() {
-		List<TvStation> stations = EpgDao.getAllStation();
+		List<TvStation> stations = EpgService.getAllStation();
 		boolean isStationExists = (stations == null ? 0 : stations.size()) > 0;
 		boolean isProgramTableOfTodayCrawled = MyTvData.getInstance()
 				.isProgramTableOfTodayCrawled();
@@ -169,7 +170,7 @@ public class Init {
 			stations = EpgParser.parseTvStation(html);
 			// 写数据到tv_station表
 			TvStation[] stationArray = new TvStation[stations.size()];
-			EpgDao.save(stations.toArray(stationArray));
+			EpgService.save(stations.toArray(stationArray));
 			MyTvUtils.outputCrawlData(today, html);
 		}
 
@@ -179,7 +180,7 @@ public class Init {
 			List<ProgramTable> ptList = EpgCrawler.crawlAllProgramTableByPage(
 					htmlPage, today);
 			ProgramTable[] ptArray = new ProgramTable[ptList.size()];
-			EpgDao.save(ptList.toArray(ptArray));
+			EpgService.save(ptList.toArray(ptArray));
 			MyTvData.getInstance().writeData(Constant.PROGRAM_TABLE_DATES,
 					Constant.PROGRAM_TABLE_DATE, today);
 		}

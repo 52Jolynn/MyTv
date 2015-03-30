@@ -49,7 +49,7 @@ public class EpgDao {
 	 * 
 	 * @return
 	 */
-	public static List<String> getTvStationClassify() {
+	protected static List<String> getTvStationClassify() {
 		String sql = "select classify from tv_station group by classify";
 		Connection conn = EpgDao.getConnection();
 		Statement stmt = null;
@@ -88,7 +88,7 @@ public class EpgDao {
 	 * 
 	 * @return
 	 */
-	public static List<TvStation> getAllStation() {
+	protected static List<TvStation> getAllStation() {
 		String sql = "select * from tv_station";
 		Connection conn = EpgDao.getConnection();
 		Statement stmt = null;
@@ -132,7 +132,7 @@ public class EpgDao {
 	 * @param stationName
 	 * @return
 	 */
-	public static TvStation getStation(String stationName) {
+	protected static TvStation getStation(String stationName) {
 		String sql = "select * from tv_station where name='" + stationName
 				+ "'";
 		TvStation station = null;
@@ -177,7 +177,7 @@ public class EpgDao {
 	 *            电视台名称
 	 * @return
 	 */
-	public static boolean isStationExists(String stationName) {
+	protected static boolean isStationExists(String stationName) {
 		String sql = "select * from tv_station where name='" + stationName
 				+ "'";
 		Connection conn = EpgDao.getConnection();
@@ -215,34 +215,20 @@ public class EpgDao {
 	 * @param stations
 	 * @return
 	 */
-	public static int[] save(TvStation... stations) {
+	protected static int[] save(TvStation... stations) {
 		int len = stations == null ? 0 : stations.length;
 		if (len <= 0) {
 			return null;
 		}
 		Connection conn = EpgDao.getConnection();
 		String insertSql = "insert into tv_station (name,classify) values(?,?)";
-		String selectSql = "select * from tv_station where name=?";
 		PreparedStatement insertStmt = null;
-		PreparedStatement selectStmt = null;
 		try {
 			conn.setAutoCommit(false);
 			insertStmt = conn.prepareStatement(insertSql);
-			selectStmt = conn.prepareStatement(selectSql);
 
 			for (int i = 0; i < len; i++) {
 				TvStation station = stations[i];
-				String stationName = station.getName();
-				if (Init.getIntance().isStationExists(stationName)) {
-					continue;
-				}
-				selectStmt.setString(1, stationName);
-				ResultSet rs = selectStmt.executeQuery();
-				if (rs.next()) {
-					continue;
-				}
-				rs.close();
-
 				insertStmt.setString(1, station.getName());
 				insertStmt.setString(2, station.getClassify());
 				insertStmt.addBatch();
@@ -285,34 +271,20 @@ public class EpgDao {
 	 * @param programTables
 	 * @return
 	 */
-	public static int[] save(ProgramTable... programTables) {
+	protected static int[] save(ProgramTable... programTables) {
 		int len = programTables == null ? 0 : programTables.length;
 		if (len <= 0) {
 			return null;
 		}
 		Connection conn = EpgDao.getConnection();
 		String insertSql = "insert into program_table (station,stationName,program,airtime,week) values(?,?,?,?,?)";
-		String selectSql = "select * from program_table where stationName=? and airtime=?";
 		PreparedStatement insertStmt = null;
-		PreparedStatement selectStmt = null;
 		try {
 			conn.setAutoCommit(false);
 			insertStmt = conn.prepareStatement(insertSql);
-			selectStmt = conn.prepareStatement(selectSql);
 			for (int i = 0; i < len; i++) {
 				ProgramTable pt = programTables[i];
 				String stationName = pt.getStationName();
-				// 判断电视台是否存在
-				if (!Init.getIntance().isStationExists(stationName)) {
-					continue;
-				}
-				selectStmt.setString(1, stationName);
-				selectStmt.setString(2, pt.getAirTime());
-				ResultSet rs = selectStmt.executeQuery();
-				if (rs.next()) {
-					continue;
-				}
-				rs.close();
 				int id = Init.getIntance().getStation(stationName).getId();
 				insertStmt.setInt(1, id);
 
@@ -344,14 +316,6 @@ public class EpgDao {
 				}
 			}
 
-			if (selectStmt != null) {
-				try {
-					selectStmt.close();
-				} catch (SQLException e) {
-					throw new MyTvListException(e);
-				}
-			}
-
 			if (conn != null) {
 				try {
 					conn.close();
@@ -371,7 +335,7 @@ public class EpgDao {
 	 *            日期，yyyy-MM-dd
 	 * @return
 	 */
-	public static List<ProgramTable> getProgramTable(String stationName,
+	protected static List<ProgramTable> getProgramTable(String stationName,
 			String date) {
 		String sql = "select id,station,stationName,program,airtime,week from program_table where stationName='"
 				+ stationName + "' and aritime='" + date + "'";
@@ -423,7 +387,7 @@ public class EpgDao {
 	 *            日期，yyyy-MM-dd
 	 * @return
 	 */
-	public static boolean isProgramTableExists(String stationName, String date) {
+	protected static boolean isProgramTableExists(String stationName, String date) {
 		String sql = "select * from program_table where stationName='"
 				+ stationName + "' and airtime='" + date + "'";
 		Connection conn = EpgDao.getConnection();

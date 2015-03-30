@@ -10,7 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.laudandjolynn.mytvlist.epg.EpgCrawler;
-import com.laudandjolynn.mytvlist.epg.EpgDao;
+import com.laudandjolynn.mytvlist.epg.EpgService;
 import com.laudandjolynn.mytvlist.model.ProgramTable;
 import com.laudandjolynn.mytvlist.utils.Constant;
 import com.laudandjolynn.mytvlist.utils.DateUtils;
@@ -64,7 +64,7 @@ public class Main {
 				List<ProgramTable> ptList = EpgCrawler
 						.crawlAllProgramTable(today);
 				ProgramTable[] ptArray = new ProgramTable[ptList.size()];
-				EpgDao.save(ptList.toArray(ptArray));
+				EpgService.save(ptList.toArray(ptArray));
 				MyTvData.getInstance().writeData(Constant.PROGRAM_TABLE_DATES,
 						Constant.PROGRAM_TABLE_DATE, today);
 			}
