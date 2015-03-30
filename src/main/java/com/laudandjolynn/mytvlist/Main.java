@@ -29,15 +29,18 @@ public class Main {
 	private final static Logger logger = LoggerFactory.getLogger(Main.class);
 
 	public static void main(String[] args) throws Exception {
-		// 启动应用
+		// 初始化应用状态、启动内部任务
 		startService();
+		// 启动web应用
 		InetSocketAddress address = new InetSocketAddress(
 				Config.WEB_CONFIG.getIp(), Config.WEB_CONFIG.getPort());
 		Server server = new Server(address);
 		WebAppContext context = new WebAppContext();
-		context.setContextPath("/");
-		context.setDescriptor(Main.class.getResource(".").getPath()
-				+ "WEB-INF/web.xml");
+		String contextPath = Main.class.getResource(".").getPath() + "/webapp";
+		context.setContextPath(contextPath);
+		context.setDescriptor(contextPath + "/WEB-INF/web.xml");
+		context.setResourceBase(contextPath);
+		context.setParentLoaderPriority(true);
 		server.setHandler(context);
 		server.start();
 		server.join();
