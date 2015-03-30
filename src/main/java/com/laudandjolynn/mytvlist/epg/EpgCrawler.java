@@ -29,6 +29,7 @@ import com.laudandjolynn.mytvlist.model.ProgramTable;
 import com.laudandjolynn.mytvlist.model.TvStation;
 import com.laudandjolynn.mytvlist.utils.Constant;
 import com.laudandjolynn.mytvlist.utils.DateUtils;
+import com.laudandjolynn.mytvlist.utils.MyTvUtils;
 
 /**
  * @author: Laud
@@ -252,7 +253,7 @@ public class EpgCrawler {
 		List<ProgramTable> ptList = EpgParser.parseProgramTable(html);
 		ProgramTable[] ptArray = new ProgramTable[ptList.size()];
 		EpgDao.save(ptList.toArray(ptArray));
-		EpgDao.outputCrawlData(queryDate, html);
+		MyTvUtils.outputCrawlData(queryDate, html);
 		return ptList;
 	}
 

@@ -1,6 +1,7 @@
 package com.laudandjolynn.mytvlist;
 
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -9,6 +10,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.laudandjolynn.mytvlist.epg.EpgCrawler;
+import com.laudandjolynn.mytvlist.epg.EpgDao;
+import com.laudandjolynn.mytvlist.model.ProgramTable;
+import com.laudandjolynn.mytvlist.utils.Constant;
 import com.laudandjolynn.mytvlist.utils.DateUtils;
 
 /**
@@ -56,7 +60,13 @@ public class Main {
 
 			@Override
 			public void run() {
-				EpgCrawler.crawlAllProgramTable(DateUtils.today());
+				String today = DateUtils.today();
+				List<ProgramTable> ptList = EpgCrawler
+						.crawlAllProgramTable(today);
+				ProgramTable[] ptArray = new ProgramTable[ptList.size()];
+				EpgDao.save(ptList.toArray(ptArray));
+				MyTvData.getInstance().writeData(Constant.PROGRAM_TABLE_DATES,
+						Constant.PROGRAM_TABLE_DATE, today);
 			}
 		}, initDelay, 1, TimeUnit.DAYS);
 	}

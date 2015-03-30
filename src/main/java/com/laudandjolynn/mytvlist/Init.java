@@ -1,7 +1,6 @@
 package com.laudandjolynn.mytvlist;
 
 import java.io.File;
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -29,7 +28,7 @@ import com.laudandjolynn.mytvlist.model.ProgramTable;
 import com.laudandjolynn.mytvlist.model.TvStation;
 import com.laudandjolynn.mytvlist.utils.Constant;
 import com.laudandjolynn.mytvlist.utils.DateUtils;
-import com.laudandjolynn.mytvlist.utils.FileUtils;
+import com.laudandjolynn.mytvlist.utils.MyTvUtils;
 
 /**
  * @author: Laud
@@ -56,6 +55,8 @@ public class Init {
 	 * 初始化应用基础数据
 	 */
 	public void init() {
+		// 加载应用数据
+		MyTvData.getInstance().loadData();
 		// 初始化数据库
 		this.initDb();
 		// 初始化其他数据
@@ -86,8 +87,7 @@ public class Init {
 	 * 初始化数据库
 	 */
 	private void initDb() {
-		File mytvlist = new File(Constant.MY_TV_DATA_FILE_PATH);
-		if (mytvlist.exists()) {
+		if (MyTvData.getInstance().isDbInited()) {
 			logger.debug("db have already init.");
 			return;
 		}
@@ -98,6 +98,7 @@ public class Init {
 			throw new MyTvListException("db driver class is not found.", e);
 		}
 
+		File mytvlist = new File(Constant.MY_TV_DATA_FILE_PATH);
 		Connection conn = EpgDao.getConnection();
 		Statement stmt = null;
 		try {
@@ -110,13 +111,8 @@ public class Init {
 			}
 			stmt.executeBatch();
 			conn.commit();
-			try {
-				FileUtils.write(Constant.APP_NAME.getBytes(),
-						Constant.MY_TV_DATA_FILE_PATH);
-			} catch (IOException e) {
-				mytvlist.deleteOnExit();
-				throw new MyTvListException(e);
-			}
+
+			MyTvData.getInstance().writeData(null, Constant.SQL_FILE, "true");
 		} catch (SQLException e) {
 			if (conn != null) {
 				try {
@@ -153,30 +149,40 @@ public class Init {
 	 * 初始化应用数据
 	 */
 	private void initData() {
+		List<TvStation> stations = EpgDao.getAllStation();
+		boolean isStationExists = (stations == null ? 0 : stations.size()) > 0;
+		boolean isProgramTableOfTodayCrawled = MyTvData.getInstance()
+				.isProgramTableOfTodayCrawled();
+		if (isStationExists && isProgramTableOfTodayCrawled) {
+			this.addAllTvStation2Cache(stations);
+			return;
+		}
 		// 首次抓取
 		Page page = Crawler.crawl(Constant.EPG_URL);
 		if (!page.isHtmlPage()) {
 			return;
 		}
 		HtmlPage htmlPage = (HtmlPage) page;
-		List<TvStation> stations = EpgDao.getAllStation();
-		if ((stations == null ? 0 : stations.size()) == 0) {
+		String today = DateUtils.today();
+		if (!isStationExists) {
 			String html = htmlPage.asXml();
 			stations = EpgParser.parseTvStation(html);
 			// 写数据到tv_station表
 			TvStation[] stationArray = new TvStation[stations.size()];
 			EpgDao.save(stations.toArray(stationArray));
-			EpgDao.outputCrawlData(DateUtils.today(), html);
+			MyTvUtils.outputCrawlData(today, html);
 		}
-		this.addAllTvStation2Cache(stations);
 
-		// 保存当天电视节目表
-		logger.info("query program table of today. " + "today is "
-				+ DateUtils.today());
-		List<ProgramTable> ptList = EpgCrawler.crawlAllProgramTableByPage(
-				htmlPage, DateUtils.today());
-		ProgramTable[] ptArray = new ProgramTable[ptList.size()];
-		EpgDao.save(ptList.toArray(ptArray));
+		if (!isProgramTableOfTodayCrawled) {
+			// 保存当天电视节目表
+			logger.info("query program table of today. " + "today is " + today);
+			List<ProgramTable> ptList = EpgCrawler.crawlAllProgramTableByPage(
+					htmlPage, today);
+			ProgramTable[] ptArray = new ProgramTable[ptList.size()];
+			EpgDao.save(ptList.toArray(ptArray));
+			MyTvData.getInstance().writeData(Constant.PROGRAM_TABLE_DATES,
+					Constant.PROGRAM_TABLE_DATE, today);
+		}
 	}
 
 	public Collection<TvStation> getAllCacheTvStation() {

@@ -1,6 +1,5 @@
 package com.laudandjolynn.mytvlist.epg;
 
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -15,7 +14,6 @@ import com.laudandjolynn.mytvlist.exception.MyTvListException;
 import com.laudandjolynn.mytvlist.model.ProgramTable;
 import com.laudandjolynn.mytvlist.model.TvStation;
 import com.laudandjolynn.mytvlist.utils.Constant;
-import com.laudandjolynn.mytvlist.utils.FileUtils;
 
 /**
  * @author: Laud
@@ -224,17 +222,27 @@ public class EpgDao {
 		}
 		Connection conn = EpgDao.getConnection();
 		String insertSql = "insert into tv_station (name,classify) values(?,?)";
+		String selectSql = "select * from tv_station where name=?";
 		PreparedStatement insertStmt = null;
+		PreparedStatement selectStmt = null;
 		try {
 			conn.setAutoCommit(false);
 			insertStmt = conn.prepareStatement(insertSql);
+			selectStmt = conn.prepareStatement(selectSql);
+
 			for (int i = 0; i < len; i++) {
 				TvStation station = stations[i];
 				String stationName = station.getName();
-				if (Init.getIntance().isStationExists(stationName)
-						|| isStationExists(stationName)) {
+				if (Init.getIntance().isStationExists(stationName)) {
 					continue;
 				}
+				selectStmt.setString(1, stationName);
+				ResultSet rs = selectStmt.executeQuery();
+				if (rs.next()) {
+					continue;
+				}
+				rs.close();
+
 				insertStmt.setString(1, station.getName());
 				insertStmt.setString(2, station.getClassify());
 				insertStmt.addBatch();
@@ -284,17 +292,27 @@ public class EpgDao {
 		}
 		Connection conn = EpgDao.getConnection();
 		String insertSql = "insert into program_table (station,stationName,program,airtime,week) values(?,?,?,?,?)";
+		String selectSql = "select * from program_table where stationName=? and airtime=?";
 		PreparedStatement insertStmt = null;
+		PreparedStatement selectStmt = null;
 		try {
 			conn.setAutoCommit(false);
 			insertStmt = conn.prepareStatement(insertSql);
+			selectStmt = conn.prepareStatement(selectSql);
 			for (int i = 0; i < len; i++) {
 				ProgramTable pt = programTables[i];
 				String stationName = pt.getStationName();
-				if (isProgramTableExists(stationName, pt.getAirTime())
-						|| !Init.getIntance().isStationExists(stationName)) {
+				// 判断电视台是否存在
+				if (!Init.getIntance().isStationExists(stationName)) {
 					continue;
 				}
+				selectStmt.setString(1, stationName);
+				selectStmt.setString(2, pt.getAirTime());
+				ResultSet rs = selectStmt.executeQuery();
+				if (rs.next()) {
+					continue;
+				}
+				rs.close();
 				int id = Init.getIntance().getStation(stationName).getId();
 				insertStmt.setInt(1, id);
 
@@ -321,6 +339,14 @@ public class EpgDao {
 			if (insertStmt != null) {
 				try {
 					insertStmt.close();
+				} catch (SQLException e) {
+					throw new MyTvListException(e);
+				}
+			}
+
+			if (selectStmt != null) {
+				try {
+					selectStmt.close();
 				} catch (SQLException e) {
 					throw new MyTvListException(e);
 				}
@@ -429,24 +455,4 @@ public class EpgDao {
 		}
 	}
 
-	/**
-	 * 输出抓取数据到文件
-	 * 
-	 * @param date
-	 *            日期，yyyy-MM-dd
-	 * @param data
-	 *            数据
-	 */
-	public static void outputCrawlData(String date, String data) {
-		String crawlFilePath = Constant.CRAWL_FILE_PATH + date
-				+ Constant.UNDERLINE + System.nanoTime();
-		try {
-			FileUtils.writeWithNIO(data, FileUtils.DEFAULT_CHARSET_NAME,
-					crawlFilePath);
-		} catch (IOException e) {
-			throw new MyTvListException(
-					"error occur while write crawled data to disk. filepaht ["
-							+ crawlFilePath + "].", e);
-		}
-	}
 }
