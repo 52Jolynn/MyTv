@@ -12,6 +12,9 @@ import java.util.ResourceBundle;
 public class Config {
 	private final static String CRAWL_FILE_PATH_NAME = "crawl_file_path";
 	private final static String CONFIG_FILE_NAME = "config";
+	public final static Web WEB_CONFIG = new Web();
+	private final static String CONFIG_WEB_IP = "web_ip";
+	private final static String CONFIG_WEB_PORT = "web_port";
 
 	static {
 		ResourceBundle bundle = ResourceBundle.getBundle(CONFIG_FILE_NAME);
@@ -27,6 +30,26 @@ public class Config {
 					file.mkdirs();
 				}
 			}
+		}
+		if (bundle.containsKey(CONFIG_WEB_IP)) {
+			WEB_CONFIG.ip = bundle.getString(CONFIG_WEB_IP);
+		}
+		if (bundle.containsKey(CONFIG_WEB_PORT)) {
+			WEB_CONFIG.port = Integer
+					.valueOf(bundle.getString(CONFIG_WEB_PORT));
+		}
+	}
+
+	public final static class Web {
+		private String ip = "127.0.0.1";
+		private int port = 8080;
+
+		public String getIp() {
+			return ip;
+		}
+
+		public int getPort() {
+			return port;
 		}
 	}
 }

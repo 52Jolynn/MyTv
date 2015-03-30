@@ -1,17 +1,21 @@
 package com.laudandjolynn.mytvlist;
 
+import java.net.InetSocketAddress;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.laudandjolynn.mytvlist.epg.EpgCrawler;
 import com.laudandjolynn.mytvlist.epg.EpgService;
 import com.laudandjolynn.mytvlist.model.ProgramTable;
+import com.laudandjolynn.mytvlist.utils.Config;
 import com.laudandjolynn.mytvlist.utils.Constant;
 import com.laudandjolynn.mytvlist.utils.DateUtils;
 
@@ -24,28 +28,31 @@ import com.laudandjolynn.mytvlist.utils.DateUtils;
 public class Main {
 	private final static Logger logger = LoggerFactory.getLogger(Main.class);
 
-	public static void main(String[] args) {
-		logger.info("start My TV Program Table Crawler.");
+	public static void main(String[] args) throws Exception {
 		// 启动应用
 		startService();
-		// 启动每天定时任务
-		logger.info("create everyday crawl task.");
-		createEverydayCron();
+		InetSocketAddress address = new InetSocketAddress(
+				Config.WEB_CONFIG.getIp(), Config.WEB_CONFIG.getPort());
+		Server server = new Server(address);
+		WebAppContext context = new WebAppContext();
+		context.setContextPath("/");
+		context.setDescriptor(Main.class.getResource(".").getPath()
+				+ "WEB-INF/web.xml");
+		server.setHandler(context);
+		server.start();
+		server.join();
 		logger.info("My TV Program Table Crawler is running.");
-		while (true) {
-			try {
-				Thread.sleep(100);
-			} catch (InterruptedException e) {
-				logger.error("My TV Program has stop.", e);
-			}
-		}
 	}
 
 	/**
 	 * 启动应用
 	 */
 	private static void startService() {
+		logger.info("start My TV Program Table Crawler.");
 		Init.getIntance().init();
+		// 启动每天定时任务
+		logger.info("create everyday crawl task.");
+		createEverydayCron();
 	}
 
 	/**

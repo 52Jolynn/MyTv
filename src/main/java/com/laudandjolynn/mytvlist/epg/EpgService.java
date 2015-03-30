@@ -34,7 +34,7 @@ public class EpgService {
 			resultList.add(station);
 		}
 		stations = new TvStation[resultList.size()];
-		EpgDao.save(stations);
+		EpgDao.save(resultList.toArray(stations));
 	}
 
 	/**
@@ -70,7 +70,7 @@ public class EpgService {
 			resultList.add(pt);
 		}
 		programTables = new ProgramTable[resultList.size()];
-		EpgDao.save(programTables);
+		EpgDao.save(resultList.toArray(programTables));
 	}
 
 	/**

@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.json.JSONArray;
 
+import com.caucho.hessian.server.HessianServlet;
 import com.laudandjolynn.mytvlist.epg.EpgService;
 import com.laudandjolynn.mytvlist.epg.EpgTaskManager;
 import com.laudandjolynn.mytvlist.model.ProgramTable;
@@ -15,7 +16,8 @@ import com.laudandjolynn.mytvlist.model.TvStation;
  * @date: 2015年3月25日 下午6:20:06
  * @copyright: www.laudandjolynn.com
  */
-public class JolynnTvImpl implements JolynnTv {
+public class JolynnTvImpl extends HessianServlet implements JolynnTv {
+	private static final long serialVersionUID = 1005559884840488035L;
 
 	@Override
 	public String getTvStationClassify() {
