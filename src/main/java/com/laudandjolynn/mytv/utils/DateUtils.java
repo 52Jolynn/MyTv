@@ -1,4 +1,4 @@
-package com.laudandjolynn.mytvlist.utils;
+package com.laudandjolynn.mytv.utils;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;

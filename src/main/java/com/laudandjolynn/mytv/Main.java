@@ -1,4 +1,4 @@
-package com.laudandjolynn.mytvlist;
+package com.laudandjolynn.mytv;
 
 import java.net.InetSocketAddress;
 import java.util.Date;
@@ -12,12 +12,12 @@ import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.laudandjolynn.mytvlist.epg.EpgCrawler;
-import com.laudandjolynn.mytvlist.epg.EpgService;
-import com.laudandjolynn.mytvlist.model.ProgramTable;
-import com.laudandjolynn.mytvlist.utils.Config;
-import com.laudandjolynn.mytvlist.utils.Constant;
-import com.laudandjolynn.mytvlist.utils.DateUtils;
+import com.laudandjolynn.mytv.epg.EpgCrawler;
+import com.laudandjolynn.mytv.epg.EpgService;
+import com.laudandjolynn.mytv.model.ProgramTable;
+import com.laudandjolynn.mytv.utils.Config;
+import com.laudandjolynn.mytv.utils.Constant;
+import com.laudandjolynn.mytv.utils.DateUtils;
 
 /**
  * @author: Laud

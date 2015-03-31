@@ -1,4 +1,4 @@
-package com.laudandjolynn.mytvlist;
+package com.laudandjolynn.mytv;
 
 import java.io.File;
 import java.sql.Connection;
@@ -20,16 +20,16 @@ import org.slf4j.LoggerFactory;
 
 import com.gargoylesoftware.htmlunit.Page;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
-import com.laudandjolynn.mytvlist.epg.EpgCrawler;
-import com.laudandjolynn.mytvlist.epg.EpgDao;
-import com.laudandjolynn.mytvlist.epg.EpgParser;
-import com.laudandjolynn.mytvlist.epg.EpgService;
-import com.laudandjolynn.mytvlist.exception.MyTvListException;
-import com.laudandjolynn.mytvlist.model.ProgramTable;
-import com.laudandjolynn.mytvlist.model.TvStation;
-import com.laudandjolynn.mytvlist.utils.Constant;
-import com.laudandjolynn.mytvlist.utils.DateUtils;
-import com.laudandjolynn.mytvlist.utils.MyTvUtils;
+import com.laudandjolynn.mytv.epg.EpgCrawler;
+import com.laudandjolynn.mytv.epg.EpgDao;
+import com.laudandjolynn.mytv.epg.EpgParser;
+import com.laudandjolynn.mytv.epg.EpgService;
+import com.laudandjolynn.mytv.exception.MyTvListException;
+import com.laudandjolynn.mytv.model.ProgramTable;
+import com.laudandjolynn.mytv.model.TvStation;
+import com.laudandjolynn.mytv.utils.Constant;
+import com.laudandjolynn.mytv.utils.DateUtils;
+import com.laudandjolynn.mytv.utils.MyTvUtils;
 
 /**
  * @author: Laud

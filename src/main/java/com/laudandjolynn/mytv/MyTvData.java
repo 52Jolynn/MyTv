@@ -1,4 +1,4 @@
-package com.laudandjolynn.mytvlist;
+package com.laudandjolynn.mytv;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -16,10 +16,10 @@ import org.dom4j.io.XMLWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.laudandjolynn.mytvlist.exception.MyTvListException;
-import com.laudandjolynn.mytvlist.utils.Constant;
-import com.laudandjolynn.mytvlist.utils.DateUtils;
-import com.laudandjolynn.mytvlist.utils.FileUtils;
+import com.laudandjolynn.mytv.exception.MyTvListException;
+import com.laudandjolynn.mytv.utils.Constant;
+import com.laudandjolynn.mytv.utils.DateUtils;
+import com.laudandjolynn.mytv.utils.FileUtils;
 
 /**
  * @author: Laud

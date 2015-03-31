@@ -1,14 +1,14 @@
-package com.laudandjolynn.mytvlist.service;
+package com.laudandjolynn.mytv.service;
 
 import java.util.List;
 
 import org.json.JSONArray;
 
 import com.caucho.hessian.server.HessianServlet;
-import com.laudandjolynn.mytvlist.epg.EpgService;
-import com.laudandjolynn.mytvlist.epg.EpgTaskManager;
-import com.laudandjolynn.mytvlist.model.ProgramTable;
-import com.laudandjolynn.mytvlist.model.TvStation;
+import com.laudandjolynn.mytv.epg.EpgService;
+import com.laudandjolynn.mytv.epg.EpgTaskManager;
+import com.laudandjolynn.mytv.model.ProgramTable;
+import com.laudandjolynn.mytv.model.TvStation;
 
 /**
  * @author: Laud

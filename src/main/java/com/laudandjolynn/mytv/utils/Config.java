@@ -1,4 +1,4 @@
-package com.laudandjolynn.mytvlist.utils;
+package com.laudandjolynn.mytv.utils;
 
 import java.io.File;
 import java.util.ResourceBundle;

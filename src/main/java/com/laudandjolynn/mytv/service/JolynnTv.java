@@ -1,4 +1,4 @@
-package com.laudandjolynn.mytvlist.service;
+package com.laudandjolynn.mytv.service;
 
 /**
  * @author: Laud

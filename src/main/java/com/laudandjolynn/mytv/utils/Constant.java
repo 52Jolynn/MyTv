@@ -1,4 +1,4 @@
-package com.laudandjolynn.mytvlist.utils;
+package com.laudandjolynn.mytv.utils;
 
 import java.io.File;
 
@@ -18,7 +18,7 @@ public class Constant {
 			.getResource("/").getPath() + "data" + File.separator;
 	// 数据文件
 	public final static String MY_TV_DATA_FILE_PATH = MY_TV_DATA_PATH
-			+ "mytvlist.dat";
+			+ "mytv.dat";
 	// 电视节目表文件路径
 	public final static String CRAWL_FILE_DIR = "crawlfiles";
 	public static String CRAWL_FILE_PATH = Constant.MY_TV_DATA_PATH

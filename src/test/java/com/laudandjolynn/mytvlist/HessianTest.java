@@ -3,7 +3,7 @@ package com.laudandjolynn.mytvlist;
 import java.net.MalformedURLException;
 
 import com.caucho.hessian.client.HessianProxyFactory;
-import com.laudandjolynn.mytvlist.service.JolynnTv;
+import com.laudandjolynn.mytv.service.JolynnTv;
 
 import junit.framework.TestCase;
 

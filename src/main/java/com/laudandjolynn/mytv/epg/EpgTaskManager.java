@@ -1,4 +1,4 @@
-package com.laudandjolynn.mytvlist.epg;
+package com.laudandjolynn.mytv.epg;
 
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -11,9 +11,9 @@ import org.eclipse.jetty.util.ConcurrentHashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.laudandjolynn.mytvlist.exception.MyTvListException;
-import com.laudandjolynn.mytvlist.model.EpgTask;
-import com.laudandjolynn.mytvlist.model.ProgramTable;
+import com.laudandjolynn.mytv.exception.MyTvListException;
+import com.laudandjolynn.mytv.model.EpgTask;
+import com.laudandjolynn.mytv.model.ProgramTable;
 
 /**
  * @author: Laud

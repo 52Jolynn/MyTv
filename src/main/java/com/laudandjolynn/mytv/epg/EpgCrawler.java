@@ -1,4 +1,4 @@
-package com.laudandjolynn.mytvlist.epg;
+package com.laudandjolynn.mytv.epg;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -22,14 +22,14 @@ import com.gargoylesoftware.htmlunit.Page;
 import com.gargoylesoftware.htmlunit.html.DomElement;
 import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
-import com.laudandjolynn.mytvlist.Crawler;
-import com.laudandjolynn.mytvlist.Init;
-import com.laudandjolynn.mytvlist.exception.MyTvListException;
-import com.laudandjolynn.mytvlist.model.ProgramTable;
-import com.laudandjolynn.mytvlist.model.TvStation;
-import com.laudandjolynn.mytvlist.utils.Constant;
-import com.laudandjolynn.mytvlist.utils.DateUtils;
-import com.laudandjolynn.mytvlist.utils.MyTvUtils;
+import com.laudandjolynn.mytv.Crawler;
+import com.laudandjolynn.mytv.Init;
+import com.laudandjolynn.mytv.exception.MyTvListException;
+import com.laudandjolynn.mytv.model.ProgramTable;
+import com.laudandjolynn.mytv.model.TvStation;
+import com.laudandjolynn.mytv.utils.Constant;
+import com.laudandjolynn.mytv.utils.DateUtils;
+import com.laudandjolynn.mytv.utils.MyTvUtils;
 
 /**
  * @author: Laud

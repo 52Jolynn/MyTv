@@ -1,4 +1,4 @@
-package com.laudandjolynn.mytvlist.exception;
+package com.laudandjolynn.mytv.exception;
 
 /**
  * @author: Laud

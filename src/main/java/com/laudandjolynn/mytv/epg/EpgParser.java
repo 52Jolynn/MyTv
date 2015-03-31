@@ -1,4 +1,4 @@
-package com.laudandjolynn.mytvlist.epg;
+package com.laudandjolynn.mytv.epg;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,8 +8,8 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import com.laudandjolynn.mytvlist.model.ProgramTable;
-import com.laudandjolynn.mytvlist.model.TvStation;
+import com.laudandjolynn.mytv.model.ProgramTable;
+import com.laudandjolynn.mytv.model.TvStation;
 
 /**
  * @author: Laud

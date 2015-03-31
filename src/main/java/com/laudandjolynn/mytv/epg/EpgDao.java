@@ -1,4 +1,4 @@
-package com.laudandjolynn.mytvlist.epg;
+package com.laudandjolynn.mytv.epg;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -9,11 +9,11 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.laudandjolynn.mytvlist.Init;
-import com.laudandjolynn.mytvlist.exception.MyTvListException;
-import com.laudandjolynn.mytvlist.model.ProgramTable;
-import com.laudandjolynn.mytvlist.model.TvStation;
-import com.laudandjolynn.mytvlist.utils.Constant;
+import com.laudandjolynn.mytv.Init;
+import com.laudandjolynn.mytv.exception.MyTvListException;
+import com.laudandjolynn.mytv.model.ProgramTable;
+import com.laudandjolynn.mytv.model.TvStation;
+import com.laudandjolynn.mytv.utils.Constant;
 
 /**
  * @author: Laud

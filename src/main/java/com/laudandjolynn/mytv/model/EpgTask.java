@@ -1,4 +1,4 @@
-package com.laudandjolynn.mytvlist.model;
+package com.laudandjolynn.mytv.model;
 
 /**
  * @author: Laud

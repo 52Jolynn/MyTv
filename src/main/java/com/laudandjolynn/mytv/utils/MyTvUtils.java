@@ -1,9 +1,9 @@
-package com.laudandjolynn.mytvlist.utils;
+package com.laudandjolynn.mytv.utils;
 
 import java.io.File;
 import java.io.IOException;
 
-import com.laudandjolynn.mytvlist.exception.MyTvListException;
+import com.laudandjolynn.mytv.exception.MyTvListException;
 
 /**
  * @author: Laud
