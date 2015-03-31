@@ -13,47 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package com.laudandjolynn.mytv.model;
+package com.laudandjolynn.mytv;
+
+import java.net.MalformedURLException;
+
+import com.caucho.hessian.client.HessianProxyFactory;
+import com.laudandjolynn.mytv.service.JolynnTv;
+
+import junit.framework.TestCase;
 
 /**
  * @author: Laud
  * @email: htd0324@gmail.com
- * @date: 2015年3月25日 下午4:40:59
+ * @date: 2015年3月30日 下午5:07:35
  * @copyright: www.laudandjolynn.com
  */
-public class TvStation {
-	private int id;
-	private String name;
-	private String classify;
-
-	public int getId() {
-		return id;
+public class HessianTest extends TestCase {
+	public void testEpg() {
+		String url = "http://localhost/epg";
+		HessianProxyFactory proxy = new HessianProxyFactory();
+		try {
+			JolynnTv tv = (JolynnTv) proxy.create(JolynnTv.class, url);
+			System.out.println(tv.getTvStationClassify());
+		} catch (MalformedURLException e) {
+		}
 	}
-
-	public void setId(int id) {
-		this.id = id;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public String getClassify() {
-		return classify;
-	}
-
-	public void setClassify(String classify) {
-		this.classify = classify;
-	}
-
-	@Override
-	public String toString() {
-		return "TvStation [id=" + id + ", name=" + name + ", classify="
-				+ classify + "]";
-	}
-
 }
