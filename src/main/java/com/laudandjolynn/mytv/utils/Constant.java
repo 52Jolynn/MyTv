@@ -40,6 +40,7 @@ public class Constant {
 			+ CRAWL_FILE_DIR + File.separator;
 	// 数据库文件名
 	public final static String SQL_FILE = "db";
+	public final static String DB_NAME = "mytv.db";
 	public final static String APP_NAME = "mytv";
 	public final static String PROGRAM_TABLE_DATES = "dates";
 	public final static String PROGRAM_TABLE_DATE = "date";

@@ -79,7 +79,7 @@ public class EpgParser {
 		for (int i = 0, size = weekElements == null ? 0 : weekElements.size(); i < size; i++) {
 			Element element = weekElements.get(i);
 			if (element.hasClass("cur")) {
-				week = i;
+				week = i + 1;
 				date = element.attr("rel");
 				break;
 			}

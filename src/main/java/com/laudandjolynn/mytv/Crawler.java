@@ -27,7 +27,7 @@ import com.gargoylesoftware.htmlunit.NicelyResynchronizingAjaxController;
 import com.gargoylesoftware.htmlunit.Page;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
-import com.laudandjolynn.mytv.exception.MyTvListException;
+import com.laudandjolynn.mytv.exception.MyTvException;
 
 /**
  * @author: Laud
@@ -49,7 +49,7 @@ public class Crawler {
 		if (page instanceof HtmlPage) {
 			return ((HtmlPage) page).asXml();
 		}
-		throw new MyTvListException("my crawler is only to get html page.");
+		throw new MyTvException("my crawler is only to get html page.");
 	}
 
 	/**
@@ -68,11 +68,11 @@ public class Crawler {
 			logger.debug("begin to get page: " + url);
 			return webClient.getPage(url);
 		} catch (FailingHttpStatusCodeException e) {
-			throw new MyTvListException("can't connect to " + url, e);
+			throw new MyTvException("can't connect to " + url, e);
 		} catch (MalformedURLException e) {
-			throw new MyTvListException("invalid url " + url, e);
+			throw new MyTvException("invalid url " + url, e);
 		} catch (IOException e) {
-			throw new MyTvListException("error occur while connect to " + url,
+			throw new MyTvException("error occur while connect to " + url,
 					e);
 		}
 	}

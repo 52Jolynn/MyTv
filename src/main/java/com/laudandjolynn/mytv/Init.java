@@ -39,7 +39,7 @@ import com.laudandjolynn.mytv.epg.EpgCrawler;
 import com.laudandjolynn.mytv.epg.EpgDao;
 import com.laudandjolynn.mytv.epg.EpgParser;
 import com.laudandjolynn.mytv.epg.EpgService;
-import com.laudandjolynn.mytv.exception.MyTvListException;
+import com.laudandjolynn.mytv.exception.MyTvException;
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
 import com.laudandjolynn.mytv.utils.Constant;
@@ -111,10 +111,10 @@ public class Init {
 		try {
 			Class.forName("org.sqlite.JDBC");
 		} catch (ClassNotFoundException e) {
-			throw new MyTvListException("db driver class is not found.", e);
+			throw new MyTvException("db driver class is not found.", e);
 		}
 
-		File mytvlist = new File(Constant.MY_TV_DATA_FILE_PATH);
+		File myTvDataFilePath = new File(Constant.MY_TV_DATA_FILE_PATH);
 		Connection conn = EpgDao.getConnection();
 		Statement stmt = null;
 		try {
@@ -134,19 +134,19 @@ public class Init {
 				try {
 					conn.rollback();
 				} catch (SQLException e1) {
-					throw new MyTvListException(
+					throw new MyTvException(
 							"error occur while rollback transaction.", e);
 				}
 			}
-			mytvlist.deleteOnExit();
-			throw new MyTvListException("error occur while execute sql on db.",
+			myTvDataFilePath.deleteOnExit();
+			throw new MyTvException("error occur while execute sql on db.",
 					e);
 		} finally {
 			if (stmt != null) {
 				try {
 					stmt.close();
 				} catch (SQLException e) {
-					throw new MyTvListException(
+					throw new MyTvException(
 							"error occur while close statement.", e);
 				}
 			}
@@ -154,7 +154,7 @@ public class Init {
 				try {
 					conn.close();
 				} catch (SQLException e) {
-					throw new MyTvListException(
+					throw new MyTvException(
 							"error occur while close sqlite connection.", e);
 				}
 			}
@@ -187,6 +187,7 @@ public class Init {
 			TvStation[] stationArray = new TvStation[stations.size()];
 			EpgService.save(stations.toArray(stationArray));
 			MyTvUtils.outputCrawlData(today, html);
+			this.addAllTvStation2Cache(stations);
 		}
 
 		if (!isProgramTableOfTodayCrawled) {

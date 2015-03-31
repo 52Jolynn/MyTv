@@ -21,22 +21,22 @@ package com.laudandjolynn.mytv.exception;
  * @date: 2015年3月25日 上午9:18:03
  * @copyright: www.laudandjolynn.com
  */
-public class MyTvListException extends RuntimeException {
+public class MyTvException extends RuntimeException {
 	private static final long serialVersionUID = -2699920699817552410L;
 
-	public MyTvListException() {
+	public MyTvException() {
 		super();
 	}
 
-	public MyTvListException(String message, Throwable cause) {
+	public MyTvException(String message, Throwable cause) {
 		super(message, cause);
 	}
 
-	public MyTvListException(String message) {
+	public MyTvException(String message) {
 		super(message);
 	}
 
-	public MyTvListException(Throwable cause) {
+	public MyTvException(Throwable cause) {
 		super(cause);
 	}
 

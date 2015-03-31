@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.laudandjolynn.mytv.Init;
-import com.laudandjolynn.mytv.exception.MyTvListException;
+import com.laudandjolynn.mytv.exception.MyTvException;
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
 import com.laudandjolynn.mytv.utils.Constant;
@@ -47,15 +47,14 @@ public class EpgDao {
 		try {
 			Class.forName("org.sqlite.JDBC");
 		} catch (ClassNotFoundException e) {
-			throw new MyTvListException("db driver class is not found.", e);
+			throw new MyTvException("db driver class is not found.", e);
 		}
 
 		try {
 			return DriverManager.getConnection("jdbc:sqlite:"
-					+ Constant.MY_TV_DATA_PATH + "mytvlist.db");
+					+ Constant.MY_TV_DATA_PATH + Constant.DB_NAME);
 		} catch (SQLException e) {
-			throw new MyTvListException("error occur while connection to db.",
-					e);
+			throw new MyTvException("error occur while connection to db.", e);
 		}
 	}
 
@@ -76,13 +75,13 @@ public class EpgDao {
 				classifies.add(rs.getString(1));
 			}
 		} catch (SQLException e) {
-			throw new MyTvListException(e);
+			throw new MyTvException(e);
 		} finally {
 			if (stmt != null) {
 				try {
 					stmt.close();
 				} catch (SQLException e) {
-					throw new MyTvListException(e);
+					throw new MyTvException(e);
 				}
 			}
 
@@ -90,7 +89,7 @@ public class EpgDao {
 				try {
 					conn.close();
 				} catch (SQLException e) {
-					throw new MyTvListException(e);
+					throw new MyTvException(e);
 				}
 			}
 		}
@@ -119,13 +118,13 @@ public class EpgDao {
 				stations.add(station);
 			}
 		} catch (SQLException e) {
-			throw new MyTvListException(e);
+			throw new MyTvException(e);
 		} finally {
 			if (stmt != null) {
 				try {
 					stmt.close();
 				} catch (SQLException e) {
-					throw new MyTvListException(e);
+					throw new MyTvException(e);
 				}
 			}
 
@@ -133,7 +132,7 @@ public class EpgDao {
 				try {
 					conn.close();
 				} catch (SQLException e) {
-					throw new MyTvListException(e);
+					throw new MyTvException(e);
 				}
 			}
 		}
@@ -164,13 +163,13 @@ public class EpgDao {
 			}
 			rs.close();
 		} catch (SQLException e) {
-			throw new MyTvListException(e);
+			throw new MyTvException(e);
 		} finally {
 			if (stmt != null) {
 				try {
 					stmt.close();
 				} catch (SQLException e) {
-					throw new MyTvListException(e);
+					throw new MyTvException(e);
 				}
 			}
 
@@ -178,11 +177,54 @@ public class EpgDao {
 				try {
 					conn.close();
 				} catch (SQLException e) {
-					throw new MyTvListException(e);
+					throw new MyTvException(e);
 				}
 			}
 		}
 		return station;
+	}
+
+	/**
+	 * 判断电视台在数据库是否存在
+	 * 
+	 * @param stations
+	 * @return
+	 */
+	protected static boolean[] isStationExists(TvStation... stations) {
+		int length = stations.length;
+		boolean[] result = new boolean[length];
+		Connection conn = EpgDao.getConnection();
+		String sql = "select * from tv_station where name=?";
+		PreparedStatement stmt = null;
+		try {
+			stmt = conn.prepareStatement(sql);
+			for (int i = 0; i < length; i++) {
+				TvStation station = stations[i];
+				stmt.setString(1, station.getName());
+				ResultSet rs = stmt.executeQuery();
+				result[i] = rs.next();
+				rs.close();
+			}
+			return result;
+		} catch (SQLException e) {
+			throw new MyTvException(
+					"error occur while query state of station.", e);
+		} finally {
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (SQLException e) {
+					throw new MyTvException(e);
+				}
+			}
+			if (conn != null) {
+				try {
+					conn.close();
+				} catch (SQLException e) {
+					throw new MyTvException(e);
+				}
+			}
+		}
 	}
 
 	/**
@@ -204,13 +246,13 @@ public class EpgDao {
 			rs.close();
 			return exists;
 		} catch (SQLException e) {
-			throw new MyTvListException(e);
+			throw new MyTvException(e);
 		} finally {
 			if (stmt != null) {
 				try {
 					stmt.close();
 				} catch (SQLException e) {
-					throw new MyTvListException(e);
+					throw new MyTvException(e);
 				}
 			}
 
@@ -218,7 +260,7 @@ public class EpgDao {
 				try {
 					conn.close();
 				} catch (SQLException e) {
-					throw new MyTvListException(e);
+					throw new MyTvException(e);
 				}
 			}
 		}
@@ -231,17 +273,13 @@ public class EpgDao {
 	 * @return
 	 */
 	protected static int[] save(TvStation... stations) {
-		int len = stations == null ? 0 : stations.length;
-		if (len <= 0) {
-			return null;
-		}
 		Connection conn = EpgDao.getConnection();
 		String insertSql = "insert into tv_station (name,classify) values(?,?)";
 		PreparedStatement insertStmt = null;
 		try {
 			conn.setAutoCommit(false);
 			insertStmt = conn.prepareStatement(insertSql);
-
+			int len = stations.length;
 			for (int i = 0; i < len; i++) {
 				TvStation station = stations[i];
 				insertStmt.setString(1, station.getName());
@@ -256,17 +294,17 @@ public class EpgDao {
 				try {
 					conn.rollback();
 				} catch (SQLException e1) {
-					throw new MyTvListException(e1);
+					throw new MyTvException(e1);
 				}
 			}
-			throw new MyTvListException(
+			throw new MyTvException(
 					"error occur while save data to tv_station.", e);
 		} finally {
 			if (insertStmt != null) {
 				try {
 					insertStmt.close();
 				} catch (SQLException e) {
-					throw new MyTvListException(e);
+					throw new MyTvException(e);
 				}
 			}
 
@@ -274,7 +312,7 @@ public class EpgDao {
 				try {
 					conn.close();
 				} catch (SQLException e) {
-					throw new MyTvListException(e);
+					throw new MyTvException(e);
 				}
 			}
 		}
@@ -287,16 +325,13 @@ public class EpgDao {
 	 * @return
 	 */
 	protected static int[] save(ProgramTable... programTables) {
-		int len = programTables == null ? 0 : programTables.length;
-		if (len <= 0) {
-			return null;
-		}
 		Connection conn = EpgDao.getConnection();
 		String insertSql = "insert into program_table (station,stationName,program,airtime,week) values(?,?,?,?,?)";
 		PreparedStatement insertStmt = null;
 		try {
 			conn.setAutoCommit(false);
 			insertStmt = conn.prepareStatement(insertSql);
+			int len = programTables.length;
 			for (int i = 0; i < len; i++) {
 				ProgramTable pt = programTables[i];
 				String stationName = pt.getStationName();
@@ -317,17 +352,17 @@ public class EpgDao {
 				try {
 					conn.rollback();
 				} catch (SQLException e1) {
-					throw new MyTvListException(e1);
+					throw new MyTvException(e1);
 				}
 			}
-			throw new MyTvListException(
+			throw new MyTvException(
 					"error occur while save data to program_table.", e);
 		} finally {
 			if (insertStmt != null) {
 				try {
 					insertStmt.close();
 				} catch (SQLException e) {
-					throw new MyTvListException(e);
+					throw new MyTvException(e);
 				}
 			}
 
@@ -335,7 +370,7 @@ public class EpgDao {
 				try {
 					conn.close();
 				} catch (SQLException e) {
-					throw new MyTvListException(e);
+					throw new MyTvException(e);
 				}
 			}
 		}
@@ -373,13 +408,13 @@ public class EpgDao {
 			rs.close();
 			return resultList;
 		} catch (SQLException e) {
-			throw new MyTvListException(e);
+			throw new MyTvException(e);
 		} finally {
 			if (stmt != null) {
 				try {
 					stmt.close();
 				} catch (SQLException e) {
-					throw new MyTvListException(e);
+					throw new MyTvException(e);
 				}
 			}
 
@@ -387,7 +422,7 @@ public class EpgDao {
 				try {
 					conn.close();
 				} catch (SQLException e) {
-					throw new MyTvListException(e);
+					throw new MyTvException(e);
 				}
 			}
 		}
@@ -402,7 +437,8 @@ public class EpgDao {
 	 *            日期，yyyy-MM-dd
 	 * @return
 	 */
-	protected static boolean isProgramTableExists(String stationName, String date) {
+	protected static boolean isProgramTableExists(String stationName,
+			String date) {
 		String sql = "select * from program_table where stationName='"
 				+ stationName + "' and airtime='" + date + "'";
 		Connection conn = EpgDao.getConnection();
@@ -414,13 +450,13 @@ public class EpgDao {
 			rs.close();
 			return exists;
 		} catch (SQLException e) {
-			throw new MyTvListException(e);
+			throw new MyTvException(e);
 		} finally {
 			if (stmt != null) {
 				try {
 					stmt.close();
 				} catch (SQLException e) {
-					throw new MyTvListException(e);
+					throw new MyTvException(e);
 				}
 			}
 
@@ -428,7 +464,7 @@ public class EpgDao {
 				try {
 					conn.close();
 				} catch (SQLException e) {
-					throw new MyTvListException(e);
+					throw new MyTvException(e);
 				}
 			}
 		}

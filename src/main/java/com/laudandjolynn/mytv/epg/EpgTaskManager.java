@@ -26,7 +26,7 @@ import org.eclipse.jetty.util.ConcurrentHashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.laudandjolynn.mytv.exception.MyTvListException;
+import com.laudandjolynn.mytv.exception.MyTvException;
 import com.laudandjolynn.mytv.model.EpgTask;
 import com.laudandjolynn.mytv.model.ProgramTable;
 
@@ -78,7 +78,7 @@ public class EpgTaskManager {
 							+ " is wait for the other same task's notification.");
 					wait();
 				} catch (InterruptedException e) {
-					throw new MyTvListException(
+					throw new MyTvException(
 							"thread interrupted while query program table of "
 									+ stationName + " at " + date, e);
 				}
@@ -86,7 +86,7 @@ public class EpgTaskManager {
 				try {
 					Thread.sleep(100);
 				} catch (InterruptedException e) {
-					throw new MyTvListException(
+					throw new MyTvException(
 							"thread interrupted while query program table of "
 									+ stationName + " at " + date, e);
 				}
@@ -111,11 +111,11 @@ public class EpgTaskManager {
 		try {
 			resultList = future.get();
 		} catch (InterruptedException e) {
-			throw new MyTvListException(
+			throw new MyTvException(
 					"thread interrupted while query program table of "
 							+ stationName + " at " + date, e);
 		} catch (ExecutionException e) {
-			throw new MyTvListException(
+			throw new MyTvException(
 					"error occur while query program table of " + stationName
 							+ " at " + date + ".", e);
 		}

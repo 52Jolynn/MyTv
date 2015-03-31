@@ -18,7 +18,7 @@ package com.laudandjolynn.mytv.utils;
 import java.io.File;
 import java.io.IOException;
 
-import com.laudandjolynn.mytv.exception.MyTvListException;
+import com.laudandjolynn.mytv.exception.MyTvException;
 
 /**
  * @author: Laud
@@ -48,7 +48,7 @@ public class MyTvUtils {
 			FileUtils.writeWithNIO(data, FileUtils.DEFAULT_CHARSET_NAME,
 					crawlFilePath);
 		} catch (IOException e) {
-			throw new MyTvListException(
+			throw new MyTvException(
 					"error occur while write crawled data to disk. filepaht ["
 							+ crawlFilePath + "].", e);
 		}

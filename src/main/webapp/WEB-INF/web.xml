@@ -3,6 +3,8 @@
 	xmlns="http://java.sun.com/xml/ns/javaee" xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
 	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
 	version="3.0">
+	<display-name>MyTV</display-name>
+
 	<servlet>
 		<servlet-name>epg</servlet-name>
 		<servlet-class>com.caucho.hessian.server.HessianServlet</servlet-class>
@@ -20,4 +22,8 @@
 		<url-pattern>/epg</url-pattern>
 		<servlet-name>epg</servlet-name>
 	</servlet-mapping>
+
+	<welcome-file-list>
+		<welcome-file>index.html</welcome-file>
+	</welcome-file-list>
 </web-app>

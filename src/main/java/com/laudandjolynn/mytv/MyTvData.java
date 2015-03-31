@@ -31,7 +31,7 @@ import org.dom4j.io.XMLWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.laudandjolynn.mytv.exception.MyTvListException;
+import com.laudandjolynn.mytv.exception.MyTvException;
 import com.laudandjolynn.mytv.utils.Constant;
 import com.laudandjolynn.mytv.utils.DateUtils;
 import com.laudandjolynn.mytv.utils.FileUtils;
@@ -106,7 +106,7 @@ public class MyTvData {
 				FileUtils.writeWithNIO(doc.asXML().getBytes(),
 						Constant.MY_TV_DATA_FILE_PATH);
 			} catch (IOException e) {
-				throw new MyTvListException(
+				throw new MyTvException(
 						"error occur while write data to file. -- "
 								+ Constant.MY_TV_DATA_FILE_PATH);
 			}
@@ -125,14 +125,14 @@ public class MyTvData {
 				writer.write(xmlDoc);
 				writer.close();
 			} catch (IOException e) {
-				throw new MyTvListException(
+				throw new MyTvException(
 						"error occur while write data to file. -- "
 								+ Constant.MY_TV_DATA_FILE_PATH);
 			}
 		} catch (DocumentException e) {
 			String msg = "can't parse xml file. -- "
 					+ Constant.MY_TV_DATA_FILE_PATH;
-			throw new MyTvListException(msg);
+			throw new MyTvException(msg);
 		}
 	}
 

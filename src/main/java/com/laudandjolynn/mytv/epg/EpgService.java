@@ -39,17 +39,36 @@ public class EpgService {
 		if (size == 0) {
 			return;
 		}
+
+		// 电视台已存在则不再保存
 		List<TvStation> resultList = new ArrayList<TvStation>();
 		for (int i = 0; i < size; i++) {
 			TvStation station = stations[i];
 			String stationName = station.getName();
-			if (isStationExists(stationName)) {
+			if (Init.getIntance().isStationExists(stationName)) {
 				continue;
 			}
 			resultList.add(station);
 		}
-		stations = new TvStation[resultList.size()];
-		EpgDao.save(resultList.toArray(stations));
+
+		int rsize = resultList.size();
+		if (rsize > 0) {
+			stations = new TvStation[rsize];
+			stations = resultList.toArray(stations);
+			// query from db
+			boolean[] result = EpgDao.isStationExists(stations);
+			resultList.clear();
+			for (int i = 0; i < result.length; i++) {
+				if (!result[i]) {
+					resultList.add(stations[i]);
+				}
+			}
+			rsize = resultList.size();
+			if (rsize > 0) {
+				stations = new TvStation[rsize];
+				EpgDao.save(resultList.toArray(stations));
+			}
+		}
 	}
 
 	/**

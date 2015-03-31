@@ -39,7 +39,7 @@ import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.laudandjolynn.mytv.Crawler;
 import com.laudandjolynn.mytv.Init;
-import com.laudandjolynn.mytv.exception.MyTvListException;
+import com.laudandjolynn.mytv.exception.MyTvException;
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
 import com.laudandjolynn.mytv.utils.Constant;
@@ -242,7 +242,7 @@ public class EpgCrawler {
 				try {
 					htmlPage = anchor.click();
 				} catch (IOException e) {
-					throw new MyTvListException(
+					throw new MyTvException(
 							"error occur while search program table of "
 									+ stationName + " at spec date: " + date, e);
 				}
@@ -259,7 +259,7 @@ public class EpgCrawler {
 			try {
 				htmlPage = anchor.click();
 			} catch (IOException e) {
-				throw new MyTvListException(
+				throw new MyTvException(
 						"error occur while search program table of "
 								+ stationName + " at spec date: " + date, e);
 			}
