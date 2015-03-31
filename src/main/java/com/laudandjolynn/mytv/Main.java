@@ -15,14 +15,16 @@
  ******************************************************************************/
 package com.laudandjolynn.mytv;
 
-import java.net.InetSocketAddress;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.nio.SelectChannelConnector;
+import org.eclipse.jetty.webapp.WebAppClassLoader;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,19 +49,29 @@ public class Main {
 		// 初始化应用状态、启动内部任务
 		startService();
 		// 启动web应用
-		InetSocketAddress address = new InetSocketAddress(
-				Config.WEB_CONFIG.getIp(), Config.WEB_CONFIG.getPort());
-		Server server = new Server(address);
-		String resourcePath = Main.class.getResource("/").getPath() + "webapp";
-		logger.info("web app context path: " + resourcePath);
+		Server server = new Server();
+		server.setStopAtShutdown(true);
+		SelectChannelConnector connector = new SelectChannelConnector();
+		connector.setPort(Config.WEB_CONFIG.getPort());
+		connector.setHost(Config.WEB_CONFIG.getIp());
+		// 解决Windows下重复启动Jetty居然不报告端口冲突的问题.
+		connector.setReuseAddress(false);
+		server.setConnectors(new Connector[] { connector });
+
+		// web配置
 		WebAppContext context = new WebAppContext();
+		String resourcePath = Main.class.getResource("/").getPath();
+		logger.info("web app context path: " + resourcePath);
 		context.setContextPath("/");
-		String descriptor = resourcePath + "/WEB-INF/web.xml";
+		String descriptor = resourcePath + "WEB-INF/web.xml";
 		logger.info("web app descriptor: " + descriptor);
 		context.setDescriptor(descriptor);
 		context.setResourceBase(resourcePath);
 		context.setParentLoaderPriority(true);
-		context.setClassLoader(Thread.currentThread().getContextClassLoader());
+		WebAppClassLoader classLoader = new WebAppClassLoader(context);
+		classLoader.addClassPath(resourcePath);
+		context.setClassLoader(classLoader);
+
 		server.setHandler(context);
 		server.start();
 		server.join();
