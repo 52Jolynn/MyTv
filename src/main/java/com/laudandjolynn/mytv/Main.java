@@ -50,18 +50,18 @@ public class Main {
 		InetSocketAddress address = new InetSocketAddress(
 				Config.WEB_CONFIG.getIp(), Config.WEB_CONFIG.getPort());
 		Server server = new Server(address);
-		String contextPath = Main.class.getResource("/").getPath() + "webapp";
-		logger.info("web app context path: " + contextPath);
-		WebAppContext context = new WebAppContext(contextPath, "mytv");
-		String descriptor = contextPath + "/WEB-INF/web.xml";
+		String resourcePath = Main.class.getResource("/").getPath() + "webapp";
+		logger.info("web app context path: " + resourcePath);
+		WebAppContext context = new WebAppContext();
+		context.setContextPath("/");
+		String descriptor = resourcePath + "/WEB-INF/web.xml";
 		logger.info("web app descriptor: " + descriptor);
-		// context.setDefaultsDescriptor(descriptor);
-		// context.setDescriptor(descriptor);
-		// context.setResourceBase(contextPath);
-		// context.setParentLoaderPriority(true);
+		context.setDescriptor(descriptor);
+		context.setResourceBase(resourcePath);
+		context.setParentLoaderPriority(true);
 		server.setHandler(context);
 		server.start();
-		// server.join();
+		server.join();
 		logger.info("My TV Program Table Crawler is running.");
 	}
 
