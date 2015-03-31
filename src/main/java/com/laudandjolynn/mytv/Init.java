@@ -187,7 +187,7 @@ public class Init {
 			EpgService.save(stations.toArray(stationArray));
 			MyTvUtils.outputCrawlData(today, html,
 					Constant.CRAWL_FILE_STATION_TAG);
-			this.addAllTvStation2Cache(stations);
+			this.addAllTvStation2Cache(EpgService.getAllStation());
 		}
 
 		if (!isProgramTableOfTodayCrawled) {

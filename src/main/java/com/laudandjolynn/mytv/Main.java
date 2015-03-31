@@ -59,6 +59,7 @@ public class Main {
 		context.setDescriptor(descriptor);
 		context.setResourceBase(resourcePath);
 		context.setParentLoaderPriority(true);
+		context.setClassLoader(Thread.currentThread().getContextClassLoader());
 		server.setHandler(context);
 		server.start();
 		server.join();

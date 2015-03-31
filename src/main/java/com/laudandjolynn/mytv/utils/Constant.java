@@ -30,7 +30,11 @@ public class Constant {
 	public final static String EPG_URL = "http://tv.cntv.cn/epg";
 	// 数据文件目录
 	public final static String MY_TV_DATA_PATH = Constant.class
-			.getResource("/").getPath() + "data" + File.separator;
+			.getResource("/").getPath()
+			+ "webapp"
+			+ File.separator
+			+ "data"
+			+ File.separator;
 	// 数据文件
 	public final static String MY_TV_DATA_FILE_PATH = MY_TV_DATA_PATH
 			+ "mytv.dat";
@@ -46,7 +50,7 @@ public class Constant {
 	public final static String PROGRAM_TABLE_DATE = "date";
 	public final static String DOT = ".";
 	public final static String UNDERLINE = "_";
-	public final static String CRAWL_FILE_STATION_TAG ="TvStation";
+	public final static String CRAWL_FILE_STATION_TAG = "TvStation";
 
 	static {
 		File file = new File(MY_TV_DATA_PATH);

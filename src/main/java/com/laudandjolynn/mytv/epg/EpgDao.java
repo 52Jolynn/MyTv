@@ -103,7 +103,7 @@ public class EpgDao {
 	 * @return
 	 */
 	protected static List<TvStation> getAllStation() {
-		String sql = "select * from tv_station";
+		String sql = "select id,name,city,classify from tv_station";
 		Connection conn = EpgDao.getConnection();
 		Statement stmt = null;
 		List<TvStation> stations = new ArrayList<TvStation>();
@@ -114,7 +114,8 @@ public class EpgDao {
 				TvStation station = new TvStation();
 				station.setId(rs.getInt(1));
 				station.setName(rs.getString(2));
-				station.setClassify(rs.getString(3));
+				station.setCity(rs.getString(3));
+				station.setClassify(rs.getString(4));
 				stations.add(station);
 			}
 		} catch (SQLException e) {
@@ -147,8 +148,8 @@ public class EpgDao {
 	 * @return
 	 */
 	protected static TvStation getStation(String stationName) {
-		String sql = "select * from tv_station where name='" + stationName
-				+ "'";
+		String sql = "select id,name,city,classify from tv_station where name='"
+				+ stationName + "'";
 		TvStation station = null;
 		Connection conn = EpgDao.getConnection();
 		Statement stmt = null;
@@ -159,7 +160,8 @@ public class EpgDao {
 				station = new TvStation();
 				station.setId(rs.getInt(1));
 				station.setName(rs.getString(2));
-				station.setClassify(rs.getString(3));
+				station.setCity(rs.getString(3));
+				station.setClassify(rs.getString(4));
 			}
 			rs.close();
 		} catch (SQLException e) {
