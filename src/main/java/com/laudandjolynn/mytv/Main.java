@@ -24,7 +24,6 @@ import java.util.concurrent.TimeUnit;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
-import org.eclipse.jetty.webapp.WebAppClassLoader;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,9 +67,9 @@ public class Main {
 		context.setDescriptor(descriptor);
 		context.setResourceBase(resourcePath);
 		context.setParentLoaderPriority(true);
-		WebAppClassLoader classLoader = new WebAppClassLoader(context);
-		classLoader.addClassPath(resourcePath);
-		context.setClassLoader(classLoader);
+		ClassLoader appClassLoader = Thread.currentThread()
+				.getContextClassLoader();
+		context.setClassLoader(appClassLoader);
 
 		server.setHandler(context);
 		server.start();

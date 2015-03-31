@@ -10,11 +10,11 @@
 		<servlet-class>com.caucho.hessian.server.HessianServlet</servlet-class>
 		<init-param>
 			<param-name>home-class</param-name>
-			<param-value>com.laudandjolynn.mytvlist.service.JolynnTvImpl</param-value>
+			<param-value>com.laudandjolynn.mytv.service.JolynnTvImpl</param-value>
 		</init-param>
 		<init-param>
 			<param-name>home-api</param-name>
-			<param-value>com.laudandjolynn.mytvlist.service.JolynnTv</param-value>
+			<param-value>com.laudandjolynn.mytv.service.JolynnTv</param-value>
 		</init-param>
 	</servlet>
 

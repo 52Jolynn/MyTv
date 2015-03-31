@@ -64,7 +64,7 @@ public class EpgDao {
 	 * @return
 	 */
 	protected static List<String> getTvStationClassify() {
-		String sql = "select classify from tv_station group by classify";
+		String sql = "select classify from tv_station group by classify order by classify asc";
 		Connection conn = EpgDao.getConnection();
 		Statement stmt = null;
 		List<String> classifies = new ArrayList<String>();

@@ -17,6 +17,8 @@ package com.laudandjolynn.mytv;
 
 import java.net.MalformedURLException;
 
+import org.json.JSONArray;
+
 import com.caucho.hessian.client.HessianProxyFactory;
 import com.laudandjolynn.mytv.service.JolynnTv;
 
@@ -29,12 +31,14 @@ import junit.framework.TestCase;
  * @copyright: www.laudandjolynn.com
  */
 public class HessianTest extends TestCase {
-	public void testEpg() {
+	public void testEpgClassify() {
 		String url = "http://localhost/epg";
 		HessianProxyFactory proxy = new HessianProxyFactory();
 		try {
 			JolynnTv tv = (JolynnTv) proxy.create(JolynnTv.class, url);
-			System.out.println(tv.getTvStationClassify());
+			String classify = tv.getTvStationClassify();
+			JSONArray array = new JSONArray(classify);
+			assertTrue(array.length() == 6);
 		} catch (MalformedURLException e) {
 		}
 	}
