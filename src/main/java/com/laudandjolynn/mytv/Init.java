@@ -139,8 +139,7 @@ public class Init {
 				}
 			}
 			myTvDataFilePath.deleteOnExit();
-			throw new MyTvException("error occur while execute sql on db.",
-					e);
+			throw new MyTvException("error occur while execute sql on db.", e);
 		} finally {
 			if (stmt != null) {
 				try {
@@ -186,7 +185,8 @@ public class Init {
 			// 写数据到tv_station表
 			TvStation[] stationArray = new TvStation[stations.size()];
 			EpgService.save(stations.toArray(stationArray));
-			MyTvUtils.outputCrawlData(today, html);
+			MyTvUtils.outputCrawlData(today, html,
+					Constant.CRAWL_FILE_STATION_TAG);
 			this.addAllTvStation2Cache(stations);
 		}
 

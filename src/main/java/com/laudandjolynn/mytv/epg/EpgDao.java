@@ -274,7 +274,7 @@ public class EpgDao {
 	 */
 	protected static int[] save(TvStation... stations) {
 		Connection conn = EpgDao.getConnection();
-		String insertSql = "insert into tv_station (name,classify) values(?,?)";
+		String insertSql = "insert into tv_station (name,city,classify) values(?,?,?)";
 		PreparedStatement insertStmt = null;
 		try {
 			conn.setAutoCommit(false);
@@ -283,7 +283,8 @@ public class EpgDao {
 			for (int i = 0; i < len; i++) {
 				TvStation station = stations[i];
 				insertStmt.setString(1, station.getName());
-				insertStmt.setString(2, station.getClassify());
+				insertStmt.setString(2, station.getCity());
+				insertStmt.setString(3, station.getClassify());
 				insertStmt.addBatch();
 			}
 			int[] r = insertStmt.executeBatch();
@@ -335,7 +336,12 @@ public class EpgDao {
 			for (int i = 0; i < len; i++) {
 				ProgramTable pt = programTables[i];
 				String stationName = pt.getStationName();
-				int id = Init.getIntance().getStation(stationName).getId();
+				int id = 0;
+				if (Init.getIntance().isStationExists(stationName)) {
+					id = Init.getIntance().getStation(stationName).getId();
+				} else {
+					id = getStation(stationName).getId();
+				}
 				insertStmt.setInt(1, id);
 
 				insertStmt.setString(2, pt.getStationName());

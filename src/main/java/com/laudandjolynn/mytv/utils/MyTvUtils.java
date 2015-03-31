@@ -34,8 +34,10 @@ public class MyTvUtils {
 	 *            日期，yyyy-MM-dd
 	 * @param data
 	 *            数据
+	 * @param tag
+	 *            文件名标识
 	 */
-	public static void outputCrawlData(String date, String data) {
+	public static void outputCrawlData(String date, String data, String tag) {
 		String crawlFileDir = Constant.CRAWL_FILE_PATH + DateUtils.today()
 				+ File.separator;
 		File file = new File(crawlFileDir);
@@ -43,7 +45,7 @@ public class MyTvUtils {
 			file.mkdirs();
 		}
 		String crawlFilePath = crawlFileDir + date + Constant.UNDERLINE
-				+ System.nanoTime();
+				+ (tag == null ? System.nanoTime() : tag);
 		try {
 			FileUtils.writeWithNIO(data, FileUtils.DEFAULT_CHARSET_NAME,
 					crawlFilePath);

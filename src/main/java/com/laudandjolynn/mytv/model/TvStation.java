@@ -24,6 +24,7 @@ package com.laudandjolynn.mytv.model;
 public class TvStation {
 	private int id;
 	private String name;
+	private String city;
 	private String classify;
 
 	public int getId() {
@@ -40,6 +41,14 @@ public class TvStation {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public String getCity() {
+		return city;
+	}
+
+	public void setCity(String city) {
+		this.city = city;
 	}
 
 	public String getClassify() {

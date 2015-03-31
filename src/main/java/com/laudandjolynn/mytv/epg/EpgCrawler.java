@@ -29,7 +29,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.lang3.time.DateFormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,7 +71,11 @@ public class EpgCrawler {
 	 * @return
 	 */
 	public static List<TvStation> crawlAllTvStation() {
-		return EpgParser.parseTvStation(Crawler.crawlAsXml(Constant.EPG_URL));
+		Page page = Crawler.crawl(Constant.EPG_URL);
+		if (page.isHtmlPage()) {
+			return crawlAllTvStationByPage((HtmlPage) page);
+		}
+		return null;
 	}
 
 	private interface CrawProgramTableImpl {
@@ -225,20 +228,29 @@ public class EpgCrawler {
 			logger.debug("date must not null.");
 			return null;
 		}
-		String queryDate = DateFormatUtils.format(dateObj, "yyyy-MM-dd");
-		logger.info("crawl program table of " + queryDate);
 		String stationName = station.getName();
+		String queryDate = DateUtils.date2String(dateObj, "yyyy-MM-dd");
+		logger.info("crawl program table of " + stationName + " at "
+				+ queryDate);
 		if (EpgDao.isProgramTableExists(stationName, queryDate)) {
 			logger.debug("the TV station's program table of " + stationName
 					+ " have been saved in db.");
 			return null;
 		}
 
-		List<?> classifyElements = htmlPage
-				.getByXPath("//ul[@class='weishi']/li/a");
-		for (Object element : classifyElements) {
+		String city = station.getCity();
+		List<?> stationElements = null;
+		if (city == null) {
+			stationElements = htmlPage
+					.getByXPath("//div[@class='md_left_right']/dl//h3//a[@class='channel']");
+		} else {
+			// 城市电视台
+			stationElements = htmlPage
+					.getByXPath("//dl[@id='cityList']//div[@class='lv3']//a[@class='channel']");
+		}
+		for (Object element : stationElements) {
 			HtmlAnchor anchor = (HtmlAnchor) element;
-			if (station.getClassify().equals(anchor.getTextContent())) {
+			if (stationName.equals(anchor.getTextContent().trim())) {
 				try {
 					htmlPage = anchor.click();
 				} catch (IOException e) {
@@ -250,7 +262,7 @@ public class EpgCrawler {
 			}
 		}
 
-		if (queryDate != DateUtils.today()) {
+		if (!queryDate.equals(DateUtils.today())) {
 			DomElement element = htmlPage.getElementById("date");
 			element.setNodeValue(queryDate);
 			element.setTextContent(queryDate);
@@ -268,7 +280,7 @@ public class EpgCrawler {
 		List<ProgramTable> ptList = EpgParser.parseProgramTable(html);
 		ProgramTable[] ptArray = new ProgramTable[ptList.size()];
 		EpgDao.save(ptList.toArray(ptArray));
-		MyTvUtils.outputCrawlData(queryDate, html);
+		MyTvUtils.outputCrawlData(queryDate, html, stationName);
 		return ptList;
 	}
 

@@ -46,6 +46,7 @@ public class Constant {
 	public final static String PROGRAM_TABLE_DATE = "date";
 	public final static String DOT = ".";
 	public final static String UNDERLINE = "_";
+	public final static String CRAWL_FILE_STATION_TAG ="TvStation";
 
 	static {
 		File file = new File(MY_TV_DATA_PATH);

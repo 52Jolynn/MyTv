@@ -33,6 +33,8 @@ import com.laudandjolynn.mytv.model.TvStation;
  * @copyright: www.laudandjolynn.com
  */
 public class EpgParser {
+	private final static String CITY = "城市";
+
 	/**
 	 * 解析电视台列表
 	 * 
@@ -47,15 +49,34 @@ public class EpgParser {
 		for (int i = 0, size = classifyElements == null ? 0 : classifyElements
 				.size(); i < size; i++) {
 			Element classifyElement = classifyElements.get(i);
-			String classify = classifyElement.text();
+			String classify = classifyElement.text().trim();
+			if (CITY.equals(classify)) {
+				continue;
+			}
 			Element stationElement = stationElements.get(i);
 			Elements stationTextElements = stationElement
-					.select("dl h3 a[href]");
+					.select("dl h3 a.channel");
 			for (int j = 0, ssize = stationTextElements == null ? 0
 					: stationTextElements.size(); j < ssize; j++) {
 				TvStation tv = new TvStation();
-				tv.setName(stationTextElements.get(j).text());
+				tv.setName(stationTextElements.get(j).text().trim());
+				tv.setCity(null);
 				tv.setClassify(classify);
+				resultList.add(tv);
+			}
+		}
+		Elements cityElements = stationElements.select("dl#cityList dd");
+		for (int i = 0, size = cityElements == null ? 0 : cityElements.size(); i < size; i++) {
+			Element cityElement = cityElements.get(i).select("h3 a[href]")
+					.get(0);
+			Elements cityStationElements = cityElements.get(i).select(
+					"div.lv3 p a.channel");
+			for (int j = 0, ssize = cityStationElements == null ? 0
+					: cityStationElements.size(); j < ssize; j++) {
+				TvStation tv = new TvStation();
+				tv.setName(cityStationElements.get(j).text().trim());
+				tv.setCity(cityElement.text().trim());
+				tv.setClassify(CITY);
 				resultList.add(tv);
 			}
 		}
@@ -72,7 +93,7 @@ public class EpgParser {
 		Document doc = Jsoup.parse(html);
 		List<ProgramTable> resultList = new ArrayList<ProgramTable>();
 		Elements channelElements = doc.select("#channelTitle");
-		String channel = channelElements.get(0).text();
+		String channel = channelElements.get(0).text().trim();
 		Elements weekElements = doc.select("#week li[rel]");
 		int week = 0;
 		String date = null;
@@ -80,16 +101,16 @@ public class EpgParser {
 			Element element = weekElements.get(i);
 			if (element.hasClass("cur")) {
 				week = i + 1;
-				date = element.attr("rel");
+				date = element.attr("rel").trim();
 				break;
 			}
 		}
-		Elements programElemens = doc
-				.select("#epg_list div.content_c dl dd a.p_name_a");
+		Elements programElemens = doc.select("#epg_list div.content_c dl dd")
+				.select("a.p_name_a, a.p_name");
 		for (int i = 0, size = programElemens == null ? 0 : programElemens
 				.size(); i < size; i++) {
 			Element programElement = programElemens.get(i);
-			String programContent = programElement.text();
+			String programContent = programElement.text().trim();
 			String[] pc = programContent.split("\\s+");
 			ProgramTable pt = new ProgramTable();
 			pt.setAirTime(date + " " + pc[0] + ":00");
