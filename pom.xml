@@ -12,6 +12,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<jettyVersion>8.1.15.v20140411</jettyVersion>
 	</properties>
 
 	<dependencies>
@@ -20,16 +21,6 @@
 			<artifactId>junit</artifactId>
 			<version>4.11</version>
 			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-			<version>1.7.12</version>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-log4j12</artifactId>
-			<version>1.7.12</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jsoup</groupId>
@@ -85,12 +76,12 @@
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-server</artifactId>
-			<version>8.1.15.v20140411</version>
+			<version>${jettyVersion}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-webapp</artifactId>
-			<version>8.1.15.v20140411</version>
+			<version>${jettyVersion}</version>
 		</dependency>
 		<dependency>
 			<groupId>xml-apis</groupId>
@@ -101,6 +92,11 @@
 			<groupId>commons-codec</groupId>
 			<artifactId>commons-codec</artifactId>
 			<version>1.9</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
+			<version>1.7.12</version>
 		</dependency>
 	</dependencies>
 	<build>
