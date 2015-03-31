@@ -23,6 +23,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import com.laudandjolynn.mytv.Init;
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
 
@@ -113,8 +114,14 @@ public class EpgParser {
 			String programContent = programElement.text().trim();
 			String[] pc = programContent.split("\\s+");
 			ProgramTable pt = new ProgramTable();
+			pt.setAirDate(date);
 			pt.setAirTime(date + " " + pc[0] + ":00");
 			pt.setProgram(pc[1]);
+			if (Init.getIntance().isStationExists(channel)) {
+				pt.setStation(Init.getIntance().getStation(channel).getId());
+			} else {
+				pt.setStation(EpgService.getStation(channel).getId());
+			}
 			pt.setStationName(channel);
 			pt.setWeek(week);
 			resultList.add(pt);

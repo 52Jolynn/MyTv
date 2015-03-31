@@ -26,6 +26,7 @@ public class ProgramTable {
 	private int station;
 	private String stationName;
 	private String program;
+	private String airDate;
 	private String airTime;
 	private int week;
 
@@ -61,6 +62,14 @@ public class ProgramTable {
 		this.program = program;
 	}
 
+	public String getAirDate() {
+		return airDate;
+	}
+
+	public void setAirDate(String airDate) {
+		this.airDate = airDate;
+	}
+
 	public String getAirTime() {
 		return airTime;
 	}
@@ -79,8 +88,9 @@ public class ProgramTable {
 
 	@Override
 	public String toString() {
-		return "ProgramTable [id=" + id + ", stationName=" + stationName
-				+ ", program=" + program + ", airTime=" + airTime + ", week="
+		return "ProgramTable [id=" + id + ", station=" + station
+				+ ", stationName=" + stationName + ", program=" + program
+				+ ", airDate=" + airDate + ", airTime=" + airTime + ", week="
 				+ week + "]";
 	}
 

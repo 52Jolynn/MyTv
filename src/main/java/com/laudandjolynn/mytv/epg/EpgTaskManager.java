@@ -68,7 +68,7 @@ public class EpgTaskManager {
 			final String date) {
 		logger.info("query program table of " + stationName + " at " + date);
 		if (EpgDao.isProgramTableExists(stationName, date)) {
-			return EpgDao.getProgramTable(stationName, date);
+			return EpgService.getProgramTable(stationName, date);
 		}
 		EpgTask epgTask = new EpgTask(stationName, date);
 		if (CURRENT_EPG_TASK.contains(epgTask)) {
@@ -93,7 +93,7 @@ public class EpgTaskManager {
 
 				logger.debug(epgTask
 						+ " has receive notification and try to get program table from db.");
-				return EpgDao.getProgramTable(stationName, date);
+				return EpgService.getProgramTable(stationName, date);
 			}
 		}
 
@@ -107,17 +107,15 @@ public class EpgTaskManager {
 			}
 		};
 		Future<List<ProgramTable>> future = executorService.submit(callable);
-		List<ProgramTable> resultList = null;
 		try {
-			resultList = future.get();
+			future.get();
 		} catch (InterruptedException e) {
 			throw new MyTvException(
 					"thread interrupted while query program table of "
 							+ stationName + " at " + date, e);
 		} catch (ExecutionException e) {
-			throw new MyTvException(
-					"error occur while query program table of " + stationName
-							+ " at " + date + ".", e);
+			throw new MyTvException("error occur while query program table of "
+					+ stationName + " at " + date + ".", e);
 		}
 		synchronized (this) {
 			CURRENT_EPG_TASK.remove(epgTask);
@@ -125,6 +123,6 @@ public class EpgTaskManager {
 					+ " have finished to get program table data and send notification.");
 			notifyAll();
 		}
-		return resultList;
+		return EpgService.getProgramTable(stationName, date);
 	}
 }

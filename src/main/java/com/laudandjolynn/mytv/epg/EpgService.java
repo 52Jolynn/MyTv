@@ -96,7 +96,7 @@ public class EpgService {
 		for (int i = 0; i < size; i++) {
 			ProgramTable pt = programTables[i];
 			String stationName = pt.getStationName();
-			String date = pt.getAirTime();
+			String date = pt.getAirDate();
 			if (!isStationExists(stationName)
 					|| EpgDao.isProgramTableExists(stationName, date)) {
 				continue;
@@ -123,5 +123,27 @@ public class EpgService {
 	 */
 	public static List<TvStation> getAllStation() {
 		return EpgDao.getAllStation();
+	}
+
+	/**
+	 * 根据名称获取电视台对象
+	 * 
+	 * @param stationName
+	 * @return
+	 */
+	public static TvStation getStation(String stationName) {
+		return EpgDao.getStation(stationName);
+	}
+
+	/**
+	 * 获取指定电视台节目表
+	 * 
+	 * @param stationName
+	 * @param date
+	 * @return
+	 */
+	public static List<ProgramTable> getProgramTable(String stationName,
+			String date) {
+		return EpgDao.getProgramTable(stationName, date);
 	}
 }

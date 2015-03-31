@@ -24,7 +24,6 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.laudandjolynn.mytv.Init;
 import com.laudandjolynn.mytv.exception.MyTvException;
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
@@ -329,7 +328,7 @@ public class EpgDao {
 	 */
 	protected static int[] save(ProgramTable... programTables) {
 		Connection conn = EpgDao.getConnection();
-		String insertSql = "insert into program_table (station,stationName,program,airtime,week) values(?,?,?,?,?)";
+		String insertSql = "insert into program_table (station,stationName,program,airdate,airtime,week) values(?,?,?,?,?,?)";
 		PreparedStatement insertStmt = null;
 		try {
 			conn.setAutoCommit(false);
@@ -337,19 +336,13 @@ public class EpgDao {
 			int len = programTables.length;
 			for (int i = 0; i < len; i++) {
 				ProgramTable pt = programTables[i];
-				String stationName = pt.getStationName();
-				int id = 0;
-				if (Init.getIntance().isStationExists(stationName)) {
-					id = Init.getIntance().getStation(stationName).getId();
-				} else {
-					id = getStation(stationName).getId();
-				}
-				insertStmt.setInt(1, id);
+				insertStmt.setInt(1, pt.getStation());
 
 				insertStmt.setString(2, pt.getStationName());
 				insertStmt.setString(3, pt.getProgram());
-				insertStmt.setString(4, pt.getAirTime());
-				insertStmt.setInt(5, pt.getWeek());
+				insertStmt.setString(4, pt.getAirDate());
+				insertStmt.setString(5, pt.getAirTime());
+				insertStmt.setInt(6, pt.getWeek());
 				insertStmt.addBatch();
 			}
 			int[] r = insertStmt.executeBatch();
@@ -395,8 +388,8 @@ public class EpgDao {
 	 */
 	protected static List<ProgramTable> getProgramTable(String stationName,
 			String date) {
-		String sql = "select id,station,stationName,program,airtime,week from program_table where stationName='"
-				+ stationName + "' and aritime='" + date + "'";
+		String sql = "select id,station,stationName,program,airdate,airtime,week from program_table where stationName='"
+				+ stationName + "' and airdate='" + date + "'";
 		Connection conn = EpgDao.getConnection();
 		Statement stmt = null;
 		try {
@@ -409,8 +402,9 @@ public class EpgDao {
 				pt.setStation(rs.getInt(2));
 				pt.setStationName(rs.getString(3));
 				pt.setProgram(rs.getString(4));
-				pt.setAirTime(rs.getString(5));
-				pt.setWeek(rs.getInt(6));
+				pt.setAirDate(rs.getString(5));
+				pt.setAirTime(rs.getString(6));
+				pt.setWeek(rs.getInt(7));
 				resultList.add(pt);
 			}
 			rs.close();
@@ -448,7 +442,7 @@ public class EpgDao {
 	protected static boolean isProgramTableExists(String stationName,
 			String date) {
 		String sql = "select * from program_table where stationName='"
-				+ stationName + "' and airtime='" + date + "'";
+				+ stationName + "' and airdate='" + date + "'";
 		Connection conn = EpgDao.getConnection();
 		Statement stmt = null;
 		try {
