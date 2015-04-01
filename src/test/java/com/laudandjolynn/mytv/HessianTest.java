@@ -74,7 +74,7 @@ public class HessianTest extends TestCase {
 		HessianProxyFactory proxy = new HessianProxyFactory();
 		try {
 			JolynnTv tv = (JolynnTv) proxy.create(JolynnTv.class, url);
-			String program = tv.getProgramTable("CCTV1 综合", DateUtils.today());
+			String program = tv.getProgramTable("CCTV-1 综合", DateUtils.today());
 			JSONArray array = new JSONArray(program);
 			System.out.println(array);
 		} catch (MalformedURLException e) {
