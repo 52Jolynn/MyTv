@@ -42,8 +42,10 @@ public class HessianTest extends TestCase {
 			JolynnTv tv = (JolynnTv) proxy.create(JolynnTv.class, url);
 			String classify = tv.getTvStationClassify();
 			JSONArray array = new JSONArray(classify);
+			System.out.println(array);
 			assertTrue(array.length() == 6);
 		} catch (MalformedURLException e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -57,8 +59,10 @@ public class HessianTest extends TestCase {
 			JolynnTv tv = (JolynnTv) proxy.create(JolynnTv.class, url);
 			String stations = tv.getAllTvStation();
 			JSONArray array = new JSONArray(stations);
+			System.out.println(array);
 			assertTrue(array.length() == 145);
 		} catch (MalformedURLException e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -70,10 +74,11 @@ public class HessianTest extends TestCase {
 		HessianProxyFactory proxy = new HessianProxyFactory();
 		try {
 			JolynnTv tv = (JolynnTv) proxy.create(JolynnTv.class, url);
-			String program = tv.getProgramTable("江苏卫视", DateUtils.today());
+			String program = tv.getProgramTable("CCTV1 综合", DateUtils.today());
 			JSONArray array = new JSONArray(program);
 			System.out.println(array);
 		} catch (MalformedURLException e) {
+			e.printStackTrace();
 		}
 	}
 }
