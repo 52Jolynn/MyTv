@@ -78,34 +78,6 @@ public class EpgCrawler {
 		return null;
 	}
 
-	private interface CrawProgramTableImpl {
-		public List<ProgramTable> invoke(String stationName, String date);
-	}
-
-	/**
-	 * 获取指定日期的所有电视台节目表
-	 * 
-	 * @param htmlPage
-	 *            已获取的html页面对象
-	 * @param date
-	 *            日期，yyyy-MM-dd
-	 * @return
-	 */
-	public static List<ProgramTable> crawlAllProgramTableByPage(
-			final HtmlPage htmlPage, final String date) {
-		Collection<TvStation> stations = Init.getIntance()
-				.getAllCacheTvStation();
-		CrawProgramTableImpl impl = new CrawProgramTableImpl() {
-
-			@Override
-			public List<ProgramTable> invoke(String stationName, String date) {
-				return crawlProgramTableByPage(htmlPage, stationName, date);
-			}
-		};
-		return crawlAllProgramTable(new ArrayList<TvStation>(stations), date,
-				impl);
-	}
-
 	/**
 	 * 获取指定日期的所有电视台节目表
 	 * 
@@ -116,15 +88,7 @@ public class EpgCrawler {
 	public static List<ProgramTable> crawlAllProgramTable(String date) {
 		Collection<TvStation> stations = Init.getIntance()
 				.getAllCacheTvStation();
-		CrawProgramTableImpl impl = new CrawProgramTableImpl() {
-
-			@Override
-			public List<ProgramTable> invoke(String stationName, String date) {
-				return crawlProgramTable(stationName, date);
-			}
-		};
-		return crawlAllProgramTable(new ArrayList<TvStation>(stations), date,
-				impl);
+		return crawlAllProgramTable(new ArrayList<TvStation>(stations), date);
 	}
 
 	/**
@@ -132,12 +96,10 @@ public class EpgCrawler {
 	 * 
 	 * @param stations
 	 * @param date
-	 * @param impl
 	 * @return
 	 */
 	private static List<ProgramTable> crawlAllProgramTable(
-			List<TvStation> stations, final String date,
-			final CrawProgramTableImpl impl) {
+			List<TvStation> stations, final String date) {
 		List<ProgramTable> resultList = new ArrayList<ProgramTable>();
 		int threadCount = EpgDao.getTvStationClassify().size();
 		ExecutorService executorService = Executors
@@ -148,7 +110,7 @@ public class EpgCrawler {
 			Callable<List<ProgramTable>> task = new Callable<List<ProgramTable>>() {
 				@Override
 				public List<ProgramTable> call() throws Exception {
-					return impl.invoke(station.getName(), date);
+					return crawlProgramTable(station.getName(), date);
 				}
 			};
 			completionService.submit(task);

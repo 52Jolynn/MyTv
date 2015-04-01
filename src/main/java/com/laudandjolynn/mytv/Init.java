@@ -193,8 +193,7 @@ public class Init {
 		if (!isProgramTableOfTodayCrawled) {
 			// 保存当天电视节目表
 			logger.info("query program table of today. " + "today is " + today);
-			List<ProgramTable> ptList = EpgCrawler.crawlAllProgramTableByPage(
-					htmlPage, today);
+			List<ProgramTable> ptList = EpgCrawler.crawlAllProgramTable(today);
 			ProgramTable[] ptArray = new ProgramTable[ptList.size()];
 			EpgService.save(ptList.toArray(ptArray));
 			MyTvData.getInstance().writeData(Constant.PROGRAM_TABLE_DATES,
