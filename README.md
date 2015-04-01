@@ -43,7 +43,7 @@ String url = "http://localhost/epg";
 HessianProxyFactory proxy = new HessianProxyFactory();
 try {
     JolynnTv tv = (JolynnTv) proxy.create(JolynnTv.class, url);
-    String program = tv.getProgramTable("江苏卫视", DateUtils.today());
+    String program = tv.getProgramTable("CCTV-1 综合", DateUtils.today());
     JSONArray array = new JSONArray(program);
 } catch (MalformedURLException e) {
     e.printStackTrace();
