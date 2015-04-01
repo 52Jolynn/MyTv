@@ -72,8 +72,7 @@ public class Crawler {
 		} catch (MalformedURLException e) {
 			throw new MyTvException("invalid url " + url, e);
 		} catch (IOException e) {
-			throw new MyTvException("error occur while connect to " + url,
-					e);
+			throw new MyTvException("error occur while connect to " + url, e);
 		}
 	}
 }
