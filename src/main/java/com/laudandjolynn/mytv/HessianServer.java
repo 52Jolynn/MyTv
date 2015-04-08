@@ -25,8 +25,8 @@ public class HessianServer implements com.laudandjolynn.mytv.Server {
 		org.eclipse.jetty.server.Server server = new Server();
 		server.setStopAtShutdown(true);
 		SelectChannelConnector connector = new SelectChannelConnector();
-		connector.setPort(Config.WEB_CONFIG.getPort());
-		connector.setHost(Config.WEB_CONFIG.getIp());
+		connector.setPort(Config.NET_CONFIG.getHessianPort());
+		connector.setHost(Config.NET_CONFIG.getIp());
 		// 解决Windows下重复启动Jetty居然不报告端口冲突的问题.
 		connector.setReuseAddress(false);
 		server.setConnectors(new Connector[] { connector });
@@ -47,7 +47,6 @@ public class HessianServer implements com.laudandjolynn.mytv.Server {
 
 		server.setHandler(context);
 		server.start();
-		server.join();
 	}
 
 }

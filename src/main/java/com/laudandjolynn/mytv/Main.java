@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import com.laudandjolynn.mytv.epg.EpgCrawler;
 import com.laudandjolynn.mytv.epg.EpgService;
+import com.laudandjolynn.mytv.exception.MyTvException;
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.utils.Constant;
 import com.laudandjolynn.mytv.utils.DateUtils;
@@ -39,13 +40,23 @@ import com.laudandjolynn.mytv.utils.DateUtils;
 public class Main {
 	private final static Logger logger = LoggerFactory.getLogger(Main.class);
 
-	public static void main(String[] args) throws Exception {
+	public static void main(String[] args) {
 		// 初始化应用状态、启动内部任务
 		startService();
 		com.laudandjolynn.mytv.Server hessian = new HessianServer();
-		hessian.start();
+		try {
+			hessian.start();
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			throw new MyTvException(e);
+		}
 		com.laudandjolynn.mytv.Server rmi = new RmiServer();
-		rmi.start();
+		try {
+			rmi.start();
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			throw new MyTvException(e);
+		}
 		logger.info("My TV Program Table Crawler is running.");
 	}
 

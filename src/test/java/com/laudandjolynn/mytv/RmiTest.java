@@ -1,0 +1,70 @@
+package com.laudandjolynn.mytv;
+
+import java.rmi.Naming;
+
+import junit.framework.TestCase;
+
+import org.json.JSONArray;
+
+import com.laudandjolynn.mytv.service.JolynnTv;
+import com.laudandjolynn.mytv.utils.Config;
+import com.laudandjolynn.mytv.utils.DateUtils;
+
+/**
+ * @author: Laud
+ * @email: htd0324@gmail.com
+ * @date: 2015年4月8日 下午12:05:51
+ * @copyright: www.laudandjolynn.com
+ */
+public class RmiTest extends TestCase {
+	private final static String url = "rmi://" + Config.NET_CONFIG.getIp() + ":"
+			+ Config.NET_CONFIG.getRmiPort() + "/epg";
+
+	/**
+	 * 测试电视台分类
+	 */
+	public void testEpgClassify() {
+		String classify = null;
+		try {
+			JolynnTv jolynnTv = (JolynnTv) Naming.lookup(url);
+			classify = jolynnTv.getTvStationClassify();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		JSONArray array = new JSONArray(classify);
+		System.out.println(array);
+		assertTrue(array.length() == 6);
+	}
+
+	/**
+	 * 测试电视台
+	 */
+	public void testEpgStation() {
+		String stations = null;
+		try {
+			JolynnTv jolynnTv = (JolynnTv) Naming.lookup(url);
+			stations = jolynnTv.getAllTvStation();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		JSONArray array = new JSONArray(stations);
+		System.out.println(array);
+		assertTrue(array.length() == 145);
+	}
+
+	/**
+	 * 测试电视节目
+	 */
+	public void testEpgProgram() {
+
+		String program = null;
+		try {
+			JolynnTv jolynnTv = (JolynnTv) Naming.lookup(url);
+			program = jolynnTv.getProgramTable("CCTV-1 综合", DateUtils.today());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		JSONArray array = new JSONArray(program);
+		System.out.println(array);
+	}
+}

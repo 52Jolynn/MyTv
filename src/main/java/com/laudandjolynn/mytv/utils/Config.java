@@ -27,9 +27,10 @@ import java.util.ResourceBundle;
 public class Config {
 	private final static String CRAWL_FILE_PATH_NAME = "crawl_file_path";
 	private final static String CONFIG_FILE_NAME = "config";
-	public final static Web WEB_CONFIG = new Web();
-	private final static String CONFIG_WEB_IP = "web_ip";
-	private final static String CONFIG_WEB_PORT = "web_port";
+	public final static NetConfig NET_CONFIG = new NetConfig();
+	private final static String CONFIG_IP = "ip";
+	private final static String CONFIG_HESSIAN_PORT = "hessian_port";
+	private final static String CONFIG_RMI_PORT = "rmi_port";
 
 	static {
 		ResourceBundle bundle = ResourceBundle.getBundle(CONFIG_FILE_NAME);
@@ -46,25 +47,35 @@ public class Config {
 				}
 			}
 		}
-		if (bundle.containsKey(CONFIG_WEB_IP)) {
-			WEB_CONFIG.ip = bundle.getString(CONFIG_WEB_IP);
+		if (bundle.containsKey(CONFIG_IP)) {
+			NET_CONFIG.ip = bundle.getString(CONFIG_IP);
 		}
-		if (bundle.containsKey(CONFIG_WEB_PORT)) {
-			WEB_CONFIG.port = Integer
-					.valueOf(bundle.getString(CONFIG_WEB_PORT));
+		if (bundle.containsKey(CONFIG_HESSIAN_PORT)) {
+			NET_CONFIG.hessianPort = Integer.valueOf(bundle
+					.getString(CONFIG_HESSIAN_PORT));
+		}
+		if (bundle.containsKey(CONFIG_RMI_PORT)) {
+			NET_CONFIG.rmiPort = Integer.valueOf(bundle
+					.getString(CONFIG_RMI_PORT));
 		}
 	}
 
-	public final static class Web {
+	public final static class NetConfig {
 		private String ip = "127.0.0.1";
-		private int port = 8080;
+		private int hessianPort = 8080;
+		private int rmiPort = 8081;
 
 		public String getIp() {
 			return ip;
 		}
 
-		public int getPort() {
-			return port;
+		public int getHessianPort() {
+			return hessianPort;
 		}
+
+		public int getRmiPort() {
+			return rmiPort;
+		}
+
 	}
 }

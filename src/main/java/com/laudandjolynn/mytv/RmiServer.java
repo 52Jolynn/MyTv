@@ -24,15 +24,15 @@ import com.laudandjolynn.mytv.utils.Config;
 public class RmiServer implements Server {
 	private final static Logger logger = LoggerFactory
 			.getLogger(RmiServer.class);
+	private final static String url = "rmi://" + Config.NET_CONFIG.getIp()
+			+ ":" + Config.NET_CONFIG.getRmiPort() + "/epg";
 
 	@Override
 	public void start() {
-		String url = "rmi://" + Config.WEB_CONFIG.getIp() + ":"
-				+ Config.WEB_CONFIG.getPort() + "/epg";
 		logger.info("epg bind to: " + url);
 		try {
 			JolynnTv jolynnTv = new JolynnTvRmiImpl(new JolynnTvImpl());
-			LocateRegistry.createRegistry(Config.WEB_CONFIG.getPort());
+			LocateRegistry.createRegistry(Config.NET_CONFIG.getRmiPort());
 			Naming.bind(url, jolynnTv);
 		} catch (RemoteException e) {
 			throw new MyTvException("error occur while start RMI server.", e);
@@ -41,6 +41,7 @@ public class RmiServer implements Server {
 		} catch (AlreadyBoundException e) {
 			throw new MyTvException(url + " is already bind.", e);
 		}
+		logger.info("RMI server started. " + url);
 	}
 
 }

@@ -21,6 +21,7 @@ import org.json.JSONArray;
 
 import com.caucho.hessian.client.HessianProxyFactory;
 import com.laudandjolynn.mytv.service.JolynnTv;
+import com.laudandjolynn.mytv.utils.Config;
 import com.laudandjolynn.mytv.utils.DateUtils;
 
 /**
@@ -30,11 +31,13 @@ import com.laudandjolynn.mytv.utils.DateUtils;
  * @copyright: www.laudandjolynn.com
  */
 public class HessianTest extends TestCase {
+	private final static String url = "http://" + Config.NET_CONFIG.getIp()
+			+ ":" + Config.NET_CONFIG.getHessianPort() + "/epg";
+
 	/**
 	 * 测试电视台分类
 	 */
 	public void testEpgClassify() {
-		String url = "http://localhost/epg";
 		HessianProxyFactory proxy = new HessianProxyFactory();
 		try {
 			JolynnTv tv = (JolynnTv) proxy.create(JolynnTv.class, url);
@@ -51,7 +54,6 @@ public class HessianTest extends TestCase {
 	 * 测试电视台
 	 */
 	public void testEpgStation() {
-		String url = "http://localhost/epg";
 		HessianProxyFactory proxy = new HessianProxyFactory();
 		try {
 			JolynnTv tv = (JolynnTv) proxy.create(JolynnTv.class, url);
@@ -68,7 +70,6 @@ public class HessianTest extends TestCase {
 	 * 测试电视节目
 	 */
 	public void testEpgProgram() {
-		String url = "http://localhost/epg";
 		HessianProxyFactory proxy = new HessianProxyFactory();
 		try {
 			JolynnTv tv = (JolynnTv) proxy.create(JolynnTv.class, url);
