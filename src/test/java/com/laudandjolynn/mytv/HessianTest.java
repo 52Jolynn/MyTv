@@ -15,15 +15,13 @@
  ******************************************************************************/
 package com.laudandjolynn.mytv;
 
-import java.net.MalformedURLException;
+import junit.framework.TestCase;
 
 import org.json.JSONArray;
 
 import com.caucho.hessian.client.HessianProxyFactory;
 import com.laudandjolynn.mytv.service.JolynnTv;
 import com.laudandjolynn.mytv.utils.DateUtils;
-
-import junit.framework.TestCase;
 
 /**
  * @author: Laud
@@ -44,7 +42,7 @@ public class HessianTest extends TestCase {
 			JSONArray array = new JSONArray(classify);
 			System.out.println(array);
 			assertTrue(array.length() == 6);
-		} catch (MalformedURLException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
@@ -61,7 +59,7 @@ public class HessianTest extends TestCase {
 			JSONArray array = new JSONArray(stations);
 			System.out.println(array);
 			assertTrue(array.length() == 145);
-		} catch (MalformedURLException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
@@ -77,7 +75,7 @@ public class HessianTest extends TestCase {
 			String program = tv.getProgramTable("CCTV-1 综合", DateUtils.today());
 			JSONArray array = new JSONArray(program);
 			System.out.println(array);
-		} catch (MalformedURLException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}

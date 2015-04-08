@@ -15,42 +15,38 @@
  ******************************************************************************/
 package com.laudandjolynn.mytv.service;
 
-import java.rmi.Remote;
 import java.rmi.RemoteException;
+
+import com.caucho.hessian.server.HessianServlet;
 
 /**
  * @author: Laud
  * @email: htd0324@gmail.com
- * @date: 2015年3月25日 下午6:18:24
+ * @date: 2015年3月25日 下午6:20:06
  * @copyright: www.laudandjolynn.com
  */
-public interface JolynnTv extends Remote {
-	/**
-	 * 获取电视台分类
-	 * 
-	 * @throws RemoteException
-	 * @return
-	 */
-	public String getTvStationClassify() throws RemoteException;
+public class JolynnTvHessianImpl extends HessianServlet implements JolynnTv {
+	private static final long serialVersionUID = 1005559884840488035L;
+	private transient JolynnTv jolynnTv = null;
 
-	/**
-	 * 获取所有电视台
-	 * 
-	 * @throws RemoteException
-	 * @return
-	 */
-	public String getAllTvStation() throws RemoteException;
+	public JolynnTvHessianImpl(JolynnTv jolynnTv) {
+		this.jolynnTv = jolynnTv;
+	}
 
-	/**
-	 * 获取指定电视台、日期的节目表
-	 * 
-	 * @param name
-	 *            电视台名称
-	 * @param date
-	 *            日期, yyyy-MM-dd
-	 * @throws RemoteException
-	 * @return
-	 */
+	@Override
+	public String getTvStationClassify() throws RemoteException {
+		return jolynnTv.getTvStationClassify();
+	}
+
+	@Override
+	public String getAllTvStation() throws RemoteException {
+		return jolynnTv.getAllTvStation();
+	}
+
+	@Override
 	public String getProgramTable(String name, String date)
-			throws RemoteException;
+			throws RemoteException {
+		return jolynnTv.getProgramTable(name, date);
+	}
+
 }
