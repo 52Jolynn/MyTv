@@ -62,8 +62,8 @@ public class Config {
 
 	public final static class NetConfig {
 		private String ip = "127.0.0.1";
-		private int hessianPort = 8080;
-		private int rmiPort = 8081;
+		private int hessianPort = 11700;
+		private int rmiPort = 11701;
 
 		public String getIp() {
 			return ip;
