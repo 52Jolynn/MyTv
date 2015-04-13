@@ -166,18 +166,16 @@ public class Init {
 	private void initData() {
 		List<TvStation> stations = EpgService.getAllStation();
 		boolean isStationExists = (stations == null ? 0 : stations.size()) > 0;
+		String today = DateUtils.today();
 		if (isStationExists) {
 			this.addAllTvStation2Cache(stations);
-			return;
-		}
-		// 首次抓取
-		Page page = Crawler.crawl(Constant.EPG_URL);
-		if (!page.isHtmlPage()) {
-			return;
-		}
-		HtmlPage htmlPage = (HtmlPage) page;
-		String today = DateUtils.today();
-		if (!isStationExists) {
+		} else {
+			// 首次抓取
+			Page page = Crawler.crawl(Constant.EPG_URL);
+			if (!page.isHtmlPage()) {
+				return;
+			}
+			HtmlPage htmlPage = (HtmlPage) page;
 			String html = htmlPage.asXml();
 			stations = EpgParser.parseTvStation(html);
 			// 写数据到tv_station表
