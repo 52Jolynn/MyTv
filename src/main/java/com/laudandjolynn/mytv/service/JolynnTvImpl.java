@@ -40,4 +40,11 @@ public class JolynnTvImpl implements JolynnTv {
 		JSONArray array = new JSONArray(ptList);
 		return array.toString();
 	}
+
+	@Override
+	public List<TvStation> getTvStationByClassify(String classify)
+			throws RemoteException {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

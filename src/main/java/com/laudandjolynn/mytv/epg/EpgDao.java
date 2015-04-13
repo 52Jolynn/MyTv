@@ -472,4 +472,49 @@ public class EpgDao {
 		}
 	}
 
+	/**
+	 * 根据电视台分类查找分类下的所有电视台
+	 * 
+	 * @param stationName
+	 * @return
+	 */
+	protected static List<TvStation> getTvStationByClassify(String classify) {
+		String sql = "select id,name,city,classify from tv_station where classify='"
+				+ classify + "'";
+		List<TvStation> stationList = new ArrayList<TvStation>();
+		Connection conn = EpgDao.getConnection();
+		Statement stmt = null;
+		try {
+			stmt = conn.createStatement();
+			ResultSet rs = stmt.executeQuery(sql);
+			while (rs.next()) {
+				TvStation station = new TvStation();
+				station.setId(rs.getInt(1));
+				station.setName(rs.getString(2));
+				station.setCity(rs.getString(3));
+				station.setClassify(rs.getString(4));
+				stationList.add(station);
+			}
+			rs.close();
+		} catch (SQLException e) {
+			throw new MyTvException(e);
+		} finally {
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (SQLException e) {
+					throw new MyTvException(e);
+				}
+			}
+
+			if (conn != null) {
+				try {
+					conn.close();
+				} catch (SQLException e) {
+					throw new MyTvException(e);
+				}
+			}
+		}
+		return stationList;
+	}
 }

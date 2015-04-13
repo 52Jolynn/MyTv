@@ -146,4 +146,14 @@ public class EpgService {
 			String date) {
 		return EpgDao.getProgramTable(stationName, date);
 	}
+
+	/**
+	 * 根据电视台分类查询分类下的所有电视台
+	 * 
+	 * @param classify
+	 * @return
+	 */
+	public static List<TvStation> getTvStationByClassify(String classify) {
+		return EpgDao.getTvStationByClassify(classify);
+	}
 }

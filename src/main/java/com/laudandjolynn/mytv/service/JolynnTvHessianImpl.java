@@ -16,8 +16,10 @@
 package com.laudandjolynn.mytv.service;
 
 import java.rmi.RemoteException;
+import java.util.List;
 
 import com.caucho.hessian.server.HessianServlet;
+import com.laudandjolynn.mytv.model.TvStation;
 
 /**
  * @author: Laud
@@ -36,6 +38,12 @@ public class JolynnTvHessianImpl extends HessianServlet implements JolynnTv {
 	@Override
 	public String getTvStationClassify() throws RemoteException {
 		return jolynnTv.getTvStationClassify();
+	}
+
+	@Override
+	public List<TvStation> getTvStationByClassify(String classify)
+			throws RemoteException {
+		return jolynnTv.getTvStationByClassify(classify);
 	}
 
 	@Override

@@ -2,6 +2,9 @@ package com.laudandjolynn.mytv.service;
 
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.List;
+
+import com.laudandjolynn.mytv.model.TvStation;
 
 /**
  * @author: Laud
@@ -20,6 +23,12 @@ public class JolynnTvRmiImpl extends UnicastRemoteObject implements JolynnTv {
 	@Override
 	public String getTvStationClassify() throws RemoteException {
 		return jolynnTv.getTvStationClassify();
+	}
+
+	@Override
+	public List<TvStation> getTvStationByClassify(String classify)
+			throws RemoteException {
+		return jolynnTv.getTvStationByClassify(classify);
 	}
 
 	@Override
