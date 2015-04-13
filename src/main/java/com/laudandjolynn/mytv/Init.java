@@ -166,9 +166,7 @@ public class Init {
 	private void initData() {
 		List<TvStation> stations = EpgService.getAllStation();
 		boolean isStationExists = (stations == null ? 0 : stations.size()) > 0;
-		boolean isProgramTableOfTodayCrawled = MyTvData.getInstance()
-				.isProgramTableOfTodayCrawled();
-		if (isStationExists && isProgramTableOfTodayCrawled) {
+		if (isStationExists) {
 			this.addAllTvStation2Cache(stations);
 			return;
 		}
@@ -190,7 +188,7 @@ public class Init {
 			this.addAllTvStation2Cache(EpgService.getAllStation());
 		}
 
-		if (!isProgramTableOfTodayCrawled) {
+		if (!MyTvData.getInstance().isProgramTableOfTodayCrawled()) {
 			// 保存当天电视节目表
 			logger.info("query program table of today. " + "today is " + today);
 			List<ProgramTable> ptList = EpgCrawler.crawlAllProgramTable(today);
