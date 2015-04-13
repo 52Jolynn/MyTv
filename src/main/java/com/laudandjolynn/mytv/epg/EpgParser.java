@@ -47,6 +47,7 @@ public class EpgParser {
 		Elements classifyElements = doc.select("ul.weishi a[href]");
 		Elements stationElements = doc.select("div.md_left_right");
 		List<TvStation> resultList = new ArrayList<TvStation>();
+		int sequence = 0;
 		for (int i = 0, size = classifyElements == null ? 0 : classifyElements
 				.size(); i < size; i++) {
 			Element classifyElement = classifyElements.get(i);
@@ -63,6 +64,7 @@ public class EpgParser {
 				tv.setName(stationTextElements.get(j).text().trim());
 				tv.setCity(null);
 				tv.setClassify(classify);
+				tv.setSequence(++sequence);
 				resultList.add(tv);
 			}
 		}
@@ -78,6 +80,7 @@ public class EpgParser {
 				tv.setName(cityStationElements.get(j).text().trim());
 				tv.setCity(cityElement.text().trim());
 				tv.setClassify(CITY);
+				tv.setSequence(++sequence);
 				resultList.add(tv);
 			}
 		}

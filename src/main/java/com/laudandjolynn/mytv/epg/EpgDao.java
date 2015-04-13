@@ -63,7 +63,7 @@ public class EpgDao {
 	 * @return
 	 */
 	protected static List<String> getTvStationClassify() {
-		String sql = "select classify from tv_station group by classify order by classify asc";
+		String sql = "select classify from tv_station group by classify order by sequence asc";
 		Connection conn = EpgDao.getConnection();
 		Statement stmt = null;
 		List<String> classifies = new ArrayList<String>();
@@ -102,7 +102,7 @@ public class EpgDao {
 	 * @return
 	 */
 	protected static List<TvStation> getAllStation() {
-		String sql = "select id,name,city,classify from tv_station";
+		String sql = "select id,name,city,classify,sequence from tv_station order by sequence asc";
 		Connection conn = EpgDao.getConnection();
 		Statement stmt = null;
 		List<TvStation> stations = new ArrayList<TvStation>();
@@ -115,6 +115,7 @@ public class EpgDao {
 				station.setName(rs.getString(2));
 				station.setCity(rs.getString(3));
 				station.setClassify(rs.getString(4));
+				station.setSequence(rs.getInt(5));
 				stations.add(station);
 			}
 		} catch (SQLException e) {
@@ -147,8 +148,8 @@ public class EpgDao {
 	 * @return
 	 */
 	protected static TvStation getStation(String stationName) {
-		String sql = "select id,name,city,classify from tv_station where name='"
-				+ stationName + "'";
+		String sql = "select id,name,city,classify,sequence from tv_station where name='"
+				+ stationName + "' order by sequence asc";
 		TvStation station = null;
 		Connection conn = EpgDao.getConnection();
 		Statement stmt = null;
@@ -161,6 +162,7 @@ public class EpgDao {
 				station.setName(rs.getString(2));
 				station.setCity(rs.getString(3));
 				station.setClassify(rs.getString(4));
+				station.setSequence(rs.getInt(5));
 			}
 			rs.close();
 		} catch (SQLException e) {
@@ -275,7 +277,7 @@ public class EpgDao {
 	 */
 	protected static int[] save(TvStation... stations) {
 		Connection conn = EpgDao.getConnection();
-		String insertSql = "insert into tv_station (name,city,classify) values(?,?,?)";
+		String insertSql = "insert into tv_station (name,city,classify,sequence) values(?,?,?,?)";
 		PreparedStatement insertStmt = null;
 		try {
 			conn.setAutoCommit(false);
@@ -286,6 +288,7 @@ public class EpgDao {
 				insertStmt.setString(1, station.getName());
 				insertStmt.setString(2, station.getCity());
 				insertStmt.setString(3, station.getClassify());
+				insertStmt.setInt(4, station.getSequence());
 				insertStmt.addBatch();
 			}
 			int[] r = insertStmt.executeBatch();
@@ -389,7 +392,10 @@ public class EpgDao {
 	protected static List<ProgramTable> getProgramTable(String stationName,
 			String date) {
 		String sql = "select id,station,stationName,program,airdate,airtime,week from program_table where stationName='"
-				+ stationName + "' and airdate='" + date + "'";
+				+ stationName
+				+ "' and airdate='"
+				+ date
+				+ "' order by airtime asc";
 		Connection conn = EpgDao.getConnection();
 		Statement stmt = null;
 		try {
@@ -479,8 +485,8 @@ public class EpgDao {
 	 * @return
 	 */
 	protected static List<TvStation> getTvStationByClassify(String classify) {
-		String sql = "select id,name,city,classify from tv_station where classify='"
-				+ classify + "'";
+		String sql = "select id,name,city,classify,sequence from tv_station where classify='"
+				+ classify + "' order by sequence asc";
 		List<TvStation> stationList = new ArrayList<TvStation>();
 		Connection conn = EpgDao.getConnection();
 		Statement stmt = null;
@@ -493,6 +499,7 @@ public class EpgDao {
 				station.setName(rs.getString(2));
 				station.setCity(rs.getString(3));
 				station.setClassify(rs.getString(4));
+				station.setSequence(rs.getInt(5));
 				stationList.add(station);
 			}
 			rs.close();

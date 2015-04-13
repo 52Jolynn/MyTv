@@ -26,6 +26,7 @@ public class TvStation {
 	private String name;
 	private String city;
 	private String classify;
+	private int sequence;
 
 	public int getId() {
 		return id;
@@ -57,6 +58,14 @@ public class TvStation {
 
 	public void setClassify(String classify) {
 		this.classify = classify;
+	}
+
+	public int getSequence() {
+		return sequence;
+	}
+
+	public void setSequence(int sequence) {
+		this.sequence = sequence;
 	}
 
 	@Override
