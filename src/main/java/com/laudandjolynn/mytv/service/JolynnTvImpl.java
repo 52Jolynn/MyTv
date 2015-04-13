@@ -42,9 +42,11 @@ public class JolynnTvImpl implements JolynnTv {
 	}
 
 	@Override
-	public List<TvStation> getTvStationByClassify(String classify)
+	public String getTvStationByClassify(String classify)
 			throws RemoteException {
-		// TODO Auto-generated method stub
-		return null;
+		List<TvStation> stationList = EpgService
+				.getTvStationByClassify(classify);
+		JSONArray array = new JSONArray(stationList);
+		return array.toString();
 	}
 }

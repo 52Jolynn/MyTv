@@ -17,9 +17,6 @@ package com.laudandjolynn.mytv.service;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;
-import java.util.List;
-
-import com.laudandjolynn.mytv.model.TvStation;
 
 /**
  * @author: Laud
@@ -43,7 +40,7 @@ public interface JolynnTv extends Remote {
 	 * @return
 	 * @throws RemoteException
 	 */
-	public List<TvStation> getTvStationByClassify(String classify)
+	public String getTvStationByClassify(String classify)
 			throws RemoteException;
 
 	/**
