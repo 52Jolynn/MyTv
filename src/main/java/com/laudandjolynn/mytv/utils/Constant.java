@@ -32,22 +32,23 @@ public class Constant {
 	// cntv节目表地址
 	public final static String EPG_URL = "http://tv.cntv.cn/epg";
 	// 数据文件目录
-	public final static String MY_TV_DATA_PATH = Constant.class
-			.getResource("/").getPath() + "data" + File.separator;
+	public final static String MY_TV_DATA_PATH = Config.getDataFilePath()
+			+ "data" + File.separator;
 	// 数据文件
 	public final static String MY_TV_DATA_FILE_PATH = MY_TV_DATA_PATH
 			+ "mytv.dat";
 	// 电视节目表文件路径
 	public final static String CRAWL_FILE_DIR = "crawlfiles";
-	public static String CRAWL_FILE_PATH = Constant.MY_TV_DATA_PATH
+	public final static String CRAWL_FILE_PATH = Constant.MY_TV_DATA_PATH
 			+ CRAWL_FILE_DIR + File.separator;
-	public final static String DOT = ".";
-	public final static String UNDERLINE = "_";
-	public final static String CRAWL_FILE_STATION_TAG = "TvStation";
+	public final static String CRAWL_FILE_STATION_TAG = "station";
 
 	public final static String XML_TAG_PROGRAM_TABLE_DATES = "dates";
 	public final static String XML_TAG_PROGRAM_TABLE_DATE = "date";
 	public final static String XML_TAG_DB = "db";
+
+	public final static String DOT = ".";
+	public final static String UNDERLINE = "_";
 
 	static {
 		File file = new File(MY_TV_DATA_PATH);

@@ -25,7 +25,7 @@ import java.util.ResourceBundle;
  * @copyright: www.laudandjolynn.com
  */
 public class Config {
-	private final static String RES_KEY_CRAWL_FILE_PATH_NAME = "crawl_file_path";
+	private final static String RES_KEY_DATA_FILE_PATH = "data_file_path";
 	private final static String CONFIG_FILE_NAME = "config";
 	public final static NetConfig NET_CONFIG = new NetConfig();
 	private final static String RES_KEY_CONFIG_IP = "ip";
@@ -34,20 +34,18 @@ public class Config {
 	private final static String RES_KEY_CONFIG_DB_MODE = "db_mode";
 
 	private static String dbMode = "sqlite";
+	private static String dataFilePath = MyTvUtils.getRunningPath(Config.class);
 
 	static {
 		ResourceBundle bundle = ResourceBundle.getBundle(CONFIG_FILE_NAME);
-		if (bundle.containsKey(RES_KEY_CRAWL_FILE_PATH_NAME)) {
-			String value = bundle.getString(RES_KEY_CRAWL_FILE_PATH_NAME);
+		// 读取抓取的文件存放路径
+		if (bundle.containsKey(RES_KEY_DATA_FILE_PATH)) {
+			String value = bundle.getString(RES_KEY_DATA_FILE_PATH);
 			if (!Constant.DOT.equals(value)) {
 				if (!value.endsWith(File.separator)) {
 					value += File.separator;
 				}
-				Constant.CRAWL_FILE_PATH = value + Constant.CRAWL_FILE_DIR;
-				File file = new File(Constant.CRAWL_FILE_PATH);
-				if (!file.exists()) {
-					file.mkdirs();
-				}
+				dataFilePath = value;
 			}
 		}
 		if (bundle.containsKey(RES_KEY_CONFIG_IP)) {
@@ -64,6 +62,10 @@ public class Config {
 		if (bundle.containsKey(RES_KEY_CONFIG_DB_MODE)) {
 			dbMode = bundle.getString(RES_KEY_CONFIG_DB_MODE);
 		}
+	}
+
+	public static String getDataFilePath() {
+		return dataFilePath;
 	}
 
 	public final static class NetConfig {
@@ -87,4 +89,5 @@ public class Config {
 	public static String getDbMode() {
 		return dbMode;
 	}
+
 }

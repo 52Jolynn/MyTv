@@ -64,6 +64,8 @@ public class MyTvData {
 	 * 加载应用数据
 	 */
 	public void loadData() {
+		logger.debug("load data from my tv data file: "
+				+ Constant.MY_TV_DATA_FILE_PATH);
 		File file = new File(Constant.MY_TV_DATA_FILE_PATH);
 		if (!file.exists()) {
 			this.dbInited = false;
@@ -99,6 +101,8 @@ public class MyTvData {
 	}
 
 	public void writeData(String parent, String tag, String value) {
+		logger.debug("write data to my tv data file: "
+				+ Constant.MY_TV_DATA_FILE_PATH);
 		File file = new File(Constant.MY_TV_DATA_FILE_PATH);
 		if (!file.exists()) {
 			Document doc = DocumentHelper.createDocument();

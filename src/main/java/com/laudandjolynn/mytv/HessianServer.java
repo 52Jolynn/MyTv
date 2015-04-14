@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.laudandjolynn.mytv.utils.Config;
+import com.laudandjolynn.mytv.utils.MyTvUtils;
 
 /**
  * @author: Laud
@@ -45,13 +46,12 @@ public class HessianServer implements com.laudandjolynn.mytv.Server {
 		// 解决Windows下重复启动Jetty居然不报告端口冲突的问题.
 		connector.setReuseAddress(false);
 		server.setConnectors(new Connector[] { connector });
-
 		// web配置
 		WebAppContext context = new WebAppContext();
-		String resourcePath = Main.class.getResource("/").getPath();
+		String resourcePath = MyTvUtils.getRunningPath(HessianServer.class);
 		logger.info("web app context path: " + resourcePath);
 		context.setContextPath("/");
-		String descriptor = resourcePath + "WEB-INF/web.xml";
+		String descriptor = resourcePath + "/WEB-INF/web.xml";
 		logger.info("web app descriptor: " + descriptor);
 		context.setDescriptor(descriptor);
 		context.setResourceBase(resourcePath);

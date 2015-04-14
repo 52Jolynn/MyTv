@@ -52,7 +52,7 @@ public class DataSourceManager {
 
 	public final static Properties prop = new Properties();
 	private final static Pattern PATTERN_DB_PROPERTY_FILE_SQL_SUFFIX = Pattern
-			.compile("_(\\d)$");
+			.compile("_(\\d+)$");
 
 	static {
 		ResourceBundle bundle = ResourceBundle
