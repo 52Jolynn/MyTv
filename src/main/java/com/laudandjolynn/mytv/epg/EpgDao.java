@@ -16,7 +16,6 @@
 package com.laudandjolynn.mytv.epg;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -24,10 +23,10 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.laudandjolynn.mytv.datasource.DataSourceManager;
 import com.laudandjolynn.mytv.exception.MyTvException;
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
-import com.laudandjolynn.mytv.utils.Constant;
 
 /**
  * @author: Laud
@@ -44,14 +43,7 @@ public class EpgDao {
 	 */
 	public static Connection getConnection() {
 		try {
-			Class.forName("org.sqlite.JDBC");
-		} catch (ClassNotFoundException e) {
-			throw new MyTvException("db driver class is not found.", e);
-		}
-
-		try {
-			return DriverManager.getConnection("jdbc:sqlite:"
-					+ Constant.MY_TV_DATA_PATH + Constant.DB_NAME);
+			return DataSourceManager.getConnection();
 		} catch (SQLException e) {
 			throw new MyTvException("error occur while connection to db.", e);
 		}

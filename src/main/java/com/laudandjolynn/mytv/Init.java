@@ -19,22 +19,17 @@ import java.io.File;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.ResourceBundle;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.gargoylesoftware.htmlunit.Page;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import com.laudandjolynn.mytv.datasource.DataSourceManager;
 import com.laudandjolynn.mytv.epg.EpgCrawler;
 import com.laudandjolynn.mytv.epg.EpgDao;
 import com.laudandjolynn.mytv.epg.EpgParser;
@@ -79,24 +74,14 @@ public class Init {
 		this.initData();
 	}
 
+	@SuppressWarnings("unchecked")
 	private List<String> loadSql() {
-		ResourceBundle bundle = ResourceBundle.getBundle(Constant.SQL_FILE);
-		Enumeration<String> enumeration = bundle.getKeys();
-		SortedSet<String> sqlSet = new TreeSet<String>(
-				new Comparator<String>() {
-					@Override
-					public int compare(String o1, String o2) {
-						if (o1.startsWith("create table")) {
-							return -1;
-						} else {
-							return 1;
-						}
-					}
-				});
-		while (enumeration.hasMoreElements()) {
-			sqlSet.add(bundle.getString(enumeration.nextElement()));
+		Object object = DataSourceManager.prop
+				.get(DataSourceManager.RES_KEY_DB_SQL_LIST);
+		if (object instanceof List) {
+			return (List<String>) object;
 		}
-		return new ArrayList<String>(sqlSet);
+		throw new MyTvException("error occur while trying to init db.");
 	}
 
 	/**
@@ -106,12 +91,6 @@ public class Init {
 		if (MyTvData.getInstance().isDbInited()) {
 			logger.debug("db have already init.");
 			return;
-		}
-
-		try {
-			Class.forName("org.sqlite.JDBC");
-		} catch (ClassNotFoundException e) {
-			throw new MyTvException("db driver class is not found.", e);
 		}
 
 		File myTvDataFilePath = new File(Constant.MY_TV_DATA_FILE_PATH);
@@ -128,7 +107,7 @@ public class Init {
 			stmt.executeBatch();
 			conn.commit();
 
-			MyTvData.getInstance().writeData(null, Constant.SQL_FILE, "true");
+			MyTvData.getInstance().writeData(null, Constant.XML_TAG_DB, "true");
 		} catch (SQLException e) {
 			if (conn != null) {
 				try {
@@ -192,8 +171,9 @@ public class Init {
 			List<ProgramTable> ptList = EpgCrawler.crawlAllProgramTable(today);
 			ProgramTable[] ptArray = new ProgramTable[ptList.size()];
 			EpgService.save(ptList.toArray(ptArray));
-			MyTvData.getInstance().writeData(Constant.PROGRAM_TABLE_DATES,
-					Constant.PROGRAM_TABLE_DATE, today);
+			MyTvData.getInstance().writeData(
+					Constant.XML_TAG_PROGRAM_TABLE_DATES,
+					Constant.XML_TAG_PROGRAM_TABLE_DATE, today);
 		}
 	}
 

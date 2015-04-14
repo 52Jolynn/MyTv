@@ -88,8 +88,9 @@ public class Main {
 						.crawlAllProgramTable(today);
 				ProgramTable[] ptArray = new ProgramTable[ptList.size()];
 				EpgService.save(ptList.toArray(ptArray));
-				MyTvData.getInstance().writeData(Constant.PROGRAM_TABLE_DATES,
-						Constant.PROGRAM_TABLE_DATE, today);
+				MyTvData.getInstance().writeData(
+						Constant.XML_TAG_PROGRAM_TABLE_DATES,
+						Constant.XML_TAG_PROGRAM_TABLE_DATE, today);
 			}
 		}, initDelay, 1, TimeUnit.DAYS);
 	}

@@ -25,17 +25,20 @@ import java.util.ResourceBundle;
  * @copyright: www.laudandjolynn.com
  */
 public class Config {
-	private final static String CRAWL_FILE_PATH_NAME = "crawl_file_path";
+	private final static String RES_KEY_CRAWL_FILE_PATH_NAME = "crawl_file_path";
 	private final static String CONFIG_FILE_NAME = "config";
 	public final static NetConfig NET_CONFIG = new NetConfig();
-	private final static String CONFIG_IP = "ip";
-	private final static String CONFIG_HESSIAN_PORT = "hessian_port";
-	private final static String CONFIG_RMI_PORT = "rmi_port";
+	private final static String RES_KEY_CONFIG_IP = "ip";
+	private final static String RES_KEY_CONFIG_HESSIAN_PORT = "hessian_port";
+	private final static String RES_KEY_CONFIG_RMI_PORT = "rmi_port";
+	private final static String RES_KEY_CONFIG_DB_MODE = "db_mode";
+
+	private static String dbMode = "sqlite";
 
 	static {
 		ResourceBundle bundle = ResourceBundle.getBundle(CONFIG_FILE_NAME);
-		if (bundle.containsKey(CRAWL_FILE_PATH_NAME)) {
-			String value = bundle.getString(CRAWL_FILE_PATH_NAME);
+		if (bundle.containsKey(RES_KEY_CRAWL_FILE_PATH_NAME)) {
+			String value = bundle.getString(RES_KEY_CRAWL_FILE_PATH_NAME);
 			if (!Constant.DOT.equals(value)) {
 				if (!value.endsWith(File.separator)) {
 					value += File.separator;
@@ -47,16 +50,19 @@ public class Config {
 				}
 			}
 		}
-		if (bundle.containsKey(CONFIG_IP)) {
-			NET_CONFIG.ip = bundle.getString(CONFIG_IP);
+		if (bundle.containsKey(RES_KEY_CONFIG_IP)) {
+			NET_CONFIG.ip = bundle.getString(RES_KEY_CONFIG_IP);
 		}
-		if (bundle.containsKey(CONFIG_HESSIAN_PORT)) {
+		if (bundle.containsKey(RES_KEY_CONFIG_HESSIAN_PORT)) {
 			NET_CONFIG.hessianPort = Integer.valueOf(bundle
-					.getString(CONFIG_HESSIAN_PORT));
+					.getString(RES_KEY_CONFIG_HESSIAN_PORT));
 		}
-		if (bundle.containsKey(CONFIG_RMI_PORT)) {
+		if (bundle.containsKey(RES_KEY_CONFIG_RMI_PORT)) {
 			NET_CONFIG.rmiPort = Integer.valueOf(bundle
-					.getString(CONFIG_RMI_PORT));
+					.getString(RES_KEY_CONFIG_RMI_PORT));
+		}
+		if (bundle.containsKey(RES_KEY_CONFIG_DB_MODE)) {
+			dbMode = bundle.getString(RES_KEY_CONFIG_DB_MODE);
 		}
 	}
 
@@ -76,6 +82,9 @@ public class Config {
 		public int getRmiPort() {
 			return rmiPort;
 		}
+	}
 
+	public static String getDbMode() {
+		return dbMode;
 	}
 }

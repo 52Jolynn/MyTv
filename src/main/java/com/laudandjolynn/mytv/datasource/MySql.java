@@ -13,14 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package com.laudandjolynn.mytv;
+package com.laudandjolynn.mytv.datasource;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.util.Properties;
 
 /**
  * @author: Laud
  * @email: htd0324@gmail.com
- * @date: 2015年4月8日 上午9:59:15
+ * @date: 2015年4月14日 上午9:57:18
  * @copyright: www.laudandjolynn.com
  */
-public interface Server {
-	public void start() throws Exception;
+public class MySql implements TvDataSource {
+	@Override
+	public Connection getConnection(Properties prop) throws SQLException {
+		String url = prop.getProperty(DataSourceManager.RES_KEY_DB_URL);
+		String username = prop
+				.getProperty(DataSourceManager.RES_KEY_DB_USER_NAME);
+		String password = prop
+				.getProperty(DataSourceManager.RES_KEY_DB_PASSWORD);
+		return DriverManager.getConnection(url, username, password);
+	}
 }

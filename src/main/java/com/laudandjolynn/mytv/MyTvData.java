@@ -74,12 +74,13 @@ public class MyTvData {
 		try {
 			Document xmlDoc = reader.read(new File(
 					Constant.MY_TV_DATA_FILE_PATH));
-			List<?> nodes = xmlDoc.selectNodes("//" + Constant.SQL_FILE);
+			List<?> nodes = xmlDoc.selectNodes("//" + Constant.XML_TAG_DB);
 			if (nodes != null && nodes.size() > 0) {
 				this.dbInited = Boolean.valueOf(((Element) nodes.get(0))
 						.getText());
 			}
-			nodes = xmlDoc.selectNodes("//" + Constant.PROGRAM_TABLE_DATE);
+			nodes = xmlDoc.selectNodes("//"
+					+ Constant.XML_TAG_PROGRAM_TABLE_DATE);
 			int size = nodes == null ? 0 : nodes.size();
 			for (int i = 0; i < size; i++) {
 				Element node = (Element) nodes.get(i);
