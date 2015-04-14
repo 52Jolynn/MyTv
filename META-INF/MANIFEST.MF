@@ -1,4 +1,2 @@
 Manifest-Version: 1.0
 Created-By: Laud
-Class-Path: libs
-Main-Class: com.laudandjolynn.mytv.Main

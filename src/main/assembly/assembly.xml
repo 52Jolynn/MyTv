@@ -10,12 +10,6 @@
 		</dependencySet>
 	</dependencySets>
 	<fileSets>
-		<fileSet>
-			<outputDirectory>/</outputDirectory>
-			<includes>
-				<include>META-INF/MANIFEST.MF</include>
-			</includes>
-		</fileSet>
 		<!-- 把项目自己编译出来的jar文件，打包进zip文件的根目录 -->
 		<fileSet>
 			<directory>${project.build.directory}</directory>
