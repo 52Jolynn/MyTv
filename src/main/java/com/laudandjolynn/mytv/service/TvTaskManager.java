@@ -68,14 +68,16 @@ public class TvTaskManager {
 	 *            日期，yyyy-MM-dd
 	 * @return
 	 */
-	public List<ProgramTable> queryProgramTable(String displayName,
+	public List<ProgramTable> queryProgramTable(final String stationName,
 			String classify, final String date) {
-		TvStation tvStation = epgService.getStationByDisplayName(displayName,
-				classify);
+		TvStation tvStation = epgService.getStation(stationName);
 		if (tvStation == null) {
-			throw new MyTvException(displayName + " isn't exists.");
+			tvStation = epgService.getStationByDisplayName(stationName,
+					classify);
 		}
-		final String stationName = tvStation.getName();
+		if (tvStation == null) {
+			throw new MyTvException(stationName + " isn't exists.");
+		}
 		logger.info("query program table of " + stationName + " at " + date);
 		if (epgService.isProgramTableExists(stationName, date)) {
 			return epgService.getProgramTable(stationName, date);
