@@ -203,9 +203,12 @@ public class TvDaoImpl implements TvDao {
 	}
 
 	@Override
-	public TvStation getStationByDisplayName(String displayName) {
+	public TvStation getStationByDisplayName(String displayName, String classify) {
 		String sql = "select id,name,displayName,city,classify,channel,sequence from tv_station where displayName='"
-				+ displayName + "' order by sequence asc";
+				+ displayName
+				+ "' and classify='"
+				+ classify
+				+ "' order by sequence asc";
 		TvStation station = null;
 		Connection conn = getConnection();
 		Statement stmt = null;

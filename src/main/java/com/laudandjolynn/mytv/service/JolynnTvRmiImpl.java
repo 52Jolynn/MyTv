@@ -49,9 +49,9 @@ public class JolynnTvRmiImpl extends UnicastRemoteObject implements JolynnTv {
 	}
 
 	@Override
-	public String getProgramTable(String name, String date)
-			throws RemoteException {
-		return jolynnTv.getProgramTable(name, date);
+	public String getProgramTable(String stationName, String classify,
+			String date) throws RemoteException {
+		return jolynnTv.getProgramTable(stationName, classify, date);
 	}
 
 }

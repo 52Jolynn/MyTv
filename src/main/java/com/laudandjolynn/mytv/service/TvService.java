@@ -143,10 +143,11 @@ public class TvService {
 	 * 根据显示名取得电视台对象
 	 * 
 	 * @param displayName
+	 * @param classify
 	 * @return
 	 */
-	public TvStation getStationByDisplayName(String displayName) {
-		return epgDao.getStationByDisplayName(displayName);
+	public TvStation getStationByDisplayName(String displayName, String classify) {
+		return epgDao.getStationByDisplayName(displayName, classify);
 	}
 
 	/**

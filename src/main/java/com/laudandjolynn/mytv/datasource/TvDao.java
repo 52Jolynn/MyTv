@@ -46,9 +46,10 @@ public interface TvDao {
 	 * 根据电视台显示名得到电视台对象
 	 * 
 	 * @param displayName
+	 * @param classify
 	 * @return
 	 */
-	public TvStation getStationByDisplayName(String displayName);
+	public TvStation getStationByDisplayName(String displayName, String classify);
 
 	/**
 	 * 判断电视台是否已经存在，比较stationName，不比较displayName

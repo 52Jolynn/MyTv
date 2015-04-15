@@ -32,8 +32,8 @@ import com.laudandjolynn.mytv.utils.DateUtils;
  * @copyright: www.laudandjolynn.com
  */
 public class RmiTest extends TestCase {
-	private final static String url = "rmi://" + Config.NET_CONFIG.getIp() + ":"
-			+ Config.NET_CONFIG.getRmiPort() + "/epg";
+	private final static String url = "rmi://" + Config.NET_CONFIG.getIp()
+			+ ":" + Config.NET_CONFIG.getRmiPort() + "/epg";
 
 	/**
 	 * 测试电视台分类
@@ -75,7 +75,8 @@ public class RmiTest extends TestCase {
 		String program = null;
 		try {
 			JolynnTv jolynnTv = (JolynnTv) Naming.lookup(url);
-			program = jolynnTv.getProgramTable("CCTV-1 综合", DateUtils.today());
+			program = jolynnTv.getProgramTable("CCTV-1 综合", "央视",
+					DateUtils.today());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

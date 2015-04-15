@@ -56,11 +56,13 @@ public interface JolynnTv extends Remote {
 	 * 
 	 * @param stationName
 	 *            电视台名称
+	 * @param classify
+	 *            电视台分类
 	 * @param date
 	 *            日期, yyyy-MM-dd
 	 * @throws RemoteException
 	 * @return
 	 */
-	public String getProgramTable(String stationName, String date)
-			throws RemoteException;
+	public String getProgramTable(String stationName, String classify,
+			String date) throws RemoteException;
 }

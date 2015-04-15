@@ -49,13 +49,14 @@ public class JolynnTvImpl implements JolynnTv {
 	}
 
 	@Override
-	public String getProgramTable(String stationName, String date)
-			throws RemoteException {
-		if (!MyTvUtils.checkStationName(stationName)) {
+	public String getProgramTable(String stationName, String classify,
+			String date) throws RemoteException {
+		if (!MyTvUtils.checkInvalidString(stationName)
+				|| !MyTvUtils.checkInvalidString(classify)) {
 			throw new MyTvException("invalid stationName: " + stationName);
 		}
 		List<ProgramTable> ptList = TvTaskManager.getIntance()
-				.queryProgramTable(stationName, date);
+				.queryProgramTable(stationName, classify, date);
 		JSONArray array = new JSONArray(ptList);
 		return array.toString();
 	}

@@ -90,8 +90,8 @@ public class MyTvUtils {
 		return filePath;
 	}
 
-	public static boolean checkStationName(String stationName) {
-		if (stationName.indexOf("'") != -1) {
+	public static boolean checkInvalidString(String string) {
+		if (string.indexOf("'") != -1) {
 			return false;
 		}
 		return true;
