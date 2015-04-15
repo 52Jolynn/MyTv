@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import com.laudandjolynn.mytv.exception.MyTvException;
 import com.laudandjolynn.mytv.model.EpgTask;
 import com.laudandjolynn.mytv.model.ProgramTable;
+import com.laudandjolynn.mytv.model.TvStation;
 
 /**
  * @author: Laud
@@ -43,6 +44,7 @@ public class EpgTaskManager {
 	private final int processor = Runtime.getRuntime().availableProcessors();
 	private final ExecutorService executorService = Executors
 			.newFixedThreadPool(processor * 2);
+	private EpgService epgService = new EpgService();
 
 	private EpgTaskManager() {
 	}
@@ -64,11 +66,16 @@ public class EpgTaskManager {
 	 *            日期，yyyy-MM-dd
 	 * @return
 	 */
-	public List<ProgramTable> queryProgramTable(final String stationName,
+	public List<ProgramTable> queryProgramTable(String displayName,
 			final String date) {
+		TvStation tvStation = epgService.getStationByDisplayName(displayName);
+		if (tvStation == null) {
+			throw new MyTvException(displayName + " isn't exists.");
+		}
+		final String stationName = tvStation.getName();
 		logger.info("query program table of " + stationName + " at " + date);
-		if (EpgDao.isProgramTableExists(stationName, date)) {
-			return EpgService.getProgramTable(stationName, date);
+		if (epgService.isProgramTableExists(stationName, date)) {
+			return epgService.getProgramTable(stationName, date);
 		}
 		EpgTask epgTask = new EpgTask(stationName, date);
 		if (CURRENT_EPG_TASK.contains(epgTask)) {
@@ -93,7 +100,7 @@ public class EpgTaskManager {
 
 				logger.debug(epgTask
 						+ " has receive notification and try to get program table from db.");
-				return EpgService.getProgramTable(stationName, date);
+				return epgService.getProgramTable(stationName, date);
 			}
 		}
 
@@ -123,6 +130,6 @@ public class EpgTaskManager {
 					+ " have finished to get program table data and send notification.");
 			notifyAll();
 		}
-		return EpgService.getProgramTable(stationName, date);
+		return epgService.getProgramTable(stationName, date);
 	}
 }

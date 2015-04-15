@@ -22,8 +22,10 @@ import org.json.JSONArray;
 
 import com.laudandjolynn.mytv.epg.EpgService;
 import com.laudandjolynn.mytv.epg.EpgTaskManager;
+import com.laudandjolynn.mytv.exception.MyTvException;
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
+import com.laudandjolynn.mytv.utils.MyTvUtils;
 
 /**
  * @author: Laud
@@ -32,26 +34,30 @@ import com.laudandjolynn.mytv.model.TvStation;
  * @copyright: www.laudandjolynn.com
  */
 public class JolynnTvImpl implements JolynnTv {
+	private EpgService epgService = new EpgService();
 
 	@Override
 	public String getTvStationClassify() throws RemoteException {
-		List<String> classifies = EpgService.getTvStationClassify();
+		List<String> classifies = epgService.getTvStationClassify();
 		JSONArray array = new JSONArray(classifies);
 		return array.toString();
 	}
 
 	@Override
 	public String getAllTvStation() throws RemoteException {
-		List<TvStation> stations = EpgService.getAllStation();
+		List<TvStation> stations = epgService.getAllStation();
 		JSONArray array = new JSONArray(stations);
 		return array.toString();
 	}
 
 	@Override
-	public String getProgramTable(String name, String date)
+	public String getProgramTable(String stationName, String date)
 			throws RemoteException {
+		if (!MyTvUtils.checkStationName(stationName)) {
+			throw new MyTvException("invalid stationName: " + stationName);
+		}
 		List<ProgramTable> ptList = EpgTaskManager.getIntance()
-				.queryProgramTable(name, date);
+				.queryProgramTable(stationName, date);
 		JSONArray array = new JSONArray(ptList);
 		return array.toString();
 	}
@@ -59,9 +65,10 @@ public class JolynnTvImpl implements JolynnTv {
 	@Override
 	public String getTvStationByClassify(String classify)
 			throws RemoteException {
-		List<TvStation> stationList = EpgService
+		List<TvStation> stationList = epgService
 				.getTvStationByClassify(classify);
 		JSONArray array = new JSONArray(stationList);
 		return array.toString();
 	}
+
 }

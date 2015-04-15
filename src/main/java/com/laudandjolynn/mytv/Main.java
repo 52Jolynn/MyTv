@@ -83,11 +83,12 @@ public class Main {
 
 			@Override
 			public void run() {
+				EpgService epgService = new EpgService();
 				String today = DateUtils.today();
 				List<ProgramTable> ptList = EpgCrawler
 						.crawlAllProgramTable(today);
 				ProgramTable[] ptArray = new ProgramTable[ptList.size()];
-				EpgService.save(ptList.toArray(ptArray));
+				epgService.save(ptList.toArray(ptArray));
 				MyTvData.getInstance().writeData(
 						Constant.XML_TAG_PROGRAM_TABLE_DATES,
 						Constant.XML_TAG_PROGRAM_TABLE_DATE, today);

@@ -40,8 +40,7 @@ public class MyTvUtils {
 	 *            文件名标识
 	 */
 	public static void outputCrawlData(String date, String data, String tag) {
-		String crawlFileDir = Constant.CRAWL_FILE_PATH + DateUtils.today()
-				+ File.separator;
+		String crawlFileDir = Constant.CRAWL_FILE_PATH + date + File.separator;
 		File file = new File(crawlFileDir);
 		if (!file.exists()) {
 			file.mkdirs();
@@ -89,5 +88,12 @@ public class MyTvUtils {
 		}
 
 		return filePath;
+	}
+
+	public static boolean checkStationName(String stationName) {
+		if (stationName.indexOf("'") != -1) {
+			return false;
+		}
+		return true;
 	}
 }

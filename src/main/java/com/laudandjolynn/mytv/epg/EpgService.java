@@ -29,12 +29,14 @@ import com.laudandjolynn.mytv.model.TvStation;
  * @copyright: www.laudandjolynn.com
  */
 public class EpgService {
+	private EpgDao epgDao = new EpgDaoImpl();
+
 	/**
 	 * 保存电视台
 	 * 
 	 * @param stations
 	 */
-	public static void save(TvStation... stations) {
+	public void save(TvStation... stations) {
 		int size = stations == null ? 0 : stations.length;
 		if (size == 0) {
 			return;
@@ -56,7 +58,7 @@ public class EpgService {
 			stations = new TvStation[rsize];
 			stations = resultList.toArray(stations);
 			// query from db
-			boolean[] result = EpgDao.isStationExists(stations);
+			boolean[] result = epgDao.isStationExists(stations);
 			resultList.clear();
 			for (int i = 0; i < result.length; i++) {
 				if (!result[i]) {
@@ -66,7 +68,7 @@ public class EpgService {
 			rsize = resultList.size();
 			if (rsize > 0) {
 				stations = new TvStation[rsize];
-				EpgDao.save(resultList.toArray(stations));
+				epgDao.save(resultList.toArray(stations));
 			}
 		}
 	}
@@ -77,9 +79,9 @@ public class EpgService {
 	 * @param stationName
 	 * @return
 	 */
-	private static boolean isStationExists(String stationName) {
+	private boolean isStationExists(String stationName) {
 		return Init.getIntance().isStationExists(stationName)
-				|| EpgDao.isStationExists(stationName);
+				|| epgDao.isStationExists(stationName);
 	}
 
 	/**
@@ -87,7 +89,7 @@ public class EpgService {
 	 * 
 	 * @param programTables
 	 */
-	public static void save(ProgramTable... programTables) {
+	public void save(ProgramTable... programTables) {
 		int size = programTables == null ? 0 : programTables.length;
 		if (size == 0) {
 			return;
@@ -98,13 +100,13 @@ public class EpgService {
 			String stationName = pt.getStationName();
 			String date = pt.getAirDate();
 			if (!isStationExists(stationName)
-					|| EpgDao.isProgramTableExists(stationName, date)) {
+					|| epgDao.isProgramTableExists(stationName, date)) {
 				continue;
 			}
 			resultList.add(pt);
 		}
 		programTables = new ProgramTable[resultList.size()];
-		EpgDao.save(resultList.toArray(programTables));
+		epgDao.save(resultList.toArray(programTables));
 	}
 
 	/**
@@ -112,8 +114,8 @@ public class EpgService {
 	 * 
 	 * @return
 	 */
-	public static List<String> getTvStationClassify() {
-		return EpgDao.getTvStationClassify();
+	public List<String> getTvStationClassify() {
+		return epgDao.getTvStationClassify();
 	}
 
 	/**
@@ -121,8 +123,8 @@ public class EpgService {
 	 * 
 	 * @return
 	 */
-	public static List<TvStation> getAllStation() {
-		return EpgDao.getAllStation();
+	public List<TvStation> getAllStation() {
+		return epgDao.getAllStation();
 	}
 
 	/**
@@ -131,8 +133,18 @@ public class EpgService {
 	 * @param stationName
 	 * @return
 	 */
-	public static TvStation getStation(String stationName) {
-		return EpgDao.getStation(stationName);
+	public TvStation getStation(String stationName) {
+		return epgDao.getStation(stationName);
+	}
+
+	/**
+	 * 根据显示名取得电视台对象
+	 * 
+	 * @param displayName
+	 * @return
+	 */
+	public TvStation getStationByDisplayName(String displayName) {
+		return epgDao.getStationByDisplayName(displayName);
 	}
 
 	/**
@@ -142,9 +154,8 @@ public class EpgService {
 	 * @param date
 	 * @return
 	 */
-	public static List<ProgramTable> getProgramTable(String stationName,
-			String date) {
-		return EpgDao.getProgramTable(stationName, date);
+	public List<ProgramTable> getProgramTable(String stationName, String date) {
+		return epgDao.getProgramTable(stationName, date);
 	}
 
 	/**
@@ -153,7 +164,18 @@ public class EpgService {
 	 * @param classify
 	 * @return
 	 */
-	public static List<TvStation> getTvStationByClassify(String classify) {
-		return EpgDao.getTvStationByClassify(classify);
+	public List<TvStation> getTvStationByClassify(String classify) {
+		return epgDao.getTvStationByClassify(classify);
+	}
+
+	/**
+	 * 判断指定的电视节目表是否已存在
+	 * 
+	 * @param stationName
+	 * @param date
+	 * @return
+	 */
+	public boolean isProgramTableExists(String stationName, String date) {
+		return epgDao.isProgramTableExists(stationName, date);
 	}
 }

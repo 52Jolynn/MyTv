@@ -101,7 +101,8 @@ public class EpgCrawler {
 	private static List<ProgramTable> crawlAllProgramTable(
 			List<TvStation> stations, final String date) {
 		List<ProgramTable> resultList = new ArrayList<ProgramTable>();
-		int threadCount = EpgDao.getTvStationClassify().size();
+		EpgService epgService = new EpgService();
+		int threadCount = epgService.getTvStationClassify().size();
 		ExecutorService executorService = Executors
 				.newFixedThreadPool(threadCount);
 		CompletionService<List<ProgramTable>> completionService = new ExecutorCompletionService<List<ProgramTable>>(
@@ -154,7 +155,8 @@ public class EpgCrawler {
 		}
 		TvStation station = Init.getIntance().getStation(stationName);
 		if (station == null) {
-			station = EpgDao.getStation(stationName);
+			EpgService epgService = new EpgService();
+			station = epgService.getStation(stationName);
 		}
 		return crawlProgramTable(station, date);
 	}
@@ -174,7 +176,8 @@ public class EpgCrawler {
 			String stationName, String date) {
 		TvStation station = Init.getIntance().getStation(stationName);
 		if (station == null) {
-			station = EpgDao.getStation(stationName);
+			EpgService epgService = new EpgService();
+			station = epgService.getStation(stationName);
 		}
 		return crawlProgramTableByPage(htmlPage, station, date);
 	}
@@ -194,7 +197,8 @@ public class EpgCrawler {
 		String queryDate = DateUtils.date2String(dateObj, "yyyy-MM-dd");
 		logger.info("crawl program table of " + stationName + " at "
 				+ queryDate);
-		if (EpgDao.isProgramTableExists(stationName, queryDate)) {
+		EpgService epgService = new EpgService();
+		if (epgService.isProgramTableExists(stationName, queryDate)) {
 			logger.debug("the TV station's program table of " + stationName
 					+ " have been saved in db.");
 			return null;
@@ -218,7 +222,8 @@ public class EpgCrawler {
 				} catch (IOException e) {
 					throw new MyTvException(
 							"error occur while search program table of "
-									+ stationName + " at spec date: " + date, e);
+									+ stationName + " at spec date: "
+									+ queryDate, e);
 				}
 				break;
 			}
@@ -226,6 +231,8 @@ public class EpgCrawler {
 
 		if (!queryDate.equals(DateUtils.today())) {
 			DomElement element = htmlPage.getElementById("date");
+			element.setAttribute("readonly", "false");
+			element.setAttribute("value", queryDate);
 			element.setNodeValue(queryDate);
 			element.setTextContent(queryDate);
 			List<?> list = htmlPage.getByXPath("//div[@id='search_1']/a");
@@ -235,13 +242,14 @@ public class EpgCrawler {
 			} catch (IOException e) {
 				throw new MyTvException(
 						"error occur while search program table of "
-								+ stationName + " at spec date: " + date, e);
+								+ stationName + " at spec date: " + queryDate,
+						e);
 			}
 		}
 		String html = htmlPage.asXml();
 		List<ProgramTable> ptList = EpgParser.parseProgramTable(html);
 		ProgramTable[] ptArray = new ProgramTable[ptList.size()];
-		EpgDao.save(ptList.toArray(ptArray));
+		epgService.save(ptList.toArray(ptArray));
 		MyTvUtils.outputCrawlData(queryDate, html, stationName);
 		return ptList;
 	}

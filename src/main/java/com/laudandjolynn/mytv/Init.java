@@ -31,7 +31,6 @@ import com.gargoylesoftware.htmlunit.Page;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.laudandjolynn.mytv.datasource.DataSourceManager;
 import com.laudandjolynn.mytv.epg.EpgCrawler;
-import com.laudandjolynn.mytv.epg.EpgDao;
 import com.laudandjolynn.mytv.epg.EpgParser;
 import com.laudandjolynn.mytv.epg.EpgService;
 import com.laudandjolynn.mytv.exception.MyTvException;
@@ -94,9 +93,10 @@ public class Init {
 		}
 
 		File myTvDataFilePath = new File(Constant.MY_TV_DATA_FILE_PATH);
-		Connection conn = EpgDao.getConnection();
+		Connection conn = null;
 		Statement stmt = null;
 		try {
+			conn = DataSourceManager.getConnection();
 			conn.setAutoCommit(false);
 			stmt = conn.createStatement();
 			List<String> sqlList = loadSql();
@@ -143,7 +143,8 @@ public class Init {
 	 * 初始化应用数据
 	 */
 	private void initData() {
-		List<TvStation> stations = EpgService.getAllStation();
+		EpgService epgService = new EpgService();
+		List<TvStation> stations = epgService.getAllStation();
 		boolean isStationExists = (stations == null ? 0 : stations.size()) > 0;
 		String today = DateUtils.today();
 		if (isStationExists) {
@@ -159,10 +160,10 @@ public class Init {
 			stations = EpgParser.parseTvStation(html);
 			// 写数据到tv_station表
 			TvStation[] stationArray = new TvStation[stations.size()];
-			EpgService.save(stations.toArray(stationArray));
+			epgService.save(stations.toArray(stationArray));
 			MyTvUtils.outputCrawlData(today, html,
 					Constant.CRAWL_FILE_STATION_TAG);
-			this.addAllTvStation2Cache(EpgService.getAllStation());
+			this.addAllTvStation2Cache(epgService.getAllStation());
 		}
 
 		if (!MyTvData.getInstance().isProgramTableOfTodayCrawled()) {
@@ -170,7 +171,7 @@ public class Init {
 			logger.info("query program table of today. " + "today is " + today);
 			List<ProgramTable> ptList = EpgCrawler.crawlAllProgramTable(today);
 			ProgramTable[] ptArray = new ProgramTable[ptList.size()];
-			EpgService.save(ptList.toArray(ptArray));
+			epgService.save(ptList.toArray(ptArray));
 			MyTvData.getInstance().writeData(
 					Constant.XML_TAG_PROGRAM_TABLE_DATES,
 					Constant.XML_TAG_PROGRAM_TABLE_DATE, today);

@@ -61,7 +61,9 @@ public class EpgParser {
 			for (int j = 0, ssize = stationTextElements == null ? 0
 					: stationTextElements.size(); j < ssize; j++) {
 				TvStation tv = new TvStation();
-				tv.setName(stationTextElements.get(j).text().trim());
+				String name = stationTextElements.get(j).text().trim();
+				tv.setName(name);
+				tv.setDisplayName(name);
 				tv.setCity(null);
 				tv.setClassify(classify);
 				tv.setSequence(++sequence);
@@ -77,7 +79,9 @@ public class EpgParser {
 			for (int j = 0, ssize = cityStationElements == null ? 0
 					: cityStationElements.size(); j < ssize; j++) {
 				TvStation tv = new TvStation();
-				tv.setName(cityStationElements.get(j).text().trim());
+				String name = cityStationElements.get(j).text().trim();
+				tv.setName(name);
+				tv.setDisplayName(name);
 				tv.setCity(cityElement.text().trim());
 				tv.setClassify(CITY);
 				tv.setSequence(++sequence);
@@ -97,7 +101,7 @@ public class EpgParser {
 		Document doc = Jsoup.parse(html);
 		List<ProgramTable> resultList = new ArrayList<ProgramTable>();
 		Elements channelElements = doc.select("#channelTitle");
-		String channel = channelElements.get(0).text().trim();
+		String stationName = channelElements.get(0).text().trim();
 		Elements weekElements = doc.select("#week li[rel]");
 		int week = 0;
 		String date = null;
@@ -111,6 +115,7 @@ public class EpgParser {
 		}
 		Elements programElemens = doc.select("#epg_list div.content_c dl dd")
 				.select("a.p_name_a, a.p_name");
+		EpgService epgService = new EpgService();
 		for (int i = 0, size = programElemens == null ? 0 : programElemens
 				.size(); i < size; i++) {
 			Element programElement = programElemens.get(i);
@@ -120,12 +125,12 @@ public class EpgParser {
 			pt.setAirDate(date);
 			pt.setAirTime(date + " " + pc[0] + ":00");
 			pt.setProgram(pc[1]);
-			if (Init.getIntance().isStationExists(channel)) {
-				pt.setStation(Init.getIntance().getStation(channel).getId());
+			if (Init.getIntance().isStationExists(stationName)) {
+				pt.setStation(Init.getIntance().getStation(stationName).getId());
 			} else {
-				pt.setStation(EpgService.getStation(channel).getId());
+				pt.setStation(epgService.getStation(stationName).getId());
 			}
-			pt.setStationName(channel);
+			pt.setStationName(stationName);
 			pt.setWeek(week);
 			resultList.add(pt);
 		}

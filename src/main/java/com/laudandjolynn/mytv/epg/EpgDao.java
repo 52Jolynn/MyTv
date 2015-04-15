@@ -1,319 +1,78 @@
-/*******************************************************************************
- * Copyright 2015 htd0324@gmail.com
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- ******************************************************************************/
 package com.laudandjolynn.mytv.epg;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.List;
 
-import com.laudandjolynn.mytv.datasource.DataSourceManager;
-import com.laudandjolynn.mytv.exception.MyTvException;
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
 
 /**
  * @author: Laud
  * @email: htd0324@gmail.com
- * @date: 2015年3月25日 下午1:24:54
+ * @date: 2015年4月15日 下午12:28:15
  * @copyright: www.laudandjolynn.com
  */
-public class EpgDao {
-
+public interface EpgDao {
 	/**
-	 * 获取数据库连接
+	 * 获取所有电视台分类
 	 * 
 	 * @return
 	 */
-	public static Connection getConnection() {
-		try {
-			return DataSourceManager.getConnection();
-		} catch (SQLException e) {
-			throw new MyTvException("error occur while connection to db.", e);
-		}
-	}
+	public List<String> getTvStationClassify();
 
 	/**
-	 * 获取电视台分类
+	 * 获取指定分类下的所有电视台
 	 * 
+	 * @param classify
 	 * @return
 	 */
-	protected static List<String> getTvStationClassify() {
-		String sql = "select classify from tv_station group by classify order by sequence asc";
-		Connection conn = EpgDao.getConnection();
-		Statement stmt = null;
-		List<String> classifies = new ArrayList<String>();
-		try {
-			stmt = conn.createStatement();
-			ResultSet rs = stmt.executeQuery(sql);
-			while (rs.next()) {
-				classifies.add(rs.getString(1));
-			}
-		} catch (SQLException e) {
-			throw new MyTvException(e);
-		} finally {
-			if (stmt != null) {
-				try {
-					stmt.close();
-				} catch (SQLException e) {
-					throw new MyTvException(e);
-				}
-			}
-
-			if (conn != null) {
-				try {
-					conn.close();
-				} catch (SQLException e) {
-					throw new MyTvException(e);
-				}
-			}
-		}
-
-		return classifies;
-	}
+	public List<TvStation> getTvStationByClassify(String classify);
 
 	/**
 	 * 获取所有电视台
 	 * 
 	 * @return
 	 */
-	protected static List<TvStation> getAllStation() {
-		String sql = "select id,name,city,classify,sequence from tv_station order by sequence asc";
-		Connection conn = EpgDao.getConnection();
-		Statement stmt = null;
-		List<TvStation> stations = new ArrayList<TvStation>();
-		try {
-			stmt = conn.createStatement();
-			ResultSet rs = stmt.executeQuery(sql);
-			while (rs.next()) {
-				TvStation station = new TvStation();
-				station.setId(rs.getInt(1));
-				station.setName(rs.getString(2));
-				station.setCity(rs.getString(3));
-				station.setClassify(rs.getString(4));
-				station.setSequence(rs.getInt(5));
-				stations.add(station);
-			}
-		} catch (SQLException e) {
-			throw new MyTvException(e);
-		} finally {
-			if (stmt != null) {
-				try {
-					stmt.close();
-				} catch (SQLException e) {
-					throw new MyTvException(e);
-				}
-			}
-
-			if (conn != null) {
-				try {
-					conn.close();
-				} catch (SQLException e) {
-					throw new MyTvException(e);
-				}
-			}
-		}
-
-		return stations;
-	}
+	public List<TvStation> getAllStation();
 
 	/**
-	 * 根据电视台名称查询
+	 * 根据电视台名称得到电视台对象
 	 * 
 	 * @param stationName
 	 * @return
 	 */
-	protected static TvStation getStation(String stationName) {
-		String sql = "select id,name,city,classify,sequence from tv_station where name='"
-				+ stationName + "' order by sequence asc";
-		TvStation station = null;
-		Connection conn = EpgDao.getConnection();
-		Statement stmt = null;
-		try {
-			stmt = conn.createStatement();
-			ResultSet rs = stmt.executeQuery(sql);
-			if (rs.next()) {
-				station = new TvStation();
-				station.setId(rs.getInt(1));
-				station.setName(rs.getString(2));
-				station.setCity(rs.getString(3));
-				station.setClassify(rs.getString(4));
-				station.setSequence(rs.getInt(5));
-			}
-			rs.close();
-		} catch (SQLException e) {
-			throw new MyTvException(e);
-		} finally {
-			if (stmt != null) {
-				try {
-					stmt.close();
-				} catch (SQLException e) {
-					throw new MyTvException(e);
-				}
-			}
-
-			if (conn != null) {
-				try {
-					conn.close();
-				} catch (SQLException e) {
-					throw new MyTvException(e);
-				}
-			}
-		}
-		return station;
-	}
+	public TvStation getStation(String stationName);
 
 	/**
-	 * 判断电视台在数据库是否存在
+	 * 根据电视台显示名得到电视台对象
+	 * 
+	 * @param displayName
+	 * @return
+	 */
+	public TvStation getStationByDisplayName(String displayName);
+
+	/**
+	 * 判断电视台是否已经存在，比较stationName，不比较displayName
 	 * 
 	 * @param stations
 	 * @return
 	 */
-	protected static boolean[] isStationExists(TvStation... stations) {
-		int length = stations.length;
-		boolean[] result = new boolean[length];
-		Connection conn = EpgDao.getConnection();
-		String sql = "select * from tv_station where name=?";
-		PreparedStatement stmt = null;
-		try {
-			stmt = conn.prepareStatement(sql);
-			for (int i = 0; i < length; i++) {
-				TvStation station = stations[i];
-				stmt.setString(1, station.getName());
-				ResultSet rs = stmt.executeQuery();
-				result[i] = rs.next();
-				rs.close();
-			}
-			return result;
-		} catch (SQLException e) {
-			throw new MyTvException(
-					"error occur while query state of station.", e);
-		} finally {
-			if (stmt != null) {
-				try {
-					stmt.close();
-				} catch (SQLException e) {
-					throw new MyTvException(e);
-				}
-			}
-			if (conn != null) {
-				try {
-					conn.close();
-				} catch (SQLException e) {
-					throw new MyTvException(e);
-				}
-			}
-		}
-	}
+	public boolean[] isStationExists(TvStation... stations);
 
 	/**
-	 * 判断电视台在数据库是否存在
+	 * 判断电视台是否已经存在
 	 * 
 	 * @param stationName
-	 *            电视台名称
 	 * @return
 	 */
-	protected static boolean isStationExists(String stationName) {
-		String sql = "select * from tv_station where name='" + stationName
-				+ "'";
-		Connection conn = EpgDao.getConnection();
-		Statement stmt = null;
-		try {
-			stmt = conn.createStatement();
-			ResultSet rs = stmt.executeQuery(sql);
-			boolean exists = rs.next();
-			rs.close();
-			return exists;
-		} catch (SQLException e) {
-			throw new MyTvException(e);
-		} finally {
-			if (stmt != null) {
-				try {
-					stmt.close();
-				} catch (SQLException e) {
-					throw new MyTvException(e);
-				}
-			}
-
-			if (conn != null) {
-				try {
-					conn.close();
-				} catch (SQLException e) {
-					throw new MyTvException(e);
-				}
-			}
-		}
-	}
+	public boolean isStationExists(String stationName);
 
 	/**
-	 * 保存电视台信息
+	 * 保存电视台
 	 * 
 	 * @param stations
 	 * @return
 	 */
-	protected static int[] save(TvStation... stations) {
-		Connection conn = EpgDao.getConnection();
-		String insertSql = "insert into tv_station (name,city,classify,sequence) values(?,?,?,?)";
-		PreparedStatement insertStmt = null;
-		try {
-			conn.setAutoCommit(false);
-			insertStmt = conn.prepareStatement(insertSql);
-			int len = stations.length;
-			for (int i = 0; i < len; i++) {
-				TvStation station = stations[i];
-				insertStmt.setString(1, station.getName());
-				insertStmt.setString(2, station.getCity());
-				insertStmt.setString(3, station.getClassify());
-				insertStmt.setInt(4, station.getSequence());
-				insertStmt.addBatch();
-			}
-			int[] r = insertStmt.executeBatch();
-			conn.commit();
-			return r;
-		} catch (SQLException e) {
-			if (conn != null) {
-				try {
-					conn.rollback();
-				} catch (SQLException e1) {
-					throw new MyTvException(e1);
-				}
-			}
-			throw new MyTvException(
-					"error occur while save data to tv_station.", e);
-		} finally {
-			if (insertStmt != null) {
-				try {
-					insertStmt.close();
-				} catch (SQLException e) {
-					throw new MyTvException(e);
-				}
-			}
-
-			if (conn != null) {
-				try {
-					conn.close();
-				} catch (SQLException e) {
-					throw new MyTvException(e);
-				}
-			}
-		}
-	}
+	public int[] save(TvStation... stations);
 
 	/**
 	 * 保存电视节目表
@@ -321,199 +80,23 @@ public class EpgDao {
 	 * @param programTables
 	 * @return
 	 */
-	protected static int[] save(ProgramTable... programTables) {
-		Connection conn = EpgDao.getConnection();
-		String insertSql = "insert into program_table (station,stationName,program,airdate,airtime,week) values(?,?,?,?,?,?)";
-		PreparedStatement insertStmt = null;
-		try {
-			conn.setAutoCommit(false);
-			insertStmt = conn.prepareStatement(insertSql);
-			int len = programTables.length;
-			for (int i = 0; i < len; i++) {
-				ProgramTable pt = programTables[i];
-				insertStmt.setInt(1, pt.getStation());
-
-				insertStmt.setString(2, pt.getStationName());
-				insertStmt.setString(3, pt.getProgram());
-				insertStmt.setString(4, pt.getAirDate());
-				insertStmt.setString(5, pt.getAirTime());
-				insertStmt.setInt(6, pt.getWeek());
-				insertStmt.addBatch();
-			}
-			int[] r = insertStmt.executeBatch();
-			conn.commit();
-			return r;
-		} catch (SQLException e) {
-			if (conn != null) {
-				try {
-					conn.rollback();
-				} catch (SQLException e1) {
-					throw new MyTvException(e1);
-				}
-			}
-			throw new MyTvException(
-					"error occur while save data to program_table.", e);
-		} finally {
-			if (insertStmt != null) {
-				try {
-					insertStmt.close();
-				} catch (SQLException e) {
-					throw new MyTvException(e);
-				}
-			}
-
-			if (conn != null) {
-				try {
-					conn.close();
-				} catch (SQLException e) {
-					throw new MyTvException(e);
-				}
-			}
-		}
-	}
+	public int[] save(ProgramTable... programTables);
 
 	/**
-	 * 获取指定电视台节目表
+	 * 根据电视台、日期获取电视节目表
 	 * 
 	 * @param stationName
-	 *            电视台
 	 * @param date
-	 *            日期，yyyy-MM-dd
 	 * @return
 	 */
-	protected static List<ProgramTable> getProgramTable(String stationName,
-			String date) {
-		String sql = "select id,station,stationName,program,airdate,airtime,week from program_table where stationName='"
-				+ stationName
-				+ "' and airdate='"
-				+ date
-				+ "' order by airtime asc";
-		Connection conn = EpgDao.getConnection();
-		Statement stmt = null;
-		try {
-			stmt = conn.createStatement();
-			ResultSet rs = stmt.executeQuery(sql);
-			List<ProgramTable> resultList = new ArrayList<ProgramTable>();
-			while (rs.next()) {
-				ProgramTable pt = new ProgramTable();
-				pt.setId(rs.getLong(1));
-				pt.setStation(rs.getInt(2));
-				pt.setStationName(rs.getString(3));
-				pt.setProgram(rs.getString(4));
-				pt.setAirDate(rs.getString(5));
-				pt.setAirTime(rs.getString(6));
-				pt.setWeek(rs.getInt(7));
-				resultList.add(pt);
-			}
-			rs.close();
-			return resultList;
-		} catch (SQLException e) {
-			throw new MyTvException(e);
-		} finally {
-			if (stmt != null) {
-				try {
-					stmt.close();
-				} catch (SQLException e) {
-					throw new MyTvException(e);
-				}
-			}
-
-			if (conn != null) {
-				try {
-					conn.close();
-				} catch (SQLException e) {
-					throw new MyTvException(e);
-				}
-			}
-		}
-	}
+	public List<ProgramTable> getProgramTable(String stationName, String date);
 
 	/**
-	 * 判断电视节目表是否已抓取
+	 * 判断指定电视台、日期的电视节目表是否已存在
 	 * 
 	 * @param stationName
-	 *            电视台名称
 	 * @param date
-	 *            日期，yyyy-MM-dd
 	 * @return
 	 */
-	protected static boolean isProgramTableExists(String stationName,
-			String date) {
-		String sql = "select * from program_table where stationName='"
-				+ stationName + "' and airdate='" + date + "'";
-		Connection conn = EpgDao.getConnection();
-		Statement stmt = null;
-		try {
-			stmt = conn.createStatement();
-			ResultSet rs = stmt.executeQuery(sql);
-			boolean exists = rs.next();
-			rs.close();
-			return exists;
-		} catch (SQLException e) {
-			throw new MyTvException(e);
-		} finally {
-			if (stmt != null) {
-				try {
-					stmt.close();
-				} catch (SQLException e) {
-					throw new MyTvException(e);
-				}
-			}
-
-			if (conn != null) {
-				try {
-					conn.close();
-				} catch (SQLException e) {
-					throw new MyTvException(e);
-				}
-			}
-		}
-	}
-
-	/**
-	 * 根据电视台分类查找分类下的所有电视台
-	 * 
-	 * @param stationName
-	 * @return
-	 */
-	protected static List<TvStation> getTvStationByClassify(String classify) {
-		String sql = "select id,name,city,classify,sequence from tv_station where classify='"
-				+ classify + "' order by sequence asc";
-		List<TvStation> stationList = new ArrayList<TvStation>();
-		Connection conn = EpgDao.getConnection();
-		Statement stmt = null;
-		try {
-			stmt = conn.createStatement();
-			ResultSet rs = stmt.executeQuery(sql);
-			while (rs.next()) {
-				TvStation station = new TvStation();
-				station.setId(rs.getInt(1));
-				station.setName(rs.getString(2));
-				station.setCity(rs.getString(3));
-				station.setClassify(rs.getString(4));
-				station.setSequence(rs.getInt(5));
-				stationList.add(station);
-			}
-			rs.close();
-		} catch (SQLException e) {
-			throw new MyTvException(e);
-		} finally {
-			if (stmt != null) {
-				try {
-					stmt.close();
-				} catch (SQLException e) {
-					throw new MyTvException(e);
-				}
-			}
-
-			if (conn != null) {
-				try {
-					conn.close();
-				} catch (SQLException e) {
-					throw new MyTvException(e);
-				}
-			}
-		}
-		return stationList;
-	}
+	public boolean isProgramTableExists(String stationName, String date);
 }

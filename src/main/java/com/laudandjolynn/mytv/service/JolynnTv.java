@@ -54,13 +54,13 @@ public interface JolynnTv extends Remote {
 	/**
 	 * 获取指定电视台、日期的节目表
 	 * 
-	 * @param name
+	 * @param stationName
 	 *            电视台名称
 	 * @param date
 	 *            日期, yyyy-MM-dd
 	 * @throws RemoteException
 	 * @return
 	 */
-	public String getProgramTable(String name, String date)
+	public String getProgramTable(String stationName, String date)
 			throws RemoteException;
 }
