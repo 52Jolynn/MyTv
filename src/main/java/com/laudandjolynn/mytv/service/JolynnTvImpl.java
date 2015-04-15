@@ -20,8 +20,6 @@ import java.util.List;
 
 import org.json.JSONArray;
 
-import com.laudandjolynn.mytv.epg.EpgService;
-import com.laudandjolynn.mytv.epg.EpgTaskManager;
 import com.laudandjolynn.mytv.exception.MyTvException;
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
@@ -34,7 +32,7 @@ import com.laudandjolynn.mytv.utils.MyTvUtils;
  * @copyright: www.laudandjolynn.com
  */
 public class JolynnTvImpl implements JolynnTv {
-	private EpgService epgService = new EpgService();
+	private TvService epgService = new TvService();
 
 	@Override
 	public String getTvStationClassify() throws RemoteException {
@@ -56,7 +54,7 @@ public class JolynnTvImpl implements JolynnTv {
 		if (!MyTvUtils.checkStationName(stationName)) {
 			throw new MyTvException("invalid stationName: " + stationName);
 		}
-		List<ProgramTable> ptList = EpgTaskManager.getIntance()
+		List<ProgramTable> ptList = TvTaskManager.getIntance()
 				.queryProgramTable(stationName, date);
 		JSONArray array = new JSONArray(ptList);
 		return array.toString();

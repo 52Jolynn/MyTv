@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package com.laudandjolynn.mytv.epg;
+package com.laudandjolynn.mytv.service;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import com.laudandjolynn.mytv.Init;
+import com.laudandjolynn.mytv.datasource.TvDao;
+import com.laudandjolynn.mytv.datasource.TvDaoImpl;
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
 
@@ -28,8 +30,8 @@ import com.laudandjolynn.mytv.model.TvStation;
  * @date: 2015年3月30日 下午3:05:47
  * @copyright: www.laudandjolynn.com
  */
-public class EpgService {
-	private EpgDao epgDao = new EpgDaoImpl();
+public class TvService {
+	private TvDao epgDao = new TvDaoImpl();
 
 	/**
 	 * 保存电视台

@@ -1,4 +1,4 @@
-package com.laudandjolynn.mytv.epg;
+package com.laudandjolynn.mytv.datasource;
 
 import java.util.List;
 
@@ -11,7 +11,7 @@ import com.laudandjolynn.mytv.model.TvStation;
  * @date: 2015年4月15日 下午12:28:15
  * @copyright: www.laudandjolynn.com
  */
-public interface EpgDao {
+public interface TvDao {
 	/**
 	 * 获取所有电视台分类
 	 * 

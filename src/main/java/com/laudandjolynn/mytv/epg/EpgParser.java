@@ -24,8 +24,10 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import com.laudandjolynn.mytv.Init;
+import com.laudandjolynn.mytv.TvParser;
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
+import com.laudandjolynn.mytv.service.TvService;
 
 /**
  * @author: Laud
@@ -33,7 +35,7 @@ import com.laudandjolynn.mytv.model.TvStation;
  * @date: 2015年3月27日 上午10:40:10
  * @copyright: www.laudandjolynn.com
  */
-public class EpgParser {
+public class EpgParser implements TvParser {
 	private final static String CITY = "城市";
 
 	/**
@@ -42,12 +44,13 @@ public class EpgParser {
 	 * @param html
 	 * @return
 	 */
-	public static List<TvStation> parseTvStation(String html) {
+	@Override
+	public List<TvStation> parseTvStation(String html) {
 		Document doc = Jsoup.parse(html);
 		Elements classifyElements = doc.select("ul.weishi a[href]");
 		Elements stationElements = doc.select("div.md_left_right");
 		List<TvStation> resultList = new ArrayList<TvStation>();
-		int sequence = 0;
+		int sequence = 10000;
 		for (int i = 0, size = classifyElements == null ? 0 : classifyElements
 				.size(); i < size; i++) {
 			Element classifyElement = classifyElements.get(i);
@@ -97,7 +100,8 @@ public class EpgParser {
 	 * @param html
 	 * @return
 	 */
-	public static List<ProgramTable> parseProgramTable(String html) {
+	@Override
+	public List<ProgramTable> parseProgramTable(String html) {
 		Document doc = Jsoup.parse(html);
 		List<ProgramTable> resultList = new ArrayList<ProgramTable>();
 		Elements channelElements = doc.select("#channelTitle");
@@ -115,7 +119,7 @@ public class EpgParser {
 		}
 		Elements programElemens = doc.select("#epg_list div.content_c dl dd")
 				.select("a.p_name_a, a.p_name");
-		EpgService epgService = new EpgService();
+		TvService epgService = new TvService();
 		for (int i = 0, size = programElemens == null ? 0 : programElemens
 				.size(); i < size; i++) {
 			Element programElement = programElemens.get(i);

@@ -38,10 +38,12 @@ import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.laudandjolynn.mytv.Crawler;
 import com.laudandjolynn.mytv.Init;
+import com.laudandjolynn.mytv.TvCrawler;
+import com.laudandjolynn.mytv.TvParser;
 import com.laudandjolynn.mytv.exception.MyTvException;
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
-import com.laudandjolynn.mytv.utils.Constant;
+import com.laudandjolynn.mytv.service.TvService;
 import com.laudandjolynn.mytv.utils.DateUtils;
 import com.laudandjolynn.mytv.utils.MyTvUtils;
 
@@ -51,29 +53,24 @@ import com.laudandjolynn.mytv.utils.MyTvUtils;
  * @date: 2015年3月28日 上午12:00:44
  * @copyright: www.laudandjolynn.com
  */
-public class EpgCrawler {
+public class EpgCrawler implements TvCrawler {
 	private final static Logger logger = LoggerFactory
 			.getLogger(EpgCrawler.class);
-
-	/**
-	 * 获取所有电视台
-	 * 
-	 * @param htmlPage
-	 * @return
-	 */
-	public static List<TvStation> crawlAllTvStationByPage(HtmlPage htmlPage) {
-		return EpgParser.parseTvStation(htmlPage.asXml());
-	}
+	// cntv节目表地址
+	public final static String EPG_URL = "http://tv.cntv.cn/epg";
+	private TvParser epgParser = new EpgParser();
 
 	/**
 	 * 获取所有电视台
 	 * 
 	 * @return
 	 */
-	public static List<TvStation> crawlAllTvStation() {
-		Page page = Crawler.crawl(Constant.EPG_URL);
+	@Override
+	public List<TvStation> crawlAllTvStation() {
+		Page page = Crawler.crawl(EPG_URL);
 		if (page.isHtmlPage()) {
-			return crawlAllTvStationByPage((HtmlPage) page);
+			HtmlPage htmlPage = (HtmlPage) page;
+			return epgParser.parseTvStation(htmlPage.asXml());
 		}
 		return null;
 	}
@@ -85,60 +82,14 @@ public class EpgCrawler {
 	 *            日期，yyyy-MM-dd
 	 * @return
 	 */
-	public static List<ProgramTable> crawlAllProgramTable(String date) {
+	@Override
+	public List<ProgramTable> crawlAllProgramTable(String date) {
 		Collection<TvStation> stations = Init.getIntance()
 				.getAllCacheTvStation();
 		return crawlAllProgramTable(new ArrayList<TvStation>(stations), date);
 	}
 
 	/**
-	 * 抓取所有电视台指定日志的电视节目表，多线程
-	 * 
-	 * @param stations
-	 * @param date
-	 * @return
-	 */
-	private static List<ProgramTable> crawlAllProgramTable(
-			List<TvStation> stations, final String date) {
-		List<ProgramTable> resultList = new ArrayList<ProgramTable>();
-		EpgService epgService = new EpgService();
-		int threadCount = epgService.getTvStationClassify().size();
-		ExecutorService executorService = Executors
-				.newFixedThreadPool(threadCount);
-		CompletionService<List<ProgramTable>> completionService = new ExecutorCompletionService<List<ProgramTable>>(
-				executorService);
-		for (final TvStation station : stations) {
-			Callable<List<ProgramTable>> task = new Callable<List<ProgramTable>>() {
-				@Override
-				public List<ProgramTable> call() throws Exception {
-					return crawlProgramTable(station.getName(), date);
-				}
-			};
-			completionService.submit(task);
-		}
-		int size = stations == null ? 0 : stations.size();
-		int count = 0;
-		while (count < size) {
-			Future<List<ProgramTable>> future;
-			try {
-				future = completionService.poll(10, TimeUnit.MINUTES);
-				resultList.addAll(future.get());
-			} catch (InterruptedException e) {
-				logger.error("craw program table of all station at " + date
-						+ " was interrupted.", e);
-			} catch (ExecutionException e) {
-				logger.error(
-						"error occur while craw program table of all station at "
-								+ date, e);
-			}
-			count++;
-		}
-		executorService.shutdown();
-
-		return resultList;
-	}
-
-	/**
 	 * 根据电视台、日期获取电视节目表
 	 * 
 	 * @param stationName
@@ -147,43 +98,22 @@ public class EpgCrawler {
 	 *            日期，yyyy-MM-dd
 	 * @return
 	 */
-	public static List<ProgramTable> crawlProgramTable(String stationName,
-			String date) {
+	@Override
+	public List<ProgramTable> crawlProgramTable(String stationName, String date) {
 		if (stationName == null || date == null) {
 			logger.debug("station name or date is null.");
 			return null;
 		}
 		TvStation station = Init.getIntance().getStation(stationName);
 		if (station == null) {
-			EpgService epgService = new EpgService();
+			TvService epgService = new TvService();
 			station = epgService.getStation(stationName);
 		}
 		return crawlProgramTable(station, date);
 	}
 
-	/**
-	 * 根据电视台、日期获取电视节目表
-	 * 
-	 * @param htmlPage
-	 *            已获取的html页面对象
-	 * @param stationName
-	 *            电视台名称
-	 * @param date
-	 *            日期，yyyy-MM-dd
-	 * @return
-	 */
-	public static List<ProgramTable> crawlProgramTableByPage(HtmlPage htmlPage,
-			String stationName, String date) {
-		TvStation station = Init.getIntance().getStation(stationName);
-		if (station == null) {
-			EpgService epgService = new EpgService();
-			station = epgService.getStation(stationName);
-		}
-		return crawlProgramTableByPage(htmlPage, station, date);
-	}
-
-	private static List<ProgramTable> crawlProgramTableByPage(
-			HtmlPage htmlPage, TvStation station, String date) {
+	private List<ProgramTable> crawlProgramTableByPage(HtmlPage htmlPage,
+			TvStation station, String date) {
 		if (station == null || htmlPage == null) {
 			logger.debug("station and html page must not null.");
 			return null;
@@ -197,7 +127,7 @@ public class EpgCrawler {
 		String queryDate = DateUtils.date2String(dateObj, "yyyy-MM-dd");
 		logger.info("crawl program table of " + stationName + " at "
 				+ queryDate);
-		EpgService epgService = new EpgService();
+		TvService epgService = new TvService();
 		if (epgService.isProgramTableExists(stationName, queryDate)) {
 			logger.debug("the TV station's program table of " + stationName
 					+ " have been saved in db.");
@@ -247,11 +177,58 @@ public class EpgCrawler {
 			}
 		}
 		String html = htmlPage.asXml();
-		List<ProgramTable> ptList = EpgParser.parseProgramTable(html);
+		List<ProgramTable> ptList = epgParser.parseProgramTable(html);
 		ProgramTable[] ptArray = new ProgramTable[ptList.size()];
 		epgService.save(ptList.toArray(ptArray));
 		MyTvUtils.outputCrawlData(queryDate, html, stationName);
 		return ptList;
+	}
+
+	/**
+	 * 抓取所有电视台指定日志的电视节目表，多线程
+	 * 
+	 * @param stations
+	 * @param date
+	 * @return
+	 */
+	private List<ProgramTable> crawlAllProgramTable(List<TvStation> stations,
+			final String date) {
+		List<ProgramTable> resultList = new ArrayList<ProgramTable>();
+		TvService epgService = new TvService();
+		int threadCount = epgService.getTvStationClassify().size();
+		ExecutorService executorService = Executors
+				.newFixedThreadPool(threadCount);
+		CompletionService<List<ProgramTable>> completionService = new ExecutorCompletionService<List<ProgramTable>>(
+				executorService);
+		for (final TvStation station : stations) {
+			Callable<List<ProgramTable>> task = new Callable<List<ProgramTable>>() {
+				@Override
+				public List<ProgramTable> call() throws Exception {
+					return crawlProgramTable(station.getName(), date);
+				}
+			};
+			completionService.submit(task);
+		}
+		int size = stations == null ? 0 : stations.size();
+		int count = 0;
+		while (count < size) {
+			Future<List<ProgramTable>> future;
+			try {
+				future = completionService.poll(10, TimeUnit.MINUTES);
+				resultList.addAll(future.get());
+			} catch (InterruptedException e) {
+				logger.error("craw program table of all station at " + date
+						+ " was interrupted.", e);
+			} catch (ExecutionException e) {
+				logger.error(
+						"error occur while craw program table of all station at "
+								+ date, e);
+			}
+			count++;
+		}
+		executorService.shutdown();
+
+		return resultList;
 	}
 
 	/**
@@ -263,15 +240,14 @@ public class EpgCrawler {
 	 *            日期，yyyy-MM-dd
 	 * @return
 	 */
-	private static List<ProgramTable> crawlProgramTable(TvStation station,
-			String date) {
+	private List<ProgramTable> crawlProgramTable(TvStation station, String date) {
 		if (station == null) {
 			logger.debug("the station must be not null.");
 			return null;
 		}
-		Page page = Crawler.crawl(Constant.EPG_URL);
+		Page page = Crawler.crawl(EPG_URL);
 		if (!page.isHtmlPage()) {
-			logger.debug("the page isn't html page at url " + Constant.EPG_URL);
+			logger.debug("the page isn't html page at url " + EPG_URL);
 			return null;
 		}
 		return crawlProgramTableByPage((HtmlPage) page, station, date);

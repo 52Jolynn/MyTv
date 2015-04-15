@@ -24,10 +24,10 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.laudandjolynn.mytv.epg.EpgCrawler;
-import com.laudandjolynn.mytv.epg.EpgService;
 import com.laudandjolynn.mytv.exception.MyTvException;
 import com.laudandjolynn.mytv.model.ProgramTable;
+import com.laudandjolynn.mytv.service.TvService;
+import com.laudandjolynn.mytv.utils.Config;
 import com.laudandjolynn.mytv.utils.Constant;
 import com.laudandjolynn.mytv.utils.DateUtils;
 
@@ -83,9 +83,9 @@ public class Main {
 
 			@Override
 			public void run() {
-				EpgService epgService = new EpgService();
+				TvService epgService = new TvService();
 				String today = DateUtils.today();
-				List<ProgramTable> ptList = EpgCrawler
+				List<ProgramTable> ptList = Config.TV_CRAWLER
 						.crawlAllProgramTable(today);
 				ProgramTable[] ptArray = new ProgramTable[ptList.size()];
 				epgService.save(ptList.toArray(ptArray));

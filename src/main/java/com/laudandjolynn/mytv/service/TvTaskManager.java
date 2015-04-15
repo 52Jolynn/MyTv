@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package com.laudandjolynn.mytv.epg;
+package com.laudandjolynn.mytv.service;
 
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -30,6 +30,7 @@ import com.laudandjolynn.mytv.exception.MyTvException;
 import com.laudandjolynn.mytv.model.EpgTask;
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
+import com.laudandjolynn.mytv.utils.Config;
 
 /**
  * @author: Laud
@@ -37,24 +38,24 @@ import com.laudandjolynn.mytv.model.TvStation;
  * @date: 2015年3月27日 下午11:42:27
  * @copyright: www.laudandjolynn.com
  */
-public class EpgTaskManager {
+public class TvTaskManager {
 	private final static Logger logger = LoggerFactory
-			.getLogger(EpgTaskManager.class);
+			.getLogger(TvTaskManager.class);
 	private final ConcurrentHashSet<EpgTask> CURRENT_EPG_TASK = new ConcurrentHashSet<EpgTask>();
 	private final int processor = Runtime.getRuntime().availableProcessors();
 	private final ExecutorService executorService = Executors
 			.newFixedThreadPool(processor * 2);
-	private EpgService epgService = new EpgService();
+	private TvService epgService = new TvService();
 
-	private EpgTaskManager() {
+	private TvTaskManager() {
 	}
 
-	public static EpgTaskManager getIntance() {
+	public static TvTaskManager getIntance() {
 		return EpgTaskManagerSingltonHolder.MANAGER;
 	}
 
 	private final static class EpgTaskManagerSingltonHolder {
-		private final static EpgTaskManager MANAGER = new EpgTaskManager();
+		private final static TvTaskManager MANAGER = new TvTaskManager();
 	}
 
 	/**
@@ -110,7 +111,7 @@ public class EpgTaskManager {
 
 			@Override
 			public List<ProgramTable> call() throws Exception {
-				return EpgCrawler.crawlProgramTable(stationName, date);
+				return Config.TV_CRAWLER.crawlProgramTable(stationName, date);
 			}
 		};
 		Future<List<ProgramTable>> future = executorService.submit(callable);

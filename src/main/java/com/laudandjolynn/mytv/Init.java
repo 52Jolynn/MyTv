@@ -27,18 +27,14 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.gargoylesoftware.htmlunit.Page;
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.laudandjolynn.mytv.datasource.DataSourceManager;
-import com.laudandjolynn.mytv.epg.EpgCrawler;
-import com.laudandjolynn.mytv.epg.EpgParser;
-import com.laudandjolynn.mytv.epg.EpgService;
 import com.laudandjolynn.mytv.exception.MyTvException;
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
+import com.laudandjolynn.mytv.service.TvService;
+import com.laudandjolynn.mytv.utils.Config;
 import com.laudandjolynn.mytv.utils.Constant;
 import com.laudandjolynn.mytv.utils.DateUtils;
-import com.laudandjolynn.mytv.utils.MyTvUtils;
 
 /**
  * @author: Laud
@@ -143,7 +139,7 @@ public class Init {
 	 * 初始化应用数据
 	 */
 	private void initData() {
-		EpgService epgService = new EpgService();
+		TvService epgService = new TvService();
 		List<TvStation> stations = epgService.getAllStation();
 		boolean isStationExists = (stations == null ? 0 : stations.size()) > 0;
 		String today = DateUtils.today();
@@ -151,25 +147,18 @@ public class Init {
 			this.addAllTvStation2Cache(stations);
 		} else {
 			// 首次抓取
-			Page page = Crawler.crawl(Constant.EPG_URL);
-			if (!page.isHtmlPage()) {
-				return;
-			}
-			HtmlPage htmlPage = (HtmlPage) page;
-			String html = htmlPage.asXml();
-			stations = EpgParser.parseTvStation(html);
+			stations = Config.TV_CRAWLER.crawlAllTvStation();
 			// 写数据到tv_station表
 			TvStation[] stationArray = new TvStation[stations.size()];
 			epgService.save(stations.toArray(stationArray));
-			MyTvUtils.outputCrawlData(today, html,
-					Constant.CRAWL_FILE_STATION_TAG);
 			this.addAllTvStation2Cache(epgService.getAllStation());
 		}
 
 		if (!MyTvData.getInstance().isProgramTableOfTodayCrawled()) {
 			// 保存当天电视节目表
 			logger.info("query program table of today. " + "today is " + today);
-			List<ProgramTable> ptList = EpgCrawler.crawlAllProgramTable(today);
+			List<ProgramTable> ptList = Config.TV_CRAWLER
+					.crawlAllProgramTable(today);
 			ProgramTable[] ptArray = new ProgramTable[ptList.size()];
 			epgService.save(ptList.toArray(ptArray));
 			MyTvData.getInstance().writeData(

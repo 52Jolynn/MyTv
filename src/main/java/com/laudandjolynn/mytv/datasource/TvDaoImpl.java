@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package com.laudandjolynn.mytv.epg;
+package com.laudandjolynn.mytv.datasource;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -23,7 +23,6 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.laudandjolynn.mytv.datasource.DataSourceManager;
 import com.laudandjolynn.mytv.exception.MyTvException;
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
@@ -34,7 +33,7 @@ import com.laudandjolynn.mytv.model.TvStation;
  * @date: 2015年3月25日 下午1:24:54
  * @copyright: www.laudandjolynn.com
  */
-public class EpgDaoImpl implements EpgDao {
+public class TvDaoImpl implements TvDao {
 	@Override
 	public List<String> getTvStationClassify() {
 		String sql = "select classify from tv_station group by classify order by sequence asc";
