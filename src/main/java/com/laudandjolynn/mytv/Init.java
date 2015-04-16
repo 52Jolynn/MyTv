@@ -66,7 +66,7 @@ public class Init {
 
 	@SuppressWarnings("unchecked")
 	private List<String> loadSql() {
-		Object object = DataSourceManager.prop
+		Object object = DataSourceManager.DATA_SOURCE_PROP
 				.get(DataSourceManager.RES_KEY_DB_SQL_LIST);
 		if (object instanceof List) {
 			return (List<String>) object;
@@ -97,7 +97,8 @@ public class Init {
 			}
 			stmt.executeBatch();
 			conn.commit();
-
+			DataSourceManager.DATA_SOURCE_PROP
+					.remove(DataSourceManager.RES_KEY_DB_SQL_LIST);
 			MyTvData.getInstance().writeData(null, Constant.XML_TAG_DB, "true");
 		} catch (SQLException e) {
 			if (conn != null) {

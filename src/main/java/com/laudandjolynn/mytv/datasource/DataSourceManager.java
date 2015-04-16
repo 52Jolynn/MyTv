@@ -15,6 +15,8 @@
  ******************************************************************************/
 package com.laudandjolynn.mytv.datasource;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -26,8 +28,13 @@ import java.util.ResourceBundle;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.sql.DataSource;
+
+import org.apache.commons.dbcp.BasicDataSourceFactory;
+
 import com.laudandjolynn.mytv.exception.MyTvException;
 import com.laudandjolynn.mytv.utils.Config;
+import com.laudandjolynn.mytv.utils.Config.DbType;
 
 /**
  * @author: Laud
@@ -39,7 +46,7 @@ import com.laudandjolynn.mytv.utils.Config;
 public class DataSourceManager {
 	private static Class<TvDataSource> dsClass = null;
 	public final static String RES_KEY_DS_CLASS_NAME = "ds_class_name";
-	public final static String RES_KEY_DB_DRIVER_CLASS = "ds_class_name";
+	public final static String RES_KEY_DB_DRIVER_CLASS = "db_driver_class";
 	public final static String RES_KEY_DB_URL = "db_url";
 	public final static String RES_KEY_DB_USER_NAME = "db_username";
 	public final static String RES_KEY_DB_PASSWORD = "db_password";
@@ -49,14 +56,33 @@ public class DataSourceManager {
 	private final static String DB_PROPERTY_FILE_PREFIX = "db_";
 	// 配置文件中的sql语句前缀
 	private final static String DB_PROPERTY_FILE_SQL_PREFIX = "sql_";
+	// DBCP连接池配置
+	private final static String DBCP_FILE_NAME = "dbcp.properties";
+	private final static String DBCP_URL = "url";
+	private final static String DBCP_USER_NAME = "username";
+	private final static String DBCP_PASSWORD = "password";
+	private final static String DBCP_DRIVER_CLASS_NAME = "driverClassName";
 
-	public final static Properties prop = new Properties();
+	public final static Properties DATA_SOURCE_PROP = new Properties();
+	private final static Properties DBCP_PROP = new Properties();
 	private final static Pattern PATTERN_DB_PROPERTY_FILE_SQL_SUFFIX = Pattern
 			.compile("_(\\d+)$");
 
 	static {
+		// dbcp
+		InputStream is = DataSourceManager.class.getResourceAsStream("/"
+				+ DBCP_FILE_NAME);
+		try {
+			DBCP_PROP.load(is);
+		} catch (IOException e) {
+			throw new MyTvException("error occur while load properties file: "
+					+ DBCP_FILE_NAME, e);
+		}
+
+		// 非连接池
 		ResourceBundle bundle = ResourceBundle
-				.getBundle(DB_PROPERTY_FILE_PREFIX + Config.getDbMode());
+				.getBundle(DB_PROPERTY_FILE_PREFIX
+						+ Config.getDbType().getValue());
 		if (bundle.containsKey(RES_KEY_DS_CLASS_NAME)) {
 			String dsClassName = bundle.getString(RES_KEY_DS_CLASS_NAME);
 			try {
@@ -64,7 +90,7 @@ public class DataSourceManager {
 			} catch (ClassNotFoundException e) {
 				throw new MyTvException(dsClassName + " isn't found.", e);
 			}
-			prop.setProperty(RES_KEY_DS_CLASS_NAME, dsClassName);
+			DATA_SOURCE_PROP.setProperty(RES_KEY_DS_CLASS_NAME, dsClassName);
 		}
 		if (bundle.containsKey(RES_KEY_DB_DRIVER_CLASS)) {
 			String dbDriverClass = bundle.getString(RES_KEY_DB_DRIVER_CLASS);
@@ -73,23 +99,27 @@ public class DataSourceManager {
 			} catch (ClassNotFoundException e) {
 				throw new MyTvException(dbDriverClass + " isn't found.", e);
 			}
-			prop.setProperty(RES_KEY_DB_DRIVER_CLASS, dbDriverClass);
+			DATA_SOURCE_PROP.setProperty(RES_KEY_DB_DRIVER_CLASS, dbDriverClass);
+			DBCP_PROP.setProperty(DBCP_DRIVER_CLASS_NAME, dbDriverClass);
 		}
 		if (bundle.containsKey(RES_KEY_DB_URL)) {
 			String dbUrl = bundle.getString(RES_KEY_DB_URL);
-			prop.setProperty(RES_KEY_DB_URL, dbUrl);
+			DATA_SOURCE_PROP.setProperty(RES_KEY_DB_URL, dbUrl);
+			DBCP_PROP.setProperty(DBCP_URL, dbUrl);
 		}
 		if (bundle.containsKey(RES_KEY_DB_USER_NAME)) {
 			String dbUserName = bundle.getString(RES_KEY_DB_USER_NAME);
-			prop.setProperty(RES_KEY_DB_USER_NAME, dbUserName);
+			DATA_SOURCE_PROP.setProperty(RES_KEY_DB_USER_NAME, dbUserName);
+			DBCP_PROP.setProperty(DBCP_USER_NAME, dbUserName);
 		}
 		if (bundle.containsKey(RES_KEY_DB_PASSWORD)) {
 			String dbPassword = bundle.getString(RES_KEY_DB_PASSWORD);
-			prop.setProperty(RES_KEY_DB_PASSWORD, dbPassword);
+			DATA_SOURCE_PROP.setProperty(RES_KEY_DB_PASSWORD, dbPassword);
+			DBCP_PROP.setProperty(DBCP_PASSWORD, dbPassword);
 		}
 		if (bundle.containsKey(RES_KEY_DB_FILE_NAME)) {
 			String dbFileName = bundle.getString(RES_KEY_DB_FILE_NAME);
-			prop.setProperty(RES_KEY_DB_FILE_NAME, dbFileName);
+			DATA_SOURCE_PROP.setProperty(RES_KEY_DB_FILE_NAME, dbFileName);
 		}
 		List<String> keyList = new ArrayList<String>(bundle.keySet());
 		Collections.sort(keyList, new Comparator<String>() {
@@ -117,7 +147,8 @@ public class DataSourceManager {
 			}
 		}
 
-		prop.put(RES_KEY_DB_SQL_LIST, sqlList);
+		DATA_SOURCE_PROP.put(RES_KEY_DB_SQL_LIST, sqlList);
+
 	}
 
 	/**
@@ -132,12 +163,18 @@ public class DataSourceManager {
 		}
 
 		try {
-			return dsClass.newInstance().getConnection(prop);
+			if (Config.getDbType() == DbType.SQLITE) {
+				return dsClass.newInstance().getConnection(DATA_SOURCE_PROP);
+			}
+
+			DataSource ds = BasicDataSourceFactory.createDataSource(DBCP_PROP);
+			return ds.getConnection();
 		} catch (InstantiationException e) {
 			throw new MyTvException("can't instantce db driver: " + dsClass, e);
 		} catch (IllegalAccessException e) {
 			throw new MyTvException(e);
+		} catch (Exception e) {
+			throw new MyTvException(e);
 		}
 	}
-
 }

@@ -31,9 +31,9 @@ public class Config {
 	private final static String RES_KEY_CONFIG_IP = "ip";
 	private final static String RES_KEY_CONFIG_HESSIAN_PORT = "hessian_port";
 	private final static String RES_KEY_CONFIG_RMI_PORT = "rmi_port";
-	private final static String RES_KEY_CONFIG_DB_MODE = "db_mode";
+	private final static String RES_KEY_CONFIG_DB_TYPE = "db_type";
 
-	private static String dbMode = "sqlite";
+	private static DbType dbType = DbType.SQLITE;
 	private static String dataFilePath = MyTvUtils.getRunningPath(Config.class);
 
 	static {
@@ -59,8 +59,9 @@ public class Config {
 			NET_CONFIG.rmiPort = Integer.valueOf(bundle
 					.getString(RES_KEY_CONFIG_RMI_PORT));
 		}
-		if (bundle.containsKey(RES_KEY_CONFIG_DB_MODE)) {
-			dbMode = bundle.getString(RES_KEY_CONFIG_DB_MODE);
+		if (bundle.containsKey(RES_KEY_CONFIG_DB_TYPE)) {
+			dbType = DbType.valueOf(bundle.getString(RES_KEY_CONFIG_DB_TYPE)
+					.toUpperCase());
 		}
 	}
 
@@ -86,8 +87,22 @@ public class Config {
 		}
 	}
 
-	public static String getDbMode() {
-		return dbMode;
+	public static DbType getDbType() {
+		return dbType;
 	}
 
+	public enum DbType {
+		SQLITE("sqlite"), MYSQL("mysql"), POSTGRESQL("postgresql"), DB2("db2"), ORACLE(
+				"oracle"), SQL_SERVER("sqlserver"), SYBASE("sybase");
+
+		private String value;
+
+		private DbType(String value) {
+			this.value = value;
+		}
+
+		public String getValue() {
+			return value;
+		}
+	}
 }
