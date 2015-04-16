@@ -27,7 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.laudandjolynn.mytv.exception.MyTvException;
-import com.laudandjolynn.mytv.model.EpgTask;
+import com.laudandjolynn.mytv.model.CrawlerTask;
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
 
@@ -40,7 +40,7 @@ import com.laudandjolynn.mytv.model.TvStation;
 public class TvTaskManager {
 	private final static Logger logger = LoggerFactory
 			.getLogger(TvTaskManager.class);
-	private final ConcurrentHashSet<EpgTask> CURRENT_EPG_TASK = new ConcurrentHashSet<EpgTask>();
+	private final ConcurrentHashSet<CrawlerTask> CURRENT_EPG_TASK = new ConcurrentHashSet<CrawlerTask>();
 	private final int processor = Runtime.getRuntime().availableProcessors();
 	private final ExecutorService executorService = Executors
 			.newFixedThreadPool(processor * 2);
@@ -81,7 +81,7 @@ public class TvTaskManager {
 		if (epgService.isProgramTableExists(stationName, date)) {
 			return epgService.getProgramTable(stationName, date);
 		}
-		EpgTask epgTask = new EpgTask(stationName, date);
+		CrawlerTask epgTask = new CrawlerTask(stationName, date);
 		if (CURRENT_EPG_TASK.contains(epgTask)) {
 			synchronized (this) {
 				try {

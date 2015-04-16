@@ -12,11 +12,25 @@ import com.laudandjolynn.mytv.model.TvStation;
  * @date: 2015年4月16日 下午1:12:03
  * @copyright: www.laudandjolynn.com
  */
-public class CralwerGroup implements Crawler {
+public class CrawlerGroup implements Crawler {
 	private List<Crawler> crawlers = new ArrayList<Crawler>();
 
+	/**
+	 * 添加抓取器
+	 * 
+	 * @param crawler
+	 */
 	public void addCrawler(Crawler crawler) {
 		this.crawlers.add(crawler);
+	}
+
+	/**
+	 * 移除抓取器
+	 * 
+	 * @param crawler
+	 */
+	public void removeCrawler(Crawler crawler) {
+		this.crawlers.remove(crawler);
 	}
 
 	@Override

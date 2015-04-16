@@ -21,11 +21,11 @@ package com.laudandjolynn.mytv.model;
  * @date: 2015年3月27日 下午1:17:02
  * @copyright: www.laudandjolynn.com
  */
-public class EpgTask {
+public class CrawlerTask {
 	private String date = null;
 	private String stationName = null;
 
-	public EpgTask(String stationName, String date) {
+	public CrawlerTask(String stationName, String date) {
 		this.stationName = stationName;
 		this.date = date;
 	}
@@ -67,7 +67,7 @@ public class EpgTask {
 		if (getClass() != obj.getClass()) {
 			return false;
 		}
-		EpgTask other = (EpgTask) obj;
+		CrawlerTask other = (CrawlerTask) obj;
 		if (date == null) {
 			if (other.date != null) {
 				return false;

@@ -7,5 +7,10 @@ package com.laudandjolynn.mytv.crawler;
  * @copyright: www.laudandjolynn.com
  */
 public interface CrawlerFactory {
+	/**
+	 * 创建抓取器
+	 * 
+	 * @return
+	 */
 	public Crawler createCrawler();
 }

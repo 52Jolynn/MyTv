@@ -19,11 +19,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.laudandjolynn.mytv.MyTvData;
+import com.laudandjolynn.mytv.crawler.CrawlerManager;
 import com.laudandjolynn.mytv.datasource.TvDao;
 import com.laudandjolynn.mytv.datasource.TvDaoImpl;
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
-import com.laudandjolynn.mytv.utils.Config;
 import com.laudandjolynn.mytv.utils.Constant;
 import com.laudandjolynn.mytv.utils.MemoryCache;
 
@@ -201,8 +201,8 @@ public class TvService {
 	 */
 	public List<ProgramTable> crawlAllProgramTable(String stationName,
 			String date) {
-		List<ProgramTable> ptList = Config.CRAWLER.crawlProgramTable(
-				stationName, date);
+		List<ProgramTable> ptList = CrawlerManager.getInstance().getCrawler()
+				.crawlProgramTable(stationName, date);
 		ProgramTable[] ptArray = new ProgramTable[ptList.size()];
 		save(ptList.toArray(ptArray));
 		MyTvData.getInstance().writeData(Constant.XML_TAG_PROGRAM_TABLE_DATES,
@@ -217,7 +217,7 @@ public class TvService {
 	 * @return
 	 */
 	public List<ProgramTable> crawlAllProgramTable(String date) {
-		List<ProgramTable> ptList = Config.CRAWLER
+		List<ProgramTable> ptList = CrawlerManager.getInstance().getCrawler()
 				.crawlAllProgramTable(date);
 		ProgramTable[] ptArray = new ProgramTable[ptList.size()];
 		save(ptList.toArray(ptArray));
@@ -232,7 +232,8 @@ public class TvService {
 	 * @return
 	 */
 	public List<TvStation> crawlAllTvStation() {
-		List<TvStation> stationList = Config.CRAWLER.crawlAllTvStation();
+		List<TvStation> stationList = CrawlerManager.getInstance().getCrawler()
+				.crawlAllTvStation();
 		// 写数据到tv_station表
 		TvStation[] stationArray = new TvStation[stationList.size()];
 		save(stationList.toArray(stationArray));
