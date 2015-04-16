@@ -2,12 +2,13 @@ package com.laudandjolynn.mytv.crawler.tvmao;
 
 import java.util.List;
 
-import com.gargoylesoftware.htmlunit.Page;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.laudandjolynn.mytv.crawler.AbstractCrawler;
 import com.laudandjolynn.mytv.crawler.Parser;
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
-import com.laudandjolynn.mytv.utils.WebCrawler;
 
 /**
  * @author: Laud
@@ -16,6 +17,8 @@ import com.laudandjolynn.mytv.utils.WebCrawler;
  * @copyright: www.laudandjolynn.com
  */
 class TvMaoCrawler extends AbstractCrawler {
+	private final static Logger logger = LoggerFactory
+			.getLogger(TvMaoCrawler.class);
 	// tvmao节目表地址
 	private final static String TV_MAO_URL = "http://www.tvmao.com/program/channels";
 	private final static String TV_MAO_NAME = "tvmao";
@@ -26,10 +29,11 @@ class TvMaoCrawler extends AbstractCrawler {
 
 	@Override
 	public List<TvStation> crawlAllTvStation() {
-		Page page = WebCrawler.crawl(TV_MAO_URL);
-		if (page.isHtmlPage()) {
-
-		}
+		logger.debug(TV_MAO_URL);
+		// Page page = WebCrawler.crawl(TV_MAO_URL);
+		// if (page.isHtmlPage()) {
+		//
+		// }
 		return null;
 	}
 

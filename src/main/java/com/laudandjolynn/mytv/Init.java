@@ -162,8 +162,6 @@ public class Init {
 			// 首次抓取
 			stationList = tvService.crawlAllTvStation();
 			MemoryCache.getInstance().addCache(stationList);
-			MyTvData.getInstance().writeData(null, Constant.XML_TAG_DATA,
-					"true");
 		}
 
 		if (!MyTvData.getInstance().isProgramTableOfTodayCrawled()) {
@@ -190,11 +188,10 @@ public class Init {
 		}
 
 		Collection<Object> values = tvStationProp.values();
-		List<String> tvStationInsertSql = new ArrayList<String>(values.size());
+		List<String> insertSqlList = new ArrayList<String>(values.size());
 		String insertSql = "insert into tv_station (name,displayName,city,classify,channel,sequence)";
 		for (Object value : values) {
-			tvStationInsertSql.add(insertSql + " values (" + value.toString()
-					+ ")");
+			insertSqlList.add(insertSql + " values (" + value.toString() + ")");
 		}
 
 		Properties tvStationAliasProp = new Properties();
@@ -205,14 +202,53 @@ public class Init {
 			throw new MyTvException("error occur while load property file: "
 					+ TV_STATION_ALIAS_INIT_DATA_FILE_NAME, e);
 		}
-		values = tvStationProp.values();
-		List<String> tvStationAliasInsertSql = new ArrayList<String>(
-				values.size());
-		insertSql = "insert into tv_station_alias (station,stationName,alias)";
+		values = tvStationAliasProp.values();
+		insertSql = "insert into tv_station_alias (stationName,alias)";
 		for (Object value : values) {
-			tvStationAliasInsertSql.add(insertSql + " values ("
-					+ value.toString() + ")");
+			insertSqlList.add(insertSql + " values (" + value.toString() + ")");
 		}
+		Connection conn = null;
+		Statement stmt = null;
+		try {
+			conn = DataSourceManager.getConnection();
+			conn.setAutoCommit(false);
+			stmt = conn.createStatement();
+
+			for (String sql : insertSqlList) {
+				stmt.addBatch(sql);
+				logger.info("execute sql: " + sql);
+			}
+			stmt.executeBatch();
+			conn.commit();
+		} catch (SQLException e) {
+			if (conn != null) {
+				try {
+					conn.rollback();
+				} catch (SQLException e1) {
+					throw new MyTvException(
+							"error occur while rollback transaction.", e);
+				}
+			}
+			throw new MyTvException("error occur while execute sql on db.", e);
+		} finally {
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (SQLException e) {
+					throw new MyTvException(
+							"error occur while close statement.", e);
+				}
+			}
+			if (conn != null) {
+				try {
+					conn.close();
+				} catch (SQLException e) {
+					throw new MyTvException(
+							"error occur while close sqlite connection.", e);
+				}
+			}
+		}
+		MyTvData.getInstance().writeData(null, Constant.XML_TAG_DATA, "true");
 	}
 
 	/**
