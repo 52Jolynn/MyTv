@@ -16,11 +16,15 @@
 package com.laudandjolynn.mytv;
 
 import java.io.File;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -44,6 +48,8 @@ import com.laudandjolynn.mytv.utils.MemoryCache;
  */
 public class Init {
 	private final static Logger logger = LoggerFactory.getLogger(Init.class);
+	private final static String TV_STATION_INIT_DATA_FILE_NAME = "tv_station.properties";
+	private final static String TV_STATION_ALIAS_INIT_DATA_FILE_NAME = "tv_station_alias.properties";
 
 	private Init() {
 	}
@@ -62,10 +68,11 @@ public class Init {
 	public void init() {
 		// 加载应用数据
 		MyTvData.getInstance().loadData();
-		// 初始化数据库
+		// 创建数据库及表结构
 		this.initDb();
-		// 初始化其他数据
-		this.initData();
+		// 初始化数据库数据
+		this.initDbData();
+		this.initDbData2();
 		// 启动每天定时任务
 		logger.info("create everyday crawl task.");
 		createEverydayCron();
@@ -141,7 +148,7 @@ public class Init {
 	/**
 	 * 初始化应用数据
 	 */
-	private void initData() {
+	private void initDbData() {
 		TvService tvService = new TvService();
 		List<TvStation> stationList = null;
 		if (MyTvData.getInstance().isDataInited()) {
@@ -170,6 +177,45 @@ public class Init {
 	}
 
 	/**
+	 * 初始化数据库数据
+	 */
+	private void initDbData2() {
+		Properties tvStationProp = new Properties();
+		try {
+			tvStationProp.load(Init.class.getResourceAsStream("/"
+					+ TV_STATION_INIT_DATA_FILE_NAME));
+		} catch (IOException e) {
+			throw new MyTvException("error occur while load property file: "
+					+ TV_STATION_INIT_DATA_FILE_NAME, e);
+		}
+
+		Collection<Object> values = tvStationProp.values();
+		List<String> tvStationInsertSql = new ArrayList<String>(values.size());
+		String insertSql = "insert into tv_station (name,displayName,city,classify,channel,sequence)";
+		for (Object value : values) {
+			tvStationInsertSql.add(insertSql + " values (" + value.toString()
+					+ ")");
+		}
+
+		Properties tvStationAliasProp = new Properties();
+		try {
+			tvStationAliasProp.load(Init.class.getResourceAsStream("/"
+					+ TV_STATION_ALIAS_INIT_DATA_FILE_NAME));
+		} catch (IOException e) {
+			throw new MyTvException("error occur while load property file: "
+					+ TV_STATION_ALIAS_INIT_DATA_FILE_NAME, e);
+		}
+		values = tvStationProp.values();
+		List<String> tvStationAliasInsertSql = new ArrayList<String>(
+				values.size());
+		insertSql = "insert into tv_station_alias (station,stationName,alias)";
+		for (Object value : values) {
+			tvStationAliasInsertSql.add(insertSql + " values ("
+					+ value.toString() + ")");
+		}
+	}
+
+	/**
 	 * 创建每天定时任务
 	 */
 	private static void createEverydayCron() {
@@ -191,4 +237,5 @@ public class Init {
 			}
 		}, initDelay, 86400, TimeUnit.SECONDS);
 	}
+
 }

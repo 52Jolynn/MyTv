@@ -45,6 +45,7 @@ public class Constant {
 	public final static String XML_TAG_DATA = "data";
 
 	public final static String DOT = ".";
+	public final static String COMMA = ",";
 	public final static String UNDERLINE = "_";
 
 	static {
