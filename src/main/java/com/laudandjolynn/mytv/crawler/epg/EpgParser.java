@@ -34,7 +34,7 @@ import com.laudandjolynn.mytv.service.TvService;
  * @date: 2015年3月27日 上午10:40:10
  * @copyright: www.laudandjolynn.com
  */
-public class EpgParser implements Parser {
+class EpgParser implements Parser {
 	private final static String CITY = "城市";
 
 	/**

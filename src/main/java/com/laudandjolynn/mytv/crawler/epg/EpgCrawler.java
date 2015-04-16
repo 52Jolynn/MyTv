@@ -51,11 +51,11 @@ import com.laudandjolynn.mytv.utils.WebCrawler;
  * @date: 2015年3月28日 上午12:00:44
  * @copyright: www.laudandjolynn.com
  */
-public class EpgCrawler extends AbstractCrawler {
+class EpgCrawler extends AbstractCrawler {
 	private final static Logger logger = LoggerFactory
 			.getLogger(EpgCrawler.class);
 	// cntv节目表地址
-	public final static String EPG_URL = "http://tv.cntv.cn/epg";
+	private final static String EPG_URL = "http://tv.cntv.cn/epg";
 	private TvService tvService = new TvService();
 
 	public EpgCrawler(Parser parser) {
@@ -111,6 +111,12 @@ public class EpgCrawler extends AbstractCrawler {
 			station = epgService.getStation(stationName);
 		}
 		return crawlProgramTable(station, date);
+	}
+
+	@Override
+	public boolean crawlable(String stationName) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 	private List<ProgramTable> crawlProgramTableByPage(HtmlPage htmlPage,

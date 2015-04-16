@@ -2,10 +2,12 @@ package com.laudandjolynn.mytv.crawler.tvmao;
 
 import java.util.List;
 
+import com.gargoylesoftware.htmlunit.Page;
 import com.laudandjolynn.mytv.crawler.AbstractCrawler;
 import com.laudandjolynn.mytv.crawler.Parser;
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
+import com.laudandjolynn.mytv.utils.WebCrawler;
 
 /**
  * @author: Laud
@@ -13,9 +15,9 @@ import com.laudandjolynn.mytv.model.TvStation;
  * @date: 2015年4月15日 下午3:32:56
  * @copyright: www.laudandjolynn.com
  */
-public class TvMaoCrawler extends AbstractCrawler {
+class TvMaoCrawler extends AbstractCrawler {
 	// tvmao节目表地址
-	public final static String TV_MAO_URL = "http://www.tvmao.com/program/channels";
+	private final static String TV_MAO_URL = "http://www.tvmao.com/program/channels";
 
 	public TvMaoCrawler(Parser parser) {
 		super(parser);
@@ -23,7 +25,10 @@ public class TvMaoCrawler extends AbstractCrawler {
 
 	@Override
 	public List<TvStation> crawlAllTvStation() {
-		// TODO Auto-generated method stub
+		Page page = WebCrawler.crawl(TV_MAO_URL);
+		if (page.isHtmlPage()) {
+			
+		}
 		return null;
 	}
 
@@ -39,4 +44,9 @@ public class TvMaoCrawler extends AbstractCrawler {
 		return null;
 	}
 
+	@Override
+	public boolean crawlable(String stationName) {
+		// TODO Auto-generated method stub
+		return false;
+	}
 }

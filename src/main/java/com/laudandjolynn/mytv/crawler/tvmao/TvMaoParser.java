@@ -12,7 +12,7 @@ import com.laudandjolynn.mytv.model.TvStation;
  * @date: 2015年4月15日 下午3:33:04
  * @copyright: www.laudandjolynn.com
  */
-public class TvMaoParser implements Parser {
+class TvMaoParser implements Parser {
 
 	@Override
 	public List<TvStation> parseTvStation(String html) {

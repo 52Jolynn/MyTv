@@ -18,8 +18,10 @@ package com.laudandjolynn.mytv.utils;
 import java.io.File;
 import java.util.ResourceBundle;
 
+import com.laudandjolynn.mytv.crawler.CralwerGroup;
 import com.laudandjolynn.mytv.crawler.Crawler;
 import com.laudandjolynn.mytv.crawler.epg.EpgCrawlerFactory;
+import com.laudandjolynn.mytv.crawler.tvmao.TvMaoCrawlerFactory;
 
 /**
  * @author: Laud
@@ -35,13 +37,15 @@ public class Config {
 	private final static String RES_KEY_CONFIG_HESSIAN_PORT = "hessian_port";
 	private final static String RES_KEY_CONFIG_RMI_PORT = "rmi_port";
 	private final static String RES_KEY_CONFIG_DB_MODE = "db_mode";
-	public final static Crawler CRAWLER = new EpgCrawlerFactory()
-			.createCrawler();
+	public final static Crawler CRAWLER = new CralwerGroup();
 
 	private static String dbMode = "sqlite";
 	private static String dataFilePath = MyTvUtils.getRunningPath(Config.class);
 
 	static {
+		CralwerGroup cg = (CralwerGroup) CRAWLER;
+		cg.addCrawler(new EpgCrawlerFactory().createCrawler());
+		cg.addCrawler(new TvMaoCrawlerFactory().createCrawler());
 		ResourceBundle bundle = ResourceBundle.getBundle(CONFIG_FILE_NAME);
 		// 读取抓取的文件存放路径
 		if (bundle.containsKey(RES_KEY_DATA_FILE_PATH)) {

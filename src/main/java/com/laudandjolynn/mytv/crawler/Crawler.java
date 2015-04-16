@@ -35,4 +35,12 @@ public interface Crawler {
 	 * @return
 	 */
 	public List<ProgramTable> crawlProgramTable(String stationName, String date);
+
+	/**
+	 * 判断指定电视台是否可抓取
+	 * 
+	 * @param stationName
+	 * @return
+	 */
+	public boolean crawlable(String stationName);
 }
