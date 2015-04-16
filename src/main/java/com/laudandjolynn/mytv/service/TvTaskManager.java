@@ -30,7 +30,6 @@ import com.laudandjolynn.mytv.exception.MyTvException;
 import com.laudandjolynn.mytv.model.EpgTask;
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
-import com.laudandjolynn.mytv.utils.Config;
 
 /**
  * @author: Laud
@@ -51,10 +50,10 @@ public class TvTaskManager {
 	}
 
 	public static TvTaskManager getIntance() {
-		return EpgTaskManagerSingltonHolder.MANAGER;
+		return EpgTaskManagerSingletonHolder.MANAGER;
 	}
 
-	private final static class EpgTaskManagerSingltonHolder {
+	private final static class EpgTaskManagerSingletonHolder {
 		private final static TvTaskManager MANAGER = new TvTaskManager();
 	}
 
@@ -115,12 +114,12 @@ public class TvTaskManager {
 
 			@Override
 			public List<ProgramTable> call() throws Exception {
-				return Config.TV_CRAWLER.crawlProgramTable(stationName, date);
+				return epgService.crawlAllProgramTable(stationName, date);
 			}
 		};
 		Future<List<ProgramTable>> future = executorService.submit(callable);
 		try {
-			future.get();
+			return future.get();
 		} catch (InterruptedException e) {
 			throw new MyTvException(
 					"thread interrupted while query program table of "
@@ -128,13 +127,13 @@ public class TvTaskManager {
 		} catch (ExecutionException e) {
 			throw new MyTvException("error occur while query program table of "
 					+ stationName + " at " + date + ".", e);
+		} finally {
+			synchronized (this) {
+				CURRENT_EPG_TASK.remove(epgTask);
+				logger.debug(epgTask
+						+ " have finished to get program table data and send notification.");
+				notifyAll();
+			}
 		}
-		synchronized (this) {
-			CURRENT_EPG_TASK.remove(epgTask);
-			logger.debug(epgTask
-					+ " have finished to get program table data and send notification.");
-			notifyAll();
-		}
-		return epgService.getProgramTable(stationName, date);
 	}
 }

@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package com.laudandjolynn.mytv.epg;
+package com.laudandjolynn.mytv.crawler.epg;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -28,6 +27,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,15 +37,13 @@ import com.gargoylesoftware.htmlunit.html.DomElement;
 import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.laudandjolynn.mytv.Crawler;
-import com.laudandjolynn.mytv.Init;
-import com.laudandjolynn.mytv.TvCrawler;
-import com.laudandjolynn.mytv.TvParser;
+import com.laudandjolynn.mytv.crawler.TvCrawler;
+import com.laudandjolynn.mytv.crawler.TvParser;
 import com.laudandjolynn.mytv.exception.MyTvException;
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
 import com.laudandjolynn.mytv.service.TvService;
 import com.laudandjolynn.mytv.utils.DateUtils;
-import com.laudandjolynn.mytv.utils.MyTvUtils;
 
 /**
  * @author: Laud
@@ -59,6 +57,7 @@ public class EpgCrawler implements TvCrawler {
 	// cntv节目表地址
 	public final static String EPG_URL = "http://tv.cntv.cn/epg";
 	private TvParser epgParser = new EpgParser();
+	private TvService tvService = new TvService();
 
 	/**
 	 * 获取所有电视台
@@ -84,9 +83,8 @@ public class EpgCrawler implements TvCrawler {
 	 */
 	@Override
 	public List<ProgramTable> crawlAllProgramTable(String date) {
-		Collection<TvStation> stations = Init.getIntance()
-				.getAllCacheTvStation();
-		return crawlAllProgramTable(new ArrayList<TvStation>(stations), date);
+		List<TvStation> stationList = tvService.getAllStation();
+		return crawlAllProgramTable(stationList, date);
 	}
 
 	/**
@@ -104,7 +102,7 @@ public class EpgCrawler implements TvCrawler {
 			logger.debug("station name or date is null.");
 			return null;
 		}
-		TvStation station = Init.getIntance().getStation(stationName);
+		TvStation station = tvService.getStation(stationName);
 		if (station == null) {
 			TvService epgService = new TvService();
 			station = epgService.getStation(stationName);
@@ -178,9 +176,6 @@ public class EpgCrawler implements TvCrawler {
 		}
 		String html = htmlPage.asXml();
 		List<ProgramTable> ptList = epgParser.parseProgramTable(html);
-		ProgramTable[] ptArray = new ProgramTable[ptList.size()];
-		epgService.save(ptList.toArray(ptArray));
-		MyTvUtils.outputCrawlData(queryDate, html, stationName);
 		return ptList;
 	}
 
@@ -214,8 +209,11 @@ public class EpgCrawler implements TvCrawler {
 		while (count < size) {
 			Future<List<ProgramTable>> future;
 			try {
-				future = completionService.poll(10, TimeUnit.MINUTES);
-				resultList.addAll(future.get());
+				future = completionService.poll(5, TimeUnit.MINUTES);
+				List<ProgramTable> ptList = future.get(5, TimeUnit.MINUTES);
+				if (ptList != null) {
+					resultList.addAll(ptList);
+				}
 			} catch (InterruptedException e) {
 				logger.error("craw program table of all station at " + date
 						+ " was interrupted.", e);
@@ -223,6 +221,9 @@ public class EpgCrawler implements TvCrawler {
 				logger.error(
 						"error occur while craw program table of all station at "
 								+ date, e);
+			} catch (TimeoutException e) {
+				logger.error("query program table of all sation at at " + date
+						+ " is timeout.", e);
 			}
 			count++;
 		}

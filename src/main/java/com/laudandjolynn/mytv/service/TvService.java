@@ -18,11 +18,14 @@ package com.laudandjolynn.mytv.service;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.laudandjolynn.mytv.Init;
+import com.laudandjolynn.mytv.MyTvData;
 import com.laudandjolynn.mytv.datasource.TvDao;
 import com.laudandjolynn.mytv.datasource.TvDaoImpl;
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
+import com.laudandjolynn.mytv.utils.Config;
+import com.laudandjolynn.mytv.utils.Constant;
+import com.laudandjolynn.mytv.utils.MemoryCache;
 
 /**
  * @author: Laud
@@ -49,7 +52,7 @@ public class TvService {
 		for (int i = 0; i < size; i++) {
 			TvStation station = stations[i];
 			String stationName = station.getName();
-			if (Init.getIntance().isStationExists(stationName)) {
+			if (isStationExists(stationName)) {
 				continue;
 			}
 			resultList.add(station);
@@ -81,8 +84,8 @@ public class TvService {
 	 * @param stationName
 	 * @return
 	 */
-	private boolean isStationExists(String stationName) {
-		return Init.getIntance().isStationExists(stationName)
+	public boolean isStationExists(String stationName) {
+		return MemoryCache.getInstance().isStationExists(stationName)
 				|| epgDao.isStationExists(stationName);
 	}
 
@@ -136,7 +139,12 @@ public class TvService {
 	 * @return
 	 */
 	public TvStation getStation(String stationName) {
-		return epgDao.getStation(stationName);
+		TvStation station = MemoryCache.getInstance().getStation(stationName);
+		if (station == null) {
+			station = epgDao.getStation(stationName);
+			MemoryCache.getInstance().addCache(station);
+		}
+		return station;
 	}
 
 	/**
@@ -180,5 +188,54 @@ public class TvService {
 	 */
 	public boolean isProgramTableExists(String stationName, String date) {
 		return epgDao.isProgramTableExists(stationName, date);
+	}
+
+	/**
+	 * 根据电视台名称、日期抓取电视节目表
+	 * 
+	 * @param stationName
+	 *            电视台名称
+	 * @param date
+	 *            日期,yyyy-MM-dd
+	 * @return
+	 */
+	public List<ProgramTable> crawlAllProgramTable(String stationName,
+			String date) {
+		List<ProgramTable> ptList = Config.TV_CRAWLER.crawlProgramTable(
+				stationName, date);
+		ProgramTable[] ptArray = new ProgramTable[ptList.size()];
+		save(ptList.toArray(ptArray));
+		MyTvData.getInstance().writeData(Constant.XML_TAG_PROGRAM_TABLE_DATES,
+				Constant.XML_TAG_PROGRAM_TABLE_DATE, date);
+		return ptList;
+	}
+
+	/**
+	 * 根据日期抓取所有电视节目表
+	 * 
+	 * @param date
+	 * @return
+	 */
+	public List<ProgramTable> crawlAllProgramTable(String date) {
+		List<ProgramTable> ptList = Config.TV_CRAWLER
+				.crawlAllProgramTable(date);
+		ProgramTable[] ptArray = new ProgramTable[ptList.size()];
+		save(ptList.toArray(ptArray));
+		MyTvData.getInstance().writeData(Constant.XML_TAG_PROGRAM_TABLE_DATES,
+				Constant.XML_TAG_PROGRAM_TABLE_DATE, date);
+		return ptList;
+	}
+
+	/**
+	 * 抓取所有电视台
+	 * 
+	 * @return
+	 */
+	public List<TvStation> crawlAllTvStation() {
+		List<TvStation> stationList = Config.TV_CRAWLER.crawlAllTvStation();
+		// 写数据到tv_station表
+		TvStation[] stationArray = new TvStation[stationList.size()];
+		save(stationList.toArray(stationArray));
+		return stationList;
 	}
 }

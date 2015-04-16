@@ -1,4 +1,4 @@
-package com.laudandjolynn.mytv;
+package com.laudandjolynn.mytv.crawler;
 
 import java.util.List;
 

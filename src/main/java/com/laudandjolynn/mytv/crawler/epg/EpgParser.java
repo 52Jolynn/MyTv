@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package com.laudandjolynn.mytv.epg;
+package com.laudandjolynn.mytv.crawler.epg;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,8 +23,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import com.laudandjolynn.mytv.Init;
-import com.laudandjolynn.mytv.TvParser;
+import com.laudandjolynn.mytv.crawler.TvParser;
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
 import com.laudandjolynn.mytv.service.TvService;
@@ -119,7 +118,7 @@ public class EpgParser implements TvParser {
 		}
 		Elements programElemens = doc.select("#epg_list div.content_c dl dd")
 				.select("a.p_name_a, a.p_name");
-		TvService epgService = new TvService();
+		TvService tvService = new TvService();
 		for (int i = 0, size = programElemens == null ? 0 : programElemens
 				.size(); i < size; i++) {
 			Element programElement = programElemens.get(i);
@@ -129,10 +128,10 @@ public class EpgParser implements TvParser {
 			pt.setAirDate(date);
 			pt.setAirTime(date + " " + pc[0] + ":00");
 			pt.setProgram(pc[1]);
-			if (Init.getIntance().isStationExists(stationName)) {
-				pt.setStation(Init.getIntance().getStation(stationName).getId());
+			if (tvService.isStationExists(stationName)) {
+				pt.setStation(tvService.getStation(stationName).getId());
 			} else {
-				pt.setStation(epgService.getStation(stationName).getId());
+				pt.setStation(tvService.getStation(stationName).getId());
 			}
 			pt.setStationName(stationName);
 			pt.setWeek(week);

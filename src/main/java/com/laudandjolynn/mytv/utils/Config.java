@@ -18,8 +18,8 @@ package com.laudandjolynn.mytv.utils;
 import java.io.File;
 import java.util.ResourceBundle;
 
-import com.laudandjolynn.mytv.TvCrawler;
-import com.laudandjolynn.mytv.epg.EpgCrawler;
+import com.laudandjolynn.mytv.crawler.TvCrawler;
+import com.laudandjolynn.mytv.crawler.epg.EpgCrawler;
 
 /**
  * @author: Laud

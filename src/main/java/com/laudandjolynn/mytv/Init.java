@@ -19,22 +19,18 @@ import java.io.File;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.laudandjolynn.mytv.datasource.DataSourceManager;
 import com.laudandjolynn.mytv.exception.MyTvException;
-import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
 import com.laudandjolynn.mytv.service.TvService;
-import com.laudandjolynn.mytv.utils.Config;
 import com.laudandjolynn.mytv.utils.Constant;
 import com.laudandjolynn.mytv.utils.DateUtils;
+import com.laudandjolynn.mytv.utils.MemoryCache;
 
 /**
  * @author: Laud
@@ -44,16 +40,15 @@ import com.laudandjolynn.mytv.utils.DateUtils;
  */
 public class Init {
 	private final static Logger logger = LoggerFactory.getLogger(Init.class);
-	private final static Map<String, TvStation> ALL_TV_STATION = new HashMap<String, TvStation>();
 
 	private Init() {
 	}
 
 	public static Init getIntance() {
-		return InitSingltonHolder.INIT;
+		return InitSingletonHolder.INIT;
 	}
 
-	private final static class InitSingltonHolder {
+	private final static class InitSingletonHolder {
 		private final static Init INIT = new Init();
 	}
 
@@ -140,66 +135,22 @@ public class Init {
 	 */
 	private void initData() {
 		TvService epgService = new TvService();
-		List<TvStation> stations = epgService.getAllStation();
-		boolean isStationExists = (stations == null ? 0 : stations.size()) > 0;
+		List<TvStation> stationList = epgService.getAllStation();
+		boolean isStationExists = (stationList == null ? 0 : stationList.size()) > 0;
 		String today = DateUtils.today();
 		if (isStationExists) {
-			this.addAllTvStation2Cache(stations);
+			MemoryCache.getInstance().addCache(stationList);
 		} else {
 			// 首次抓取
-			stations = Config.TV_CRAWLER.crawlAllTvStation();
-			// 写数据到tv_station表
-			TvStation[] stationArray = new TvStation[stations.size()];
-			epgService.save(stations.toArray(stationArray));
-			this.addAllTvStation2Cache(epgService.getAllStation());
+			stationList = epgService.crawlAllTvStation();
+			MemoryCache.getInstance().addCache(stationList);
 		}
 
 		if (!MyTvData.getInstance().isProgramTableOfTodayCrawled()) {
 			// 保存当天电视节目表
 			logger.info("query program table of today. " + "today is " + today);
-			List<ProgramTable> ptList = Config.TV_CRAWLER
-					.crawlAllProgramTable(today);
-			ProgramTable[] ptArray = new ProgramTable[ptList.size()];
-			epgService.save(ptList.toArray(ptArray));
-			MyTvData.getInstance().writeData(
-					Constant.XML_TAG_PROGRAM_TABLE_DATES,
-					Constant.XML_TAG_PROGRAM_TABLE_DATE, today);
+			epgService.crawlAllProgramTable(today);
 		}
-	}
-
-	public Collection<TvStation> getAllCacheTvStation() {
-		return ALL_TV_STATION.values();
-	}
-
-	/**
-	 * 缓存所有电视台
-	 * 
-	 * @param stations
-	 */
-	private void addAllTvStation2Cache(List<TvStation> stations) {
-		for (TvStation station : stations) {
-			ALL_TV_STATION.put(station.getName(), station);
-		}
-	}
-
-	/**
-	 * 判断电视台是否已经在数据库中存在
-	 * 
-	 * @param stationName
-	 * @return
-	 */
-	public boolean isStationExists(String stationName) {
-		return ALL_TV_STATION.containsKey(stationName);
-	}
-
-	/**
-	 * 根据名称获取电视台對象
-	 * 
-	 * @param stationName
-	 * @return
-	 */
-	public TvStation getStation(String stationName) {
-		return ALL_TV_STATION.get(stationName);
 	}
 
 }

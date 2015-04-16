@@ -16,7 +16,6 @@
 package com.laudandjolynn.mytv;
 
 import java.util.Date;
-import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -25,10 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.laudandjolynn.mytv.exception.MyTvException;
-import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.service.TvService;
-import com.laudandjolynn.mytv.utils.Config;
-import com.laudandjolynn.mytv.utils.Constant;
 import com.laudandjolynn.mytv.utils.DateUtils;
 
 /**
@@ -76,23 +72,16 @@ public class Main {
 	 */
 	private static void createEverydayCron() {
 		ScheduledExecutorService scheduled = new ScheduledThreadPoolExecutor(1);
-		long initDelay = DateUtils.string2Date(
-				DateUtils.tommorow() + " 00:00:00").getTime()
-				- new Date().getTime();
+		final String cronDate = DateUtils.tommorow();
+		long initDelay = (DateUtils.string2Date(cronDate + " 00:00:00")
+				.getTime() - new Date().getTime()) / 1000;
 		scheduled.scheduleWithFixedDelay(new Runnable() {
 
 			@Override
 			public void run() {
 				TvService epgService = new TvService();
-				String today = DateUtils.today();
-				List<ProgramTable> ptList = Config.TV_CRAWLER
-						.crawlAllProgramTable(today);
-				ProgramTable[] ptArray = new ProgramTable[ptList.size()];
-				epgService.save(ptList.toArray(ptArray));
-				MyTvData.getInstance().writeData(
-						Constant.XML_TAG_PROGRAM_TABLE_DATES,
-						Constant.XML_TAG_PROGRAM_TABLE_DATE, today);
+				epgService.crawlAllProgramTable(cronDate);
 			}
-		}, initDelay, 1, TimeUnit.DAYS);
+		}, initDelay, 86400, TimeUnit.SECONDS);
 	}
 }

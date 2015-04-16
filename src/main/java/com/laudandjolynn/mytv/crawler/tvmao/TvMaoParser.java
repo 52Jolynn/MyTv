@@ -1,4 +1,4 @@
-package com.laudandjolynn.mytv.tvmao;
+package com.laudandjolynn.mytv.crawler.tvmao;
 
 /**
  * @author: Laud
