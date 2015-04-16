@@ -18,13 +18,11 @@ package com.laudandjolynn.mytv.service;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.laudandjolynn.mytv.MyTvData;
 import com.laudandjolynn.mytv.crawler.CrawlerManager;
 import com.laudandjolynn.mytv.datasource.TvDao;
 import com.laudandjolynn.mytv.datasource.TvDaoImpl;
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
-import com.laudandjolynn.mytv.utils.Constant;
 import com.laudandjolynn.mytv.utils.MemoryCache;
 
 /**
@@ -205,8 +203,6 @@ public class TvService {
 				.crawlProgramTable(stationName, date);
 		ProgramTable[] ptArray = new ProgramTable[ptList.size()];
 		save(ptList.toArray(ptArray));
-		MyTvData.getInstance().writeData(Constant.XML_TAG_PROGRAM_TABLE_DATES,
-				Constant.XML_TAG_PROGRAM_TABLE_DATE, date);
 		return ptList;
 	}
 
@@ -221,8 +217,6 @@ public class TvService {
 				.crawlAllProgramTable(date);
 		ProgramTable[] ptArray = new ProgramTable[ptList.size()];
 		save(ptList.toArray(ptArray));
-		MyTvData.getInstance().writeData(Constant.XML_TAG_PROGRAM_TABLE_DATES,
-				Constant.XML_TAG_PROGRAM_TABLE_DATE, date);
 		return ptList;
 	}
 

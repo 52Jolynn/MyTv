@@ -43,6 +43,7 @@ import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
 import com.laudandjolynn.mytv.service.TvService;
 import com.laudandjolynn.mytv.utils.DateUtils;
+import com.laudandjolynn.mytv.utils.MyTvUtils;
 import com.laudandjolynn.mytv.utils.WebCrawler;
 
 /**
@@ -185,6 +186,7 @@ class EpgCrawler extends AbstractCrawler {
 		}
 		String html = htmlPage.asXml();
 		List<ProgramTable> ptList = parser.parseProgramTable(html);
+		MyTvUtils.outputCrawlData(queryDate, html, stationName);
 		return ptList;
 	}
 

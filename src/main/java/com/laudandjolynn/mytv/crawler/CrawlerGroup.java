@@ -37,7 +37,10 @@ public class CrawlerGroup implements Crawler {
 	public List<TvStation> crawlAllTvStation() {
 		List<TvStation> resultList = new ArrayList<TvStation>();
 		for (Crawler crawler : crawlers) {
-			resultList.addAll(crawler.crawlAllTvStation());
+			List<TvStation> stationList = crawler.crawlAllTvStation();
+			if (stationList != null && stationList.size() > 0) {
+				resultList.addAll(stationList);
+			}
 		}
 		return resultList;
 	}
@@ -46,7 +49,10 @@ public class CrawlerGroup implements Crawler {
 	public List<ProgramTable> crawlAllProgramTable(String date) {
 		List<ProgramTable> resultList = new ArrayList<ProgramTable>();
 		for (Crawler crawler : crawlers) {
-			resultList.addAll(crawler.crawlAllProgramTable(date));
+			List<ProgramTable> ptList = crawler.crawlAllProgramTable(date);
+			if (ptList != null && ptList.size() > 0) {
+				resultList.addAll(ptList);
+			}
 		}
 		return resultList;
 	}
@@ -56,7 +62,11 @@ public class CrawlerGroup implements Crawler {
 		List<ProgramTable> resultList = new ArrayList<ProgramTable>();
 		for (Crawler crawler : crawlers) {
 			if (crawler.exists(stationName)) {
-				resultList.addAll(crawler.crawlProgramTable(stationName, date));
+				List<ProgramTable> ptList = crawler.crawlProgramTable(
+						stationName, date);
+				if (ptList != null && ptList.size() > 0) {
+					resultList.addAll(ptList);
+				}
 				break;
 			}
 		}

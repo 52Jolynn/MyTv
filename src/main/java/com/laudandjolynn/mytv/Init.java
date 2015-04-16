@@ -19,7 +19,11 @@ import java.io.File;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Date;
 import java.util.List;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,6 +66,9 @@ public class Init {
 		this.initDb();
 		// 初始化其他数据
 		this.initData();
+		// 启动每天定时任务
+		logger.info("create everyday crawl task.");
+		createEverydayCron();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -151,7 +158,32 @@ public class Init {
 			// 保存当天电视节目表
 			logger.info("query program table of today. " + "today is " + today);
 			epgService.crawlAllProgramTable(today);
+			MyTvData.getInstance().writeData(
+					Constant.XML_TAG_PROGRAM_TABLE_DATES,
+					Constant.XML_TAG_PROGRAM_TABLE_DATE, today);
 		}
 	}
 
+	/**
+	 * 创建每天定时任务
+	 */
+	private static void createEverydayCron() {
+		ScheduledExecutorService scheduled = new ScheduledThreadPoolExecutor(1);
+		final String cronDate = DateUtils.tommorow();
+		long initDelay = (DateUtils.string2Date(cronDate + " 00:00:00")
+				.getTime() - new Date().getTime()) / 1000;
+		logger.info("cron crawler task will be automatic start after "
+				+ initDelay + " seconds.");
+		scheduled.scheduleWithFixedDelay(new Runnable() {
+
+			@Override
+			public void run() {
+				TvService epgService = new TvService();
+				epgService.crawlAllProgramTable(cronDate);
+				MyTvData.getInstance().writeData(
+						Constant.XML_TAG_PROGRAM_TABLE_DATES,
+						Constant.XML_TAG_PROGRAM_TABLE_DATE, cronDate);
+			}
+		}, initDelay, 86400, TimeUnit.SECONDS);
+	}
 }

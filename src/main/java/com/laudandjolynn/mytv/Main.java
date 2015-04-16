@@ -15,17 +15,10 @@
  ******************************************************************************/
 package com.laudandjolynn.mytv;
 
-import java.util.Date;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.laudandjolynn.mytv.exception.MyTvException;
-import com.laudandjolynn.mytv.service.TvService;
-import com.laudandjolynn.mytv.utils.DateUtils;
 
 /**
  * @author: Laud
@@ -62,26 +55,6 @@ public class Main {
 	private static void startService() {
 		logger.info("start My TV Program Table Crawler.");
 		Init.getIntance().init();
-		// 启动每天定时任务
-		logger.info("create everyday crawl task.");
-		createEverydayCron();
 	}
 
-	/**
-	 * 创建每天定时任务
-	 */
-	private static void createEverydayCron() {
-		ScheduledExecutorService scheduled = new ScheduledThreadPoolExecutor(1);
-		final String cronDate = DateUtils.tommorow();
-		long initDelay = (DateUtils.string2Date(cronDate + " 00:00:00")
-				.getTime() - new Date().getTime()) / 1000;
-		scheduled.scheduleWithFixedDelay(new Runnable() {
-
-			@Override
-			public void run() {
-				TvService epgService = new TvService();
-				epgService.crawlAllProgramTable(cronDate);
-			}
-		}, initDelay, 86400, TimeUnit.SECONDS);
-	}
 }
