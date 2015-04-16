@@ -15,6 +15,7 @@
  ******************************************************************************/
 package com.laudandjolynn.mytv.crawler.epg;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -29,6 +30,11 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.dom4j.DocumentException;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +48,7 @@ import com.laudandjolynn.mytv.exception.MyTvException;
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
 import com.laudandjolynn.mytv.service.TvService;
+import com.laudandjolynn.mytv.utils.Constant;
 import com.laudandjolynn.mytv.utils.DateUtils;
 import com.laudandjolynn.mytv.utils.MyTvUtils;
 import com.laudandjolynn.mytv.utils.WebCrawler;
@@ -57,10 +64,16 @@ class EpgCrawler extends AbstractCrawler {
 			.getLogger(EpgCrawler.class);
 	// cntv节目表地址
 	private final static String EPG_URL = "http://tv.cntv.cn/epg";
+	private final static String EPG_NAME = "epg";
 	private TvService tvService = new TvService();
 
 	public EpgCrawler(Parser parser) {
 		super(parser);
+	}
+
+	@Override
+	public String getCrawlerName() {
+		return EPG_NAME;
 	}
 
 	/**
@@ -73,7 +86,10 @@ class EpgCrawler extends AbstractCrawler {
 		Page page = WebCrawler.crawl(EPG_URL);
 		if (page.isHtmlPage()) {
 			HtmlPage htmlPage = (HtmlPage) page;
-			return parser.parseTvStation(htmlPage.asXml());
+			String html = htmlPage.asXml();
+			List<TvStation> stationList = parser.parseTvStation(html);
+			MyTvUtils.outputCrawlData(getCrawlerName(), html, getCrawlerName());
+			return stationList;
 		}
 		return null;
 	}
@@ -101,22 +117,69 @@ class EpgCrawler extends AbstractCrawler {
 	 * @return
 	 */
 	@Override
-	public List<ProgramTable> crawlProgramTable(String stationName, String date) {
-		if (stationName == null || date == null) {
+	public List<ProgramTable> crawlProgramTable(TvStation station, String date) {
+		if (station == null || date == null) {
 			logger.debug("station name or date is null.");
 			return null;
 		}
-		TvStation station = tvService.getStation(stationName);
-		if (station == null) {
-			TvService epgService = new TvService();
-			station = epgService.getStation(stationName);
+		Page page = WebCrawler.crawl(EPG_URL);
+		if (!page.isHtmlPage()) {
+			logger.debug("the page isn't html page at url " + EPG_URL);
+			return null;
 		}
-		return crawlProgramTable(station, date);
+		return crawlProgramTableByPage((HtmlPage) page, station, date);
 	}
 
 	@Override
-	public boolean exists(String stationName) {
-		// TODO Auto-generated method stub
+	public boolean exists(TvStation station) {
+		String epgFile = Constant.CRAWL_FILE_PATH + getCrawlerName()
+				+ File.separator + getCrawlerName();
+		File file = new File(epgFile);
+		String city = station.getCity();
+		String stationName = station.getName();
+		if (file.exists()) {
+			try {
+				String html = MyTvUtils.readAsXml(epgFile);
+				Document doc = Jsoup.parse(html);
+				Elements elements = null;
+				if (city == null) {
+					elements = doc.select("div.md_left_right dl h3 a.channel");
+				} else {
+					elements = doc.select("dl#cityList div.lv3 a.channel");
+				}
+				for (Element element : elements) {
+					if (stationName.equals(element.text())) {
+						return true;
+					}
+				}
+			} catch (DocumentException e) {
+				// do noting
+			}
+		}
+		Page page = WebCrawler.crawl(EPG_URL);
+		if (!page.isHtmlPage()) {
+			logger.debug("the page isn't html page at url " + EPG_URL);
+			return false;
+		}
+		HtmlPage htmlPage = (HtmlPage) page;
+		MyTvUtils.outputCrawlData(getCrawlerName(), htmlPage.asXml(),
+				getCrawlerName());
+		List<?> stationElements = null;
+		if (city == null) {
+			stationElements = htmlPage
+					.getByXPath("//div[@class='md_left_right']/dl//h3//a[@class='channel']");
+		} else {
+			// 城市电视台
+			stationElements = htmlPage
+					.getByXPath("//dl[@id='cityList']//div[@class='lv3']//a[@class='channel']");
+		}
+
+		for (Object element : stationElements) {
+			HtmlAnchor anchor = (HtmlAnchor) element;
+			if (stationName.equals(anchor.getTextContent().trim())) {
+				return true;
+			}
+		}
 		return false;
 	}
 
@@ -124,6 +187,11 @@ class EpgCrawler extends AbstractCrawler {
 			TvStation station, String date) {
 		if (station == null || htmlPage == null) {
 			logger.debug("station and html page must not null.");
+			return null;
+		}
+		if (!exists(station)) {
+			logger.debug(station.getName() + " isn't exists at "
+					+ getCrawlerName());
 			return null;
 		}
 		Date dateObj = DateUtils.string2Date(date, "yyyy-MM-dd");
@@ -186,7 +254,8 @@ class EpgCrawler extends AbstractCrawler {
 		}
 		String html = htmlPage.asXml();
 		List<ProgramTable> ptList = parser.parseProgramTable(html);
-		MyTvUtils.outputCrawlData(queryDate, html, stationName);
+		MyTvUtils.outputCrawlData(queryDate, html, queryDate
+				+ Constant.UNDERLINE + stationName);
 		return ptList;
 	}
 
@@ -210,7 +279,7 @@ class EpgCrawler extends AbstractCrawler {
 			Callable<List<ProgramTable>> task = new Callable<List<ProgramTable>>() {
 				@Override
 				public List<ProgramTable> call() throws Exception {
-					return crawlProgramTable(station.getName(), date);
+					return crawlProgramTable(station, date);
 				}
 			};
 			completionService.submit(task);
@@ -241,27 +310,5 @@ class EpgCrawler extends AbstractCrawler {
 		executorService.shutdown();
 
 		return resultList;
-	}
-
-	/**
-	 * 根据电视台、日期获取电视节目表
-	 * 
-	 * @param station
-	 *            电视台对象
-	 * @param date
-	 *            日期，yyyy-MM-dd
-	 * @return
-	 */
-	private List<ProgramTable> crawlProgramTable(TvStation station, String date) {
-		if (station == null) {
-			logger.debug("the station must be not null.");
-			return null;
-		}
-		Page page = WebCrawler.crawl(EPG_URL);
-		if (!page.isHtmlPage()) {
-			logger.debug("the page isn't html page at url " + EPG_URL);
-			return null;
-		}
-		return crawlProgramTableByPage((HtmlPage) page, station, date);
 	}
 }

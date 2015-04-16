@@ -14,6 +14,7 @@ import com.laudandjolynn.mytv.model.TvStation;
  */
 public class CrawlerGroup implements Crawler {
 	private List<Crawler> crawlers = new ArrayList<Crawler>();
+	private final static String CRAWLER_GROUP_NAME = "crawlergroup";
 
 	/**
 	 * 添加抓取器
@@ -31,6 +32,11 @@ public class CrawlerGroup implements Crawler {
 	 */
 	public void removeCrawler(Crawler crawler) {
 		this.crawlers.remove(crawler);
+	}
+
+	@Override
+	public String getCrawlerName() {
+		return CRAWLER_GROUP_NAME;
 	}
 
 	@Override
@@ -58,12 +64,12 @@ public class CrawlerGroup implements Crawler {
 	}
 
 	@Override
-	public List<ProgramTable> crawlProgramTable(String stationName, String date) {
+	public List<ProgramTable> crawlProgramTable(TvStation station, String date) {
 		List<ProgramTable> resultList = new ArrayList<ProgramTable>();
 		for (Crawler crawler : crawlers) {
-			if (crawler.exists(stationName)) {
-				List<ProgramTable> ptList = crawler.crawlProgramTable(
-						stationName, date);
+			if (crawler.exists(station)) {
+				List<ProgramTable> ptList = crawler.crawlProgramTable(station,
+						date);
 				if (ptList != null && ptList.size() > 0) {
 					resultList.addAll(ptList);
 				}
@@ -74,9 +80,9 @@ public class CrawlerGroup implements Crawler {
 	}
 
 	@Override
-	public boolean exists(String stationName) {
+	public boolean exists(TvStation station) {
 		for (Crawler crawler : crawlers) {
-			if (crawler.exists(stationName)) {
+			if (crawler.exists(station)) {
 				return true;
 			}
 		}

@@ -20,6 +20,10 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLDecoder;
 
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
+import org.dom4j.io.SAXReader;
+
 import com.laudandjolynn.mytv.exception.MyTvException;
 
 /**
@@ -30,23 +34,39 @@ import com.laudandjolynn.mytv.exception.MyTvException;
  */
 public class MyTvUtils {
 	/**
+	 * 读入xml文件
+	 * 
+	 * @param path
+	 * @return
+	 */
+	public static String readAsXml(String path) throws DocumentException {
+		SAXReader reader = new SAXReader();
+		Document xmlDoc = reader.read(new File(path));
+		return xmlDoc.asXML();
+	}
+
+	/**
 	 * 输出抓取数据到文件
 	 * 
 	 * @param date
 	 *            日期，yyyy-MM-dd
 	 * @param data
 	 *            数据
-	 * @param tag
-	 *            文件名标识
+	 * @param fileName
+	 *            文件名
 	 */
-	public static void outputCrawlData(String date, String data, String tag) {
+	public static void outputCrawlData(String date, String data, String fileName) {
 		String crawlFileDir = Constant.CRAWL_FILE_PATH + date + File.separator;
 		File file = new File(crawlFileDir);
 		if (!file.exists()) {
 			file.mkdirs();
 		}
-		String crawlFilePath = crawlFileDir + date + Constant.UNDERLINE
-				+ (tag == null ? System.nanoTime() : tag);
+		String crawlFilePath = crawlFileDir + fileName;
+		// 若文件已存在，则删除
+		file = new File(crawlFilePath);
+		if (file.exists()) {
+			file.delete();
+		}
 		try {
 			FileUtils.writeWithNIO(data, FileUtils.DEFAULT_CHARSET_NAME,
 					crawlFilePath);

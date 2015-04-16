@@ -18,6 +18,7 @@ import com.laudandjolynn.mytv.utils.WebCrawler;
 class TvMaoCrawler extends AbstractCrawler {
 	// tvmao节目表地址
 	private final static String TV_MAO_URL = "http://www.tvmao.com/program/channels";
+	private final static String TV_MAO_NAME = "tvmao";
 
 	public TvMaoCrawler(Parser parser) {
 		super(parser);
@@ -27,9 +28,14 @@ class TvMaoCrawler extends AbstractCrawler {
 	public List<TvStation> crawlAllTvStation() {
 		Page page = WebCrawler.crawl(TV_MAO_URL);
 		if (page.isHtmlPage()) {
-			
+
 		}
 		return null;
+	}
+
+	@Override
+	public String getCrawlerName() {
+		return TV_MAO_NAME;
 	}
 
 	@Override
@@ -39,13 +45,13 @@ class TvMaoCrawler extends AbstractCrawler {
 	}
 
 	@Override
-	public List<ProgramTable> crawlProgramTable(String stationName, String date) {
+	public List<ProgramTable> crawlProgramTable(TvStation station, String date) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public boolean exists(String stationName) {
+	public boolean exists(TvStation station) {
 		// TODO Auto-generated method stub
 		return false;
 	}

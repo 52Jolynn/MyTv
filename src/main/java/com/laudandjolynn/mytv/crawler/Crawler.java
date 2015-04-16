@@ -30,17 +30,25 @@ public interface Crawler {
 	/**
 	 * 根据电视台名称、日期抓取电视节目表
 	 * 
-	 * @param stationName
+	 * @param station
 	 * @param date
 	 * @return
 	 */
-	public List<ProgramTable> crawlProgramTable(String stationName, String date);
+	public List<ProgramTable> crawlProgramTable(TvStation station, String date);
 
 	/**
 	 * 判断指定电视台是否可抓取
 	 * 
-	 * @param stationName
+	 * @param station
 	 * @return
 	 */
-	public boolean exists(String stationName);
+	public boolean exists(TvStation station);
+
+	/**
+	 * 获取抓取器名称
+	 * 
+	 * @return
+	 */
+	public String getCrawlerName();
+
 }

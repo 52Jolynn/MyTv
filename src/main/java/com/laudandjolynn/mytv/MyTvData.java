@@ -45,6 +45,7 @@ import com.laudandjolynn.mytv.utils.FileUtils;
 public class MyTvData {
 	private final static Logger logger = LoggerFactory
 			.getLogger(MyTvData.class);
+	private boolean dataInited = false;
 	private boolean dbInited = false;
 	private boolean programTableOfTodayCrawled = false;
 	private Set<String> programTableCrawled = new HashSet<String>();
@@ -79,6 +80,11 @@ public class MyTvData {
 			List<?> nodes = xmlDoc.selectNodes("//" + Constant.XML_TAG_DB);
 			if (nodes != null && nodes.size() > 0) {
 				this.dbInited = Boolean.valueOf(((Element) nodes.get(0))
+						.getText());
+			}
+			nodes = xmlDoc.selectNodes("//" + Constant.XML_TAG_DATA);
+			if (nodes != null && nodes.size() > 0) {
+				this.dataInited = Boolean.valueOf(((Element) nodes.get(0))
 						.getText());
 			}
 			nodes = xmlDoc.selectNodes("//"
@@ -168,5 +174,14 @@ public class MyTvData {
 	 */
 	public boolean isProgramTableCrawled(String date) {
 		return this.programTableCrawled.contains(date);
+	}
+
+	/**
+	 * 数据是否已经初始化
+	 * 
+	 * @return
+	 */
+	public boolean isDataInited() {
+		return dataInited;
 	}
 }

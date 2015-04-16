@@ -36,14 +36,13 @@ public class Constant {
 	public final static String MY_TV_DATA_FILE_PATH = MY_TV_DATA_PATH
 			+ "mytv.dat";
 	// 电视节目表文件路径
-	public final static String CRAWL_FILE_DIR = "crawlfiles";
 	public final static String CRAWL_FILE_PATH = Constant.MY_TV_DATA_PATH
-			+ CRAWL_FILE_DIR + File.separator;
-	public final static String CRAWL_FILE_STATION_TAG = "station";
+			+ "crawlfiles" + File.separator;
 
 	public final static String XML_TAG_PROGRAM_TABLE_DATES = "dates";
 	public final static String XML_TAG_PROGRAM_TABLE_DATE = "date";
 	public final static String XML_TAG_DB = "db";
+	public final static String XML_TAG_DATA = "data";
 
 	public final static String DOT = ".";
 	public final static String UNDERLINE = "_";

@@ -142,22 +142,27 @@ public class Init {
 	 * 初始化应用数据
 	 */
 	private void initData() {
-		TvService epgService = new TvService();
-		List<TvStation> stationList = epgService.getAllStation();
+		TvService tvService = new TvService();
+		List<TvStation> stationList = null;
+		if (MyTvData.getInstance().isDataInited()) {
+			stationList = tvService.getAllStation();
+		}
 		boolean isStationExists = (stationList == null ? 0 : stationList.size()) > 0;
 		String today = DateUtils.today();
 		if (isStationExists) {
 			MemoryCache.getInstance().addCache(stationList);
 		} else {
 			// 首次抓取
-			stationList = epgService.crawlAllTvStation();
+			stationList = tvService.crawlAllTvStation();
 			MemoryCache.getInstance().addCache(stationList);
+			MyTvData.getInstance().writeData(null, Constant.XML_TAG_DATA,
+					"true");
 		}
 
 		if (!MyTvData.getInstance().isProgramTableOfTodayCrawled()) {
 			// 保存当天电视节目表
 			logger.info("query program table of today. " + "today is " + today);
-			epgService.crawlAllProgramTable(today);
+			tvService.crawlAllProgramTable(today);
 			MyTvData.getInstance().writeData(
 					Constant.XML_TAG_PROGRAM_TABLE_DATES,
 					Constant.XML_TAG_PROGRAM_TABLE_DATE, today);

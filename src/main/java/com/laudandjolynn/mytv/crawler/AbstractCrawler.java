@@ -8,8 +8,16 @@ package com.laudandjolynn.mytv.crawler;
  */
 public abstract class AbstractCrawler implements Crawler {
 	protected Parser parser = null;
+	protected String crawlerName = null;
 
 	public AbstractCrawler(Parser parser) {
 		this.parser = parser;
 	}
+
+	public AbstractCrawler(Parser parser, String crawlerName) {
+		super();
+		this.parser = parser;
+		this.crawlerName = crawlerName;
+	}
+
 }

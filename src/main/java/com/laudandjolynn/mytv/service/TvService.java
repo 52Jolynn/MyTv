@@ -200,7 +200,7 @@ public class TvService {
 	public List<ProgramTable> crawlAllProgramTable(String stationName,
 			String date) {
 		List<ProgramTable> ptList = CrawlerManager.getInstance().getCrawler()
-				.crawlProgramTable(stationName, date);
+				.crawlProgramTable(getStation(stationName), date);
 		ProgramTable[] ptArray = new ProgramTable[ptList.size()];
 		save(ptList.toArray(ptArray));
 		return ptList;
