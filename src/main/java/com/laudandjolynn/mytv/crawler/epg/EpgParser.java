@@ -36,6 +36,7 @@ import com.laudandjolynn.mytv.service.TvService;
  */
 class EpgParser implements Parser {
 	private final static String CITY = "城市";
+	TvService tvService = new TvService();
 
 	/**
 	 * 解析电视台列表
@@ -50,6 +51,7 @@ class EpgParser implements Parser {
 		Elements stationElements = doc.select("div.md_left_right");
 		List<TvStation> resultList = new ArrayList<TvStation>();
 		int sequence = 10000;
+
 		for (int i = 0, size = classifyElements == null ? 0 : classifyElements
 				.size(); i < size; i++) {
 			Element classifyElement = classifyElements.get(i);
@@ -63,9 +65,15 @@ class EpgParser implements Parser {
 			for (int j = 0, ssize = stationTextElements == null ? 0
 					: stationTextElements.size(); j < ssize; j++) {
 				TvStation tv = new TvStation();
-				String name = stationTextElements.get(j).text().trim();
-				tv.setName(name);
-				tv.setDisplayName(name);
+				String displayName = stationTextElements.get(j).text().trim();
+				String stationName = displayName;
+				TvStation station = tvService.getStationByDisplayName(
+						displayName, classify);
+				if (station != null) {
+					stationName = station.getName();
+				}
+				tv.setName(stationName);
+				tv.setDisplayName(displayName);
 				tv.setCity(null);
 				tv.setClassify(classify);
 				tv.setSequence(++sequence);
@@ -118,7 +126,6 @@ class EpgParser implements Parser {
 		}
 		Elements programElemens = doc.select("#epg_list div.content_c dl dd")
 				.select("a.p_name_a, a.p_name");
-		TvService tvService = new TvService();
 		for (int i = 0, size = programElemens == null ? 0 : programElemens
 				.size(); i < size; i++) {
 			Element programElement = programElemens.get(i);

@@ -153,6 +153,9 @@ public class TvService {
 	 * @return
 	 */
 	public TvStation getStationByDisplayName(String displayName, String classify) {
+		if (displayName == null || classify == null) {
+			return null;
+		}
 		return epgDao.getStationByDisplayName(displayName, classify);
 	}
 

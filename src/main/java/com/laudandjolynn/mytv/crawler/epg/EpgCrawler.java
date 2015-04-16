@@ -66,6 +66,7 @@ class EpgCrawler extends AbstractCrawler {
 	private final static String EPG_URL = "http://tv.cntv.cn/epg";
 	private final static String EPG_NAME = "epg";
 	private TvService tvService = new TvService();
+	private final static int MAX_THREAD = 5;
 
 	public EpgCrawler(Parser parser) {
 		super(parser);
@@ -83,10 +84,24 @@ class EpgCrawler extends AbstractCrawler {
 	 */
 	@Override
 	public List<TvStation> crawlAllTvStation() {
-		Page page = WebCrawler.crawl(EPG_URL);
-		if (page.isHtmlPage()) {
-			HtmlPage htmlPage = (HtmlPage) page;
-			String html = htmlPage.asXml();
+		String epgFile = Constant.CRAWL_FILE_PATH + getCrawlerName()
+				+ File.separator + getCrawlerName();
+		File file = new File(epgFile);
+		String html = null;
+		if (file.exists()) {
+			try {
+				html = MyTvUtils.readAsXml(epgFile);
+			} catch (DocumentException e) {
+				// do nothing
+			}
+		} else {
+			Page page = WebCrawler.crawl(EPG_URL);
+			if (page.isHtmlPage()) {
+				HtmlPage htmlPage = (HtmlPage) page;
+				html = htmlPage.asXml();
+			}
+		}
+		if (html != null) {
 			List<TvStation> stationList = parser.parseTvStation(html);
 			MyTvUtils.outputCrawlData(getCrawlerName(), html, getCrawlerName());
 			return stationList;
@@ -104,7 +119,15 @@ class EpgCrawler extends AbstractCrawler {
 	@Override
 	public List<ProgramTable> crawlAllProgramTable(String date) {
 		List<TvStation> stationList = tvService.getAllStation();
-		return crawlAllProgramTable(stationList, date);
+		// 过滤不存在的电视台
+		List<TvStation> filtedList = new ArrayList<TvStation>(
+				stationList.size());
+		for (TvStation station : stationList) {
+			if (exists(station)) {
+				filtedList.add(station);
+			}
+		}
+		return crawlAllProgramTable(filtedList, date);
 	}
 
 	/**
@@ -189,11 +212,6 @@ class EpgCrawler extends AbstractCrawler {
 			logger.debug("station and html page must not null.");
 			return null;
 		}
-		if (!exists(station)) {
-			logger.debug(station.getName() + " isn't exists at "
-					+ getCrawlerName());
-			return null;
-		}
 		Date dateObj = DateUtils.string2Date(date, "yyyy-MM-dd");
 		if (dateObj == null) {
 			logger.debug("date must not null.");
@@ -203,8 +221,7 @@ class EpgCrawler extends AbstractCrawler {
 		String queryDate = DateUtils.date2String(dateObj, "yyyy-MM-dd");
 		logger.info("crawl program table of " + stationName + " at "
 				+ queryDate);
-		TvService epgService = new TvService();
-		if (epgService.isProgramTableExists(stationName, queryDate)) {
+		if (tvService.isProgramTableExists(stationName, queryDate)) {
 			logger.debug("the TV station's program table of " + stationName
 					+ " have been saved in db.");
 			return null;
@@ -220,9 +237,11 @@ class EpgCrawler extends AbstractCrawler {
 			stationElements = htmlPage
 					.getByXPath("//dl[@id='cityList']//div[@class='lv3']//a[@class='channel']");
 		}
+		boolean exists = false;
 		for (Object element : stationElements) {
 			HtmlAnchor anchor = (HtmlAnchor) element;
 			if (stationName.equals(anchor.getTextContent().trim())) {
+				exists = true;
 				try {
 					htmlPage = anchor.click();
 				} catch (IOException e) {
@@ -233,6 +252,11 @@ class EpgCrawler extends AbstractCrawler {
 				}
 				break;
 			}
+		}
+
+		if (!exists) {
+			logger.info(stationName + " isn't exists at " + getCrawlerName());
+			return null;
 		}
 
 		if (!queryDate.equals(DateUtils.today())) {
@@ -269,10 +293,10 @@ class EpgCrawler extends AbstractCrawler {
 	private List<ProgramTable> crawlAllProgramTable(List<TvStation> stations,
 			final String date) {
 		List<ProgramTable> resultList = new ArrayList<ProgramTable>();
-		TvService epgService = new TvService();
-		int threadCount = epgService.getTvStationClassify().size();
+		int threadCount = tvService.getTvStationClassify().size();
 		ExecutorService executorService = Executors
-				.newFixedThreadPool(threadCount);
+				.newFixedThreadPool(threadCount > MAX_THREAD ? MAX_THREAD
+						: threadCount);
 		CompletionService<List<ProgramTable>> completionService = new ExecutorCompletionService<List<ProgramTable>>(
 				executorService);
 		for (final TvStation station : stations) {

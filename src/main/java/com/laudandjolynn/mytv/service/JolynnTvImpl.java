@@ -32,18 +32,18 @@ import com.laudandjolynn.mytv.utils.MyTvUtils;
  * @copyright: www.laudandjolynn.com
  */
 public class JolynnTvImpl implements JolynnTv {
-	private TvService epgService = new TvService();
+	private TvService tvService = new TvService();
 
 	@Override
 	public String getTvStationClassify() throws RemoteException {
-		List<String> classifies = epgService.getTvStationClassify();
+		List<String> classifies = tvService.getTvStationClassify();
 		JSONArray array = new JSONArray(classifies);
 		return array.toString();
 	}
 
 	@Override
 	public String getAllTvStation() throws RemoteException {
-		List<TvStation> stations = epgService.getAllStation();
+		List<TvStation> stations = tvService.getAllStation();
 		JSONArray array = new JSONArray(stations);
 		return array.toString();
 	}
@@ -64,7 +64,7 @@ public class JolynnTvImpl implements JolynnTv {
 	@Override
 	public String getTvStationByClassify(String classify)
 			throws RemoteException {
-		List<TvStation> stationList = epgService
+		List<TvStation> stationList = tvService
 				.getTvStationByClassify(classify);
 		JSONArray array = new JSONArray(stationList);
 		return array.toString();

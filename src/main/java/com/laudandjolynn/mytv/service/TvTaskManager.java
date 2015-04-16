@@ -44,7 +44,7 @@ public class TvTaskManager {
 	private final int processor = Runtime.getRuntime().availableProcessors();
 	private final ExecutorService executorService = Executors
 			.newFixedThreadPool(processor * 2);
-	private TvService epgService = new TvService();
+	private TvService tvService = new TvService();
 
 	private TvTaskManager() {
 	}
@@ -69,17 +69,17 @@ public class TvTaskManager {
 	 */
 	public List<ProgramTable> queryProgramTable(final String stationName,
 			String classify, final String date) {
-		TvStation tvStation = epgService.getStation(stationName);
+		TvStation tvStation = tvService.getStation(stationName);
 		if (tvStation == null) {
-			tvStation = epgService.getStationByDisplayName(stationName,
+			tvStation = tvService.getStationByDisplayName(stationName,
 					classify);
 		}
 		if (tvStation == null) {
 			throw new MyTvException(stationName + " isn't exists.");
 		}
 		logger.info("query program table of " + stationName + " at " + date);
-		if (epgService.isProgramTableExists(stationName, date)) {
-			return epgService.getProgramTable(stationName, date);
+		if (tvService.isProgramTableExists(stationName, date)) {
+			return tvService.getProgramTable(stationName, date);
 		}
 		CrawlerTask epgTask = new CrawlerTask(stationName, date);
 		if (CURRENT_EPG_TASK.contains(epgTask)) {
@@ -104,7 +104,7 @@ public class TvTaskManager {
 
 				logger.debug(epgTask
 						+ " has receive notification and try to get program table from db.");
-				return epgService.getProgramTable(stationName, date);
+				return tvService.getProgramTable(stationName, date);
 			}
 		}
 
@@ -114,7 +114,7 @@ public class TvTaskManager {
 
 			@Override
 			public List<ProgramTable> call() throws Exception {
-				return epgService.crawlAllProgramTable(stationName, date);
+				return tvService.crawlAllProgramTable(stationName, date);
 			}
 		};
 		Future<List<ProgramTable>> future = executorService.submit(callable);
