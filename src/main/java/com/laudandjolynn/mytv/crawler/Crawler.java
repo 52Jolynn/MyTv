@@ -42,5 +42,5 @@ public interface Crawler {
 	 * @param stationName
 	 * @return
 	 */
-	public boolean crawlable(String stationName);
+	public boolean exists(String stationName);
 }

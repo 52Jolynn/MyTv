@@ -41,7 +41,7 @@ public class CralwerGroup implements Crawler {
 	public List<ProgramTable> crawlProgramTable(String stationName, String date) {
 		List<ProgramTable> resultList = new ArrayList<ProgramTable>();
 		for (Crawler crawler : crawlers) {
-			if (crawler.crawlable(stationName)) {
+			if (crawler.exists(stationName)) {
 				resultList.addAll(crawler.crawlProgramTable(stationName, date));
 				break;
 			}
@@ -50,9 +50,9 @@ public class CralwerGroup implements Crawler {
 	}
 
 	@Override
-	public boolean crawlable(String stationName) {
+	public boolean exists(String stationName) {
 		for (Crawler crawler : crawlers) {
-			if (crawler.crawlable(stationName)) {
+			if (crawler.exists(stationName)) {
 				return true;
 			}
 		}

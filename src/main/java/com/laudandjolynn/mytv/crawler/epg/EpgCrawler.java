@@ -114,7 +114,7 @@ class EpgCrawler extends AbstractCrawler {
 	}
 
 	@Override
-	public boolean crawlable(String stationName) {
+	public boolean exists(String stationName) {
 		// TODO Auto-generated method stub
 		return false;
 	}
