@@ -18,8 +18,8 @@ package com.laudandjolynn.mytv.utils;
 import java.io.File;
 import java.util.ResourceBundle;
 
-import com.laudandjolynn.mytv.crawler.TvCrawler;
-import com.laudandjolynn.mytv.crawler.epg.EpgCrawler;
+import com.laudandjolynn.mytv.crawler.Crawler;
+import com.laudandjolynn.mytv.crawler.epg.EpgCrawlerFactory;
 
 /**
  * @author: Laud
@@ -35,7 +35,8 @@ public class Config {
 	private final static String RES_KEY_CONFIG_HESSIAN_PORT = "hessian_port";
 	private final static String RES_KEY_CONFIG_RMI_PORT = "rmi_port";
 	private final static String RES_KEY_CONFIG_DB_MODE = "db_mode";
-	public final static TvCrawler TV_CRAWLER = new EpgCrawler();
+	public final static Crawler CRAWLER = new EpgCrawlerFactory()
+			.createCrawler();
 
 	private static String dbMode = "sqlite";
 	private static String dataFilePath = MyTvUtils.getRunningPath(Config.class);

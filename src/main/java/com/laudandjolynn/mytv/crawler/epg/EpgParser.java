@@ -23,7 +23,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import com.laudandjolynn.mytv.crawler.TvParser;
+import com.laudandjolynn.mytv.crawler.Parser;
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
 import com.laudandjolynn.mytv.service.TvService;
@@ -34,7 +34,7 @@ import com.laudandjolynn.mytv.service.TvService;
  * @date: 2015年3月27日 上午10:40:10
  * @copyright: www.laudandjolynn.com
  */
-public class EpgParser implements TvParser {
+public class EpgParser implements Parser {
 	private final static String CITY = "城市";
 
 	/**

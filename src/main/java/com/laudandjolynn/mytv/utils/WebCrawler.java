@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package com.laudandjolynn.mytv;
+package com.laudandjolynn.mytv.utils;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -35,8 +35,8 @@ import com.laudandjolynn.mytv.exception.MyTvException;
  * @date: 2015年3月24日 下午2:25:00
  * @copyright: www.laudandjolynn.com
  */
-public class Crawler {
-	private final static Logger logger = LoggerFactory.getLogger(Crawler.class);
+public class WebCrawler {
+	private final static Logger logger = LoggerFactory.getLogger(WebCrawler.class);
 
 	/**
 	 * 根据url抓取

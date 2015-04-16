@@ -36,14 +36,14 @@ import com.gargoylesoftware.htmlunit.Page;
 import com.gargoylesoftware.htmlunit.html.DomElement;
 import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
-import com.laudandjolynn.mytv.Crawler;
-import com.laudandjolynn.mytv.crawler.TvCrawler;
-import com.laudandjolynn.mytv.crawler.TvParser;
+import com.laudandjolynn.mytv.crawler.AbstractCrawler;
+import com.laudandjolynn.mytv.crawler.Parser;
 import com.laudandjolynn.mytv.exception.MyTvException;
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
 import com.laudandjolynn.mytv.service.TvService;
 import com.laudandjolynn.mytv.utils.DateUtils;
+import com.laudandjolynn.mytv.utils.WebCrawler;
 
 /**
  * @author: Laud
@@ -51,13 +51,16 @@ import com.laudandjolynn.mytv.utils.DateUtils;
  * @date: 2015年3月28日 上午12:00:44
  * @copyright: www.laudandjolynn.com
  */
-public class EpgCrawler implements TvCrawler {
+public class EpgCrawler extends AbstractCrawler {
 	private final static Logger logger = LoggerFactory
 			.getLogger(EpgCrawler.class);
 	// cntv节目表地址
 	public final static String EPG_URL = "http://tv.cntv.cn/epg";
-	private TvParser epgParser = new EpgParser();
 	private TvService tvService = new TvService();
+
+	public EpgCrawler(Parser parser) {
+		super(parser);
+	}
 
 	/**
 	 * 获取所有电视台
@@ -66,10 +69,10 @@ public class EpgCrawler implements TvCrawler {
 	 */
 	@Override
 	public List<TvStation> crawlAllTvStation() {
-		Page page = Crawler.crawl(EPG_URL);
+		Page page = WebCrawler.crawl(EPG_URL);
 		if (page.isHtmlPage()) {
 			HtmlPage htmlPage = (HtmlPage) page;
-			return epgParser.parseTvStation(htmlPage.asXml());
+			return parser.parseTvStation(htmlPage.asXml());
 		}
 		return null;
 	}
@@ -175,7 +178,7 @@ public class EpgCrawler implements TvCrawler {
 			}
 		}
 		String html = htmlPage.asXml();
-		List<ProgramTable> ptList = epgParser.parseProgramTable(html);
+		List<ProgramTable> ptList = parser.parseProgramTable(html);
 		return ptList;
 	}
 
@@ -246,7 +249,7 @@ public class EpgCrawler implements TvCrawler {
 			logger.debug("the station must be not null.");
 			return null;
 		}
-		Page page = Crawler.crawl(EPG_URL);
+		Page page = WebCrawler.crawl(EPG_URL);
 		if (!page.isHtmlPage()) {
 			logger.debug("the page isn't html page at url " + EPG_URL);
 			return null;

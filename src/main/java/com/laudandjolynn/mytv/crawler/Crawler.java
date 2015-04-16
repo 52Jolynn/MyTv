@@ -11,7 +11,7 @@ import com.laudandjolynn.mytv.model.TvStation;
  * @date: 2015年4月15日 下午3:36:28
  * @copyright: www.laudandjolynn.com
  */
-public interface TvCrawler {
+public interface Crawler {
 	/**
 	 * 抓取所有电视台
 	 * 

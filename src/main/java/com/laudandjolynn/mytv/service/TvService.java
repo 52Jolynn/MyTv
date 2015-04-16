@@ -201,7 +201,7 @@ public class TvService {
 	 */
 	public List<ProgramTable> crawlAllProgramTable(String stationName,
 			String date) {
-		List<ProgramTable> ptList = Config.TV_CRAWLER.crawlProgramTable(
+		List<ProgramTable> ptList = Config.CRAWLER.crawlProgramTable(
 				stationName, date);
 		ProgramTable[] ptArray = new ProgramTable[ptList.size()];
 		save(ptList.toArray(ptArray));
@@ -217,7 +217,7 @@ public class TvService {
 	 * @return
 	 */
 	public List<ProgramTable> crawlAllProgramTable(String date) {
-		List<ProgramTable> ptList = Config.TV_CRAWLER
+		List<ProgramTable> ptList = Config.CRAWLER
 				.crawlAllProgramTable(date);
 		ProgramTable[] ptArray = new ProgramTable[ptList.size()];
 		save(ptList.toArray(ptArray));
@@ -232,7 +232,7 @@ public class TvService {
 	 * @return
 	 */
 	public List<TvStation> crawlAllTvStation() {
-		List<TvStation> stationList = Config.TV_CRAWLER.crawlAllTvStation();
+		List<TvStation> stationList = Config.CRAWLER.crawlAllTvStation();
 		// 写数据到tv_station表
 		TvStation[] stationArray = new TvStation[stationList.size()];
 		save(stationList.toArray(stationArray));

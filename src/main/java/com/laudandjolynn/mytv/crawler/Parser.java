@@ -11,7 +11,7 @@ import com.laudandjolynn.mytv.model.TvStation;
  * @date: 2015年4月15日 下午3:35:15
  * @copyright: www.laudandjolynn.com
  */
-public interface TvParser {
+public interface Parser {
 	/**
 	 * 解析电视台
 	 * 
