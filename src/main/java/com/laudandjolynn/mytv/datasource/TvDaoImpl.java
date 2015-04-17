@@ -204,13 +204,13 @@ public class TvDaoImpl implements TvDao {
 
 	@Override
 	public TvStation getStationByDisplayName(String displayName, String classify) {
-		String sql = "select id,name,displayName,city,classify,channel,sequence from tv_station a where (displayName='"
+		String sql = "select id,name from tv_station a where (displayName='"
 				+ displayName
 				+ "' and classify='"
 				+ classify
 				+ "'"
-				+ ") or displayName in (select alias from tv_station_alias b where a.name=b.stationName)"
-				+ " order by sequence asc";
+				+ ") or exists (select alias from tv_station_alias b where a.name=b.stationName and b.alias='"
+				+ displayName + "')" + " order by sequence asc";
 		TvStation station = null;
 		Connection conn = getConnection();
 		Statement stmt = null;
@@ -222,11 +222,8 @@ public class TvDaoImpl implements TvDao {
 				station = new TvStation();
 				station.setId(rs.getInt(index++));
 				station.setName(rs.getString(index++));
-				station.setDisplayName(rs.getString(index++));
-				station.setCity(rs.getString(index++));
-				station.setClassify(rs.getString(index++));
-				station.setChannel(rs.getString(index++));
-				station.setSequence(rs.getInt(index++));
+				station.setDisplayName(displayName);
+				station.setClassify(classify);
 			}
 			rs.close();
 		} catch (SQLException e) {

@@ -89,9 +89,15 @@ class EpgParser implements Parser {
 			for (int j = 0, ssize = cityStationElements == null ? 0
 					: cityStationElements.size(); j < ssize; j++) {
 				TvStation tv = new TvStation();
-				String name = cityStationElements.get(j).text().trim();
-				tv.setName(name);
-				tv.setDisplayName(name);
+				String displayName = cityStationElements.get(j).text().trim();
+				String stationName = displayName;
+				TvStation station = tvService.getStationByDisplayName(
+						displayName, CITY);
+				if (station != null) {
+					stationName = station.getName();
+				}
+				tv.setName(stationName);
+				tv.setDisplayName(displayName);
 				tv.setCity(cityElement.text().trim());
 				tv.setClassify(CITY);
 				tv.setSequence(++sequence);

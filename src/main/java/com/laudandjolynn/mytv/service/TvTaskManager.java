@@ -60,23 +60,26 @@ public class TvTaskManager {
 	/**
 	 * 查询电视节目表
 	 * 
-	 * @param stationName
-	 *            电视台名称
+	 * @param stationOrDisplayName
+	 *            电视台名或显示名
 	 * @param classify
+	 *            电视台分类
 	 * @param date
 	 *            日期，yyyy-MM-dd
 	 * @return
 	 */
-	public List<ProgramTable> queryProgramTable(final String stationName,
+	public List<ProgramTable> queryProgramTable(String stationOrDisplayName,
 			String classify, final String date) {
-		TvStation tvStation = tvService.getStation(stationName);
+		TvStation tvStation = tvService.getStation(stationOrDisplayName);
 		if (tvStation == null) {
-			tvStation = tvService
-					.getStationByDisplayName(stationName, classify);
+			tvStation = tvService.getStationByDisplayName(stationOrDisplayName,
+					classify);
 		}
 		if (tvStation == null) {
-			throw new MyTvException(stationName + " isn't exists.");
+			throw new MyTvException(stationOrDisplayName + " isn't exists.");
 		}
+
+		final String stationName = tvStation.getName();
 		logger.info("query program table of " + stationName + " at " + date);
 		if (tvService.isProgramTableExists(stationName, date)) {
 			return tvService.getProgramTable(stationName, date);

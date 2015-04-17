@@ -150,7 +150,9 @@ public class TvServiceImpl implements TvService {
 		TvStation station = MemoryCache.getInstance().getStation(stationName);
 		if (station == null) {
 			station = tvDao.getStation(stationName);
-			MemoryCache.getInstance().addCache(station);
+			if (station != null) {
+				MemoryCache.getInstance().addCache(station);
+			}
 		}
 		return station;
 	}
