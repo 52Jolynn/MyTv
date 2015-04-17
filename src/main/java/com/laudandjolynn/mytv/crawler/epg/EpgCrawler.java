@@ -76,35 +76,9 @@ class EpgCrawler extends AbstractCrawler {
 		return EPG_NAME;
 	}
 
-	/**
-	 * 获取所有电视台
-	 * 
-	 * @return
-	 */
 	@Override
-	public List<TvStation> crawlAllTvStation() {
-		String epgFile = Constant.CRAWL_FILE_PATH + getCrawlerName()
-				+ File.separator + getCrawlerName();
-		File file = new File(epgFile);
-		String html = null;
-		if (file.exists()) {
-			try {
-				html = MyTvUtils.readAsXml(epgFile);
-				return parser.parseTvStation(html);
-			} catch (DocumentException e) {
-				// do nothing
-			}
-		}
-		Page page = WebCrawler.crawl(EPG_URL);
-		if (page.isHtmlPage()) {
-			HtmlPage htmlPage = (HtmlPage) page;
-			html = htmlPage.asXml();
-			List<TvStation> stationList = parser.parseTvStation(html);
-			MyTvUtils.outputCrawlData(getCrawlerName(), html, getCrawlerName());
-			return stationList;
-		}
-
-		return null;
+	public String getUrl() {
+		return EPG_URL;
 	}
 
 	/**

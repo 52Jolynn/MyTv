@@ -44,4 +44,11 @@ public interface Crawler {
 	 */
 	public String getCrawlerName();
 
+	/**
+	 * 获取抓取地址
+	 * 
+	 * @return
+	 */
+	public String getUrl();
+
 }

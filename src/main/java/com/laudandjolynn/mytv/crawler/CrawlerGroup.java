@@ -6,6 +6,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.laudandjolynn.mytv.exception.MyTvException;
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
 
@@ -42,6 +43,11 @@ public class CrawlerGroup implements Crawler {
 	@Override
 	public String getCrawlerName() {
 		return CRAWLER_GROUP_NAME;
+	}
+
+	@Override
+	public String getUrl() {
+		throw new MyTvException("url isn't avaliable of crawler group.");
 	}
 
 	@Override

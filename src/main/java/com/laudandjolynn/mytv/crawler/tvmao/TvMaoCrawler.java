@@ -28,18 +28,19 @@ class TvMaoCrawler extends AbstractCrawler {
 	}
 
 	@Override
-	public List<TvStation> crawlAllTvStation() {
-		logger.debug(TV_MAO_URL);
-		// Page page = WebCrawler.crawl(TV_MAO_URL);
-		// if (page.isHtmlPage()) {
-		//
-		// }
-		return null;
+	public String getCrawlerName() {
+		return TV_MAO_NAME;
 	}
 
 	@Override
-	public String getCrawlerName() {
-		return TV_MAO_NAME;
+	public String getUrl() {
+		return TV_MAO_URL;
+	}
+
+	@Override
+	public List<TvStation> crawlAllTvStation() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
