@@ -3,6 +3,9 @@ package com.laudandjolynn.mytv.crawler;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
 
@@ -15,6 +18,8 @@ import com.laudandjolynn.mytv.model.TvStation;
 public class CrawlerGroup implements Crawler {
 	private List<Crawler> crawlers = new ArrayList<Crawler>();
 	private final static String CRAWLER_GROUP_NAME = "crawlergroup";
+	private final static Logger logger = LoggerFactory
+			.getLogger(CrawlerGroup.class);
 
 	/**
 	 * 添加抓取器
@@ -52,28 +57,23 @@ public class CrawlerGroup implements Crawler {
 	}
 
 	@Override
-	public List<ProgramTable> crawlAllProgramTable(String date) {
-		List<ProgramTable> resultList = new ArrayList<ProgramTable>();
-		for (Crawler crawler : crawlers) {
-			List<ProgramTable> ptList = crawler.crawlAllProgramTable(date);
-			if (ptList != null && ptList.size() > 0) {
-				resultList.addAll(ptList);
-			}
+	public List<ProgramTable> crawlProgramTable(String date,
+			TvStation... stations) {
+		if (stations == null || stations.length == 0 || date == null) {
+			logger.info("station and date must be not null.");
+			return null;
 		}
-		return resultList;
-	}
-
-	@Override
-	public List<ProgramTable> crawlProgramTable(TvStation station, String date) {
 		List<ProgramTable> resultList = new ArrayList<ProgramTable>();
-		for (Crawler crawler : crawlers) {
-			if (crawler.exists(station)) {
-				List<ProgramTable> ptList = crawler.crawlProgramTable(station,
-						date);
-				if (ptList != null && ptList.size() > 0) {
-					resultList.addAll(ptList);
+		for (TvStation station : stations) {
+			for (Crawler crawler : crawlers) {
+				if (crawler.exists(station)) {
+					List<ProgramTable> ptList = crawler.crawlProgramTable(date,
+							station);
+					if (ptList != null && ptList.size() > 0) {
+						resultList.addAll(ptList);
+					}
+					break;
 				}
-				break;
 			}
 		}
 		return resultList;

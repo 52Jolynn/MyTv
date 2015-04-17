@@ -26,7 +26,7 @@ import org.jsoup.select.Elements;
 import com.laudandjolynn.mytv.crawler.Parser;
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
-import com.laudandjolynn.mytv.service.TvService;
+import com.laudandjolynn.mytv.service.TvServiceImpl;
 
 /**
  * @author: Laud
@@ -36,7 +36,7 @@ import com.laudandjolynn.mytv.service.TvService;
  */
 class EpgParser implements Parser {
 	private final static String CITY = "城市";
-	TvService tvService = new TvService();
+	TvServiceImpl tvService = new TvServiceImpl();
 
 	/**
 	 * 解析电视台列表
@@ -50,7 +50,7 @@ class EpgParser implements Parser {
 		Elements classifyElements = doc.select("ul.weishi a[href]");
 		Elements stationElements = doc.select("div.md_left_right");
 		List<TvStation> resultList = new ArrayList<TvStation>();
-		int sequence = 10000;
+		int sequence = 100000;
 
 		for (int i = 0, size = classifyElements == null ? 0 : classifyElements
 				.size(); i < size; i++) {

@@ -44,7 +44,7 @@ public class TvTaskManager {
 	private final int processor = Runtime.getRuntime().availableProcessors();
 	private final ExecutorService executorService = Executors
 			.newFixedThreadPool(processor * 2);
-	private TvService tvService = new TvService();
+	private TvServiceImpl tvService = new TvServiceImpl();
 
 	private TvTaskManager() {
 	}
@@ -71,8 +71,8 @@ public class TvTaskManager {
 			String classify, final String date) {
 		TvStation tvStation = tvService.getStation(stationName);
 		if (tvStation == null) {
-			tvStation = tvService.getStationByDisplayName(stationName,
-					classify);
+			tvStation = tvService
+					.getStationByDisplayName(stationName, classify);
 		}
 		if (tvStation == null) {
 			throw new MyTvException(stationName + " isn't exists.");
@@ -114,7 +114,7 @@ public class TvTaskManager {
 
 			@Override
 			public List<ProgramTable> call() throws Exception {
-				return tvService.crawlAllProgramTable(stationName, date);
+				return tvService.crawlProgramTable(stationName, date);
 			}
 		};
 		Future<List<ProgramTable>> future = executorService.submit(callable);

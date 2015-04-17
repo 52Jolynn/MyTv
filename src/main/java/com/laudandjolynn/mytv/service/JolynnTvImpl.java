@@ -18,8 +18,7 @@ package com.laudandjolynn.mytv.service;
 import java.rmi.RemoteException;
 import java.util.List;
 
-import org.json.JSONArray;
-
+import com.alibaba.fastjson.JSON;
 import com.laudandjolynn.mytv.exception.MyTvException;
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
@@ -32,20 +31,18 @@ import com.laudandjolynn.mytv.utils.MyTvUtils;
  * @copyright: www.laudandjolynn.com
  */
 public class JolynnTvImpl implements JolynnTv {
-	private TvService tvService = new TvService();
+	private TvServiceImpl tvService = new TvServiceImpl();
 
 	@Override
 	public String getTvStationClassify() throws RemoteException {
 		List<String> classifies = tvService.getTvStationClassify();
-		JSONArray array = new JSONArray(classifies);
-		return array.toString();
+		return JSON.toJSONString(classifies);
 	}
 
 	@Override
 	public String getAllTvStation() throws RemoteException {
 		List<TvStation> stations = tvService.getAllStation();
-		JSONArray array = new JSONArray(stations);
-		return array.toString();
+		return JSON.toJSONString(stations);
 	}
 
 	@Override
@@ -57,8 +54,7 @@ public class JolynnTvImpl implements JolynnTv {
 		}
 		List<ProgramTable> ptList = TvTaskManager.getIntance()
 				.queryProgramTable(stationName, classify, date);
-		JSONArray array = new JSONArray(ptList);
-		return array.toString();
+		return JSON.toJSONString(ptList);
 	}
 
 	@Override
@@ -66,8 +62,7 @@ public class JolynnTvImpl implements JolynnTv {
 			throws RemoteException {
 		List<TvStation> stationList = tvService
 				.getTvStationByClassify(classify);
-		JSONArray array = new JSONArray(stationList);
-		return array.toString();
+		return JSON.toJSONString(stationList);
 	}
 
 }

@@ -17,8 +17,8 @@ package com.laudandjolynn.mytv;
 
 import junit.framework.TestCase;
 
-import org.json.JSONArray;
-
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.caucho.hessian.client.HessianProxyFactory;
 import com.laudandjolynn.mytv.service.JolynnTv;
 import com.laudandjolynn.mytv.utils.Config;
@@ -42,9 +42,9 @@ public class HessianTest extends TestCase {
 		try {
 			JolynnTv tv = (JolynnTv) proxy.create(JolynnTv.class, url);
 			String classify = tv.getTvStationClassify();
-			JSONArray array = new JSONArray(classify);
+			JSONArray array = JSON.parseArray(classify);
 			System.out.println(array);
-			assertTrue(array.length() == 6);
+			assertTrue(array.size() == 6);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -58,9 +58,9 @@ public class HessianTest extends TestCase {
 		try {
 			JolynnTv tv = (JolynnTv) proxy.create(JolynnTv.class, url);
 			String stations = tv.getAllTvStation();
-			JSONArray array = new JSONArray(stations);
+			JSONArray array = JSON.parseArray(stations);
 			System.out.println(array);
-			assertTrue(array.length() == 145);
+			assertTrue(array.size() == 145);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -75,7 +75,7 @@ public class HessianTest extends TestCase {
 			JolynnTv tv = (JolynnTv) proxy.create(JolynnTv.class, url);
 			String program = tv.getProgramTable("CCTV-1 综合", "央视",
 					DateUtils.today());
-			JSONArray array = new JSONArray(program);
+			JSONArray array = JSON.parseArray(program);
 			System.out.println(array);
 		} catch (Exception e) {
 			e.printStackTrace();

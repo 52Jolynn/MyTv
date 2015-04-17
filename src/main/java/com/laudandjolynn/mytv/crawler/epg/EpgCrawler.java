@@ -44,10 +44,9 @@ import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.laudandjolynn.mytv.crawler.AbstractCrawler;
 import com.laudandjolynn.mytv.crawler.Parser;
-import com.laudandjolynn.mytv.exception.MyTvException;
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
-import com.laudandjolynn.mytv.service.TvService;
+import com.laudandjolynn.mytv.service.TvServiceImpl;
 import com.laudandjolynn.mytv.utils.Constant;
 import com.laudandjolynn.mytv.utils.DateUtils;
 import com.laudandjolynn.mytv.utils.MyTvUtils;
@@ -65,7 +64,7 @@ class EpgCrawler extends AbstractCrawler {
 	// cntv节目表地址
 	private final static String EPG_URL = "http://tv.cntv.cn/epg";
 	private final static String EPG_NAME = "epg";
-	private TvService tvService = new TvService();
+	private TvServiceImpl tvService = new TvServiceImpl();
 	private final static int MAX_THREAD = 5;
 
 	public EpgCrawler(Parser parser) {
@@ -91,43 +90,21 @@ class EpgCrawler extends AbstractCrawler {
 		if (file.exists()) {
 			try {
 				html = MyTvUtils.readAsXml(epgFile);
+				return parser.parseTvStation(html);
 			} catch (DocumentException e) {
 				// do nothing
 			}
-		} else {
-			Page page = WebCrawler.crawl(EPG_URL);
-			if (page.isHtmlPage()) {
-				HtmlPage htmlPage = (HtmlPage) page;
-				html = htmlPage.asXml();
-			}
 		}
-		if (html != null) {
+		Page page = WebCrawler.crawl(EPG_URL);
+		if (page.isHtmlPage()) {
+			HtmlPage htmlPage = (HtmlPage) page;
+			html = htmlPage.asXml();
 			List<TvStation> stationList = parser.parseTvStation(html);
 			MyTvUtils.outputCrawlData(getCrawlerName(), html, getCrawlerName());
 			return stationList;
 		}
-		return null;
-	}
 
-	/**
-	 * 获取指定日期的所有电视台节目表
-	 * 
-	 * @param date
-	 *            日期，yyyy-MM-dd
-	 * @return
-	 */
-	@Override
-	public List<ProgramTable> crawlAllProgramTable(String date) {
-		List<TvStation> stationList = tvService.getAllStation();
-		// 过滤不存在的电视台
-		List<TvStation> filtedList = new ArrayList<TvStation>(
-				stationList.size());
-		for (TvStation station : stationList) {
-			if (exists(station)) {
-				filtedList.add(station);
-			}
-		}
-		return crawlAllProgramTable(filtedList, date);
+		return null;
 	}
 
 	/**
@@ -140,17 +117,17 @@ class EpgCrawler extends AbstractCrawler {
 	 * @return
 	 */
 	@Override
-	public List<ProgramTable> crawlProgramTable(TvStation station, String date) {
-		if (station == null || date == null) {
+	public List<ProgramTable> crawlProgramTable(String date,
+			TvStation... stations) {
+		if (stations == null || stations.length == 0 || date == null) {
 			logger.debug("station name or date is null.");
 			return null;
 		}
-		Page page = WebCrawler.crawl(EPG_URL);
-		if (!page.isHtmlPage()) {
-			logger.debug("the page isn't html page at url " + EPG_URL);
-			return null;
+		if (stations.length == 1) {
+			return crawlProgramTable(stations[0], date);
+		} else {
+			return crawlMultipleProgramTable(date, stations);
 		}
-		return crawlProgramTableByPage((HtmlPage) page, station, date);
 	}
 
 	@Override
@@ -185,8 +162,6 @@ class EpgCrawler extends AbstractCrawler {
 			return false;
 		}
 		HtmlPage htmlPage = (HtmlPage) page;
-		MyTvUtils.outputCrawlData(getCrawlerName(), htmlPage.asXml(),
-				getCrawlerName());
 		List<?> stationElements = null;
 		if (city == null) {
 			stationElements = htmlPage
@@ -206,9 +181,8 @@ class EpgCrawler extends AbstractCrawler {
 		return false;
 	}
 
-	private List<ProgramTable> crawlProgramTableByPage(HtmlPage htmlPage,
-			TvStation station, String date) {
-		if (station == null || htmlPage == null) {
+	private List<ProgramTable> crawlProgramTable(TvStation station, String date) {
+		if (station == null) {
 			logger.debug("station and html page must not null.");
 			return null;
 		}
@@ -221,14 +195,17 @@ class EpgCrawler extends AbstractCrawler {
 		String queryDate = DateUtils.date2String(dateObj, "yyyy-MM-dd");
 		logger.info("crawl program table of " + stationName + " at "
 				+ queryDate);
-		if (tvService.isProgramTableExists(stationName, queryDate)) {
-			logger.debug("the TV station's program table of " + stationName
-					+ " have been saved in db.");
-			return null;
-		}
-
 		String city = station.getCity();
 		List<?> stationElements = null;
+		Page page = WebCrawler.crawl(EPG_URL);
+		HtmlPage htmlPage = null;
+		if (page.isHtmlPage()) {
+			htmlPage = (HtmlPage) page;
+		}
+		if (htmlPage == null) {
+			logger.debug(EPG_URL + " is an empty page.");
+			return null;
+		}
 		if (city == null) {
 			stationElements = htmlPage
 					.getByXPath("//div[@class='md_left_right']/dl//h3//a[@class='channel']");
@@ -245,10 +222,9 @@ class EpgCrawler extends AbstractCrawler {
 				try {
 					htmlPage = anchor.click();
 				} catch (IOException e) {
-					throw new MyTvException(
-							"error occur while search program table of "
-									+ stationName + " at spec date: "
-									+ queryDate, e);
+					logger.error("error occur while search program table of "
+							+ stationName + " at spec date: " + queryDate, e);
+					return null;
 				}
 				break;
 			}
@@ -270,10 +246,9 @@ class EpgCrawler extends AbstractCrawler {
 			try {
 				htmlPage = anchor.click();
 			} catch (IOException e) {
-				throw new MyTvException(
-						"error occur while search program table of "
-								+ stationName + " at spec date: " + queryDate,
-						e);
+				logger.error("error occur while search program table of "
+						+ stationName + " at spec date: " + queryDate, e);
+				return null;
 			}
 		}
 		String html = htmlPage.asXml();
@@ -286,12 +261,16 @@ class EpgCrawler extends AbstractCrawler {
 	/**
 	 * 抓取所有电视台指定日志的电视节目表，多线程
 	 * 
-	 * @param stations
 	 * @param date
+	 * @param stations
 	 * @return
 	 */
-	private List<ProgramTable> crawlAllProgramTable(List<TvStation> stations,
-			final String date) {
+	private List<ProgramTable> crawlMultipleProgramTable(final String date,
+			TvStation... stations) {
+		int size = stations == null ? 0 : stations.length;
+		if (size == 0) {
+			return null;
+		}
 		List<ProgramTable> resultList = new ArrayList<ProgramTable>();
 		int threadCount = tvService.getTvStationClassify().size();
 		ExecutorService executorService = Executors
@@ -303,12 +282,11 @@ class EpgCrawler extends AbstractCrawler {
 			Callable<List<ProgramTable>> task = new Callable<List<ProgramTable>>() {
 				@Override
 				public List<ProgramTable> call() throws Exception {
-					return crawlProgramTable(station, date);
+					return crawlProgramTable(date, station);
 				}
 			};
 			completionService.submit(task);
 		}
-		int size = stations == null ? 0 : stations.size();
 		int count = 0;
 		while (count < size) {
 			Future<List<ProgramTable>> future;

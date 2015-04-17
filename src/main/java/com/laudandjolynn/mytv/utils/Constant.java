@@ -43,6 +43,10 @@ public class Constant {
 	public final static String XML_TAG_PROGRAM_TABLE_DATE = "date";
 	public final static String XML_TAG_DB = "db";
 	public final static String XML_TAG_DATA = "data";
+	public final static String XML_TAG_STATION = "station";
+
+	public final static String TV_STATION_INIT_DATA_FILE_NAME = "tv_station.properties";
+	public final static String TV_STATION_ALIAS_INIT_DATA_FILE_NAME = "tv_station_alias.properties";
 
 	public final static String DOT = ".";
 	public final static String COMMA = ",";

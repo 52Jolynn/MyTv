@@ -18,9 +18,7 @@ package com.laudandjolynn.mytv;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -47,24 +45,17 @@ public class MyTvData {
 			.getLogger(MyTvData.class);
 	private boolean dataInited = false;
 	private boolean dbInited = false;
+	private boolean allTvStationCrawled = false;
 	private boolean programTableOfTodayCrawled = false;
-	private Set<String> programTableCrawled = new HashSet<String>();
 
-	private MyTvData() {
-	}
-
-	public static MyTvData getInstance() {
-		return MyTvDataSingltonHolder.MY_TV_DATA;
-	}
-
-	private final static class MyTvDataSingltonHolder {
-		private final static MyTvData MY_TV_DATA = new MyTvData();
+	public MyTvData() {
+		this.loadData();
 	}
 
 	/**
 	 * 加载应用数据
 	 */
-	public void loadData() {
+	private void loadData() {
 		logger.debug("load data from my tv data file: "
 				+ Constant.MY_TV_DATA_FILE_PATH);
 		File file = new File(Constant.MY_TV_DATA_FILE_PATH);
@@ -87,12 +78,17 @@ public class MyTvData {
 				this.dataInited = Boolean.valueOf(((Element) nodes.get(0))
 						.getText());
 			}
+			nodes = xmlDoc.selectNodes("//" + Constant.XML_TAG_STATION);
+			if (nodes != null && nodes.size() > 0) {
+				this.allTvStationCrawled = Boolean.valueOf(((Element) nodes
+						.get(0)).getText());
+			}
+
 			nodes = xmlDoc.selectNodes("//"
 					+ Constant.XML_TAG_PROGRAM_TABLE_DATE);
 			int size = nodes == null ? 0 : nodes.size();
 			for (int i = 0; i < size; i++) {
 				Element node = (Element) nodes.get(i);
-				this.programTableCrawled.add(node.getText());
 				if (node.getText().equals(DateUtils.today())) {
 					this.programTableOfTodayCrawled = true;
 				}
@@ -126,9 +122,11 @@ public class MyTvData {
 		try {
 			Document xmlDoc = reader.read(file);
 			Element parentElement = xmlDoc.getRootElement();
-			List<?> nodes = xmlDoc.selectNodes("//" + parent);
-			if (nodes != null && nodes.size() > 0) {
-				parentElement = (Element) nodes.get(0);
+			if (parent != null) {
+				List<?> nodes = xmlDoc.selectNodes("//" + parent);
+				if (nodes != null && nodes.size() > 0) {
+					parentElement = (Element) nodes.get(0);
+				}
 			}
 			parentElement.addElement(tag).setText(value);
 			try {
@@ -167,21 +165,20 @@ public class MyTvData {
 	}
 
 	/**
-	 * 指定日期的节目表是否已经抓取过
-	 * 
-	 * @param date
-	 * @return
-	 */
-	public boolean isProgramTableCrawled(String date) {
-		return this.programTableCrawled.contains(date);
-	}
-
-	/**
 	 * 数据是否已经初始化
 	 * 
 	 * @return
 	 */
 	public boolean isDataInited() {
 		return dataInited;
+	}
+
+	/**
+	 * 电视台是否已抓取过
+	 * 
+	 * @return
+	 */
+	public boolean isAllTvStationCrawled() {
+		return allTvStationCrawled;
 	}
 }
