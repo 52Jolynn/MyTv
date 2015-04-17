@@ -36,7 +36,8 @@ import com.laudandjolynn.mytv.exception.MyTvException;
  * @copyright: www.laudandjolynn.com
  */
 public class WebCrawler {
-	private final static Logger logger = LoggerFactory.getLogger(WebCrawler.class);
+	private final static Logger logger = LoggerFactory
+			.getLogger(WebCrawler.class);
 
 	/**
 	 * 根据url抓取

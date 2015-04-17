@@ -13,14 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package com.laudandjolynn.mytv.service;
+package com.laudandjolynn.mytv.crawler;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.eclipse.jetty.util.ConcurrentHashSet;
 import org.slf4j.Logger;
@@ -30,6 +35,7 @@ import com.laudandjolynn.mytv.exception.MyTvException;
 import com.laudandjolynn.mytv.model.CrawlerTask;
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
+import com.laudandjolynn.mytv.service.TvServiceImpl;
 
 /**
  * @author: Laud
@@ -37,24 +43,85 @@ import com.laudandjolynn.mytv.model.TvStation;
  * @date: 2015年3月27日 下午11:42:27
  * @copyright: www.laudandjolynn.com
  */
-public class TvTaskManager {
+public class CrawlerTaskManager {
 	private final static Logger logger = LoggerFactory
-			.getLogger(TvTaskManager.class);
+			.getLogger(CrawlerTaskManager.class);
 	private final ConcurrentHashSet<CrawlerTask> CURRENT_EPG_TASK = new ConcurrentHashSet<CrawlerTask>();
 	private final int processor = Runtime.getRuntime().availableProcessors();
-	private final ExecutorService executorService = Executors
-			.newFixedThreadPool(processor * 2);
 	private TvServiceImpl tvService = new TvServiceImpl();
 
-	private TvTaskManager() {
+	private CrawlerTaskManager() {
 	}
 
-	public static TvTaskManager getIntance() {
+	public static CrawlerTaskManager getIntance() {
 		return EpgTaskManagerSingletonHolder.MANAGER;
 	}
 
 	private final static class EpgTaskManagerSingletonHolder {
-		private final static TvTaskManager MANAGER = new TvTaskManager();
+		private final static CrawlerTaskManager MANAGER = new CrawlerTaskManager();
+	}
+
+	/**
+	 * 抓取所有电视台节目表
+	 * 
+	 * @param date
+	 * @return
+	 */
+	public List<ProgramTable> queryAllProgramTable(final String date) {
+		List<TvStation> stationList = tvService.getAllStation();
+		ExecutorService executorService = Executors
+				.newFixedThreadPool(processor * 2);
+		CompletionService<List<ProgramTable>> completionService = new ExecutorCompletionService<List<ProgramTable>>(
+				executorService);
+		int size = stationList == null ? 0 : stationList.size();
+		for (int i = 0; i < size; i++) {
+			TvStation tvStation = stationList.get(i);
+			final String stationName = tvStation.getName();
+			Callable<List<ProgramTable>> task = new Callable<List<ProgramTable>>() {
+				@Override
+				public List<ProgramTable> call() throws Exception {
+					return queryProgramTable(stationName, date);
+				}
+			};
+			completionService.submit(task);
+		}
+		int count = 0;
+		List<ProgramTable> resultList = new ArrayList<ProgramTable>();
+		while (count < size) {
+			try {
+				Future<List<ProgramTable>> future = completionService.poll(5,
+						TimeUnit.MINUTES);
+				List<ProgramTable> ptList = future.get(5, TimeUnit.MINUTES);
+				if (ptList != null) {
+					resultList.addAll(ptList);
+				}
+			} catch (InterruptedException e) {
+				logger.error("craw program table of all station at " + date
+						+ " was interrupted.", e);
+			} catch (ExecutionException e) {
+				logger.error(
+						"error occur while craw program table of all station at "
+								+ date, e);
+			} catch (TimeoutException e) {
+				logger.error("query program table of all sation at at " + date
+						+ " is timeout.", e);
+			}
+			count++;
+		}
+		return resultList;
+	}
+
+	/**
+	 * 查询电视节目表
+	 * 
+	 * @param stationName
+	 *            电视台名称
+	 * @param date
+	 *            日期,yyyy-MM-dd
+	 * @return
+	 */
+	public List<ProgramTable> queryProgramTable(String stationName, String date) {
+		return queryProgramTable(stationName, null, date);
 	}
 
 	/**
@@ -71,7 +138,7 @@ public class TvTaskManager {
 	public List<ProgramTable> queryProgramTable(String stationOrDisplayName,
 			String classify, final String date) {
 		TvStation tvStation = tvService.getStation(stationOrDisplayName);
-		if (tvStation == null) {
+		if (tvStation == null && classify != null) {
 			tvStation = tvService.getStationByDisplayName(stationOrDisplayName,
 					classify);
 		}
@@ -84,11 +151,11 @@ public class TvTaskManager {
 		if (tvService.isProgramTableExists(stationName, date)) {
 			return tvService.getProgramTable(stationName, date);
 		}
-		CrawlerTask epgTask = new CrawlerTask(stationName, date);
-		if (CURRENT_EPG_TASK.contains(epgTask)) {
+		CrawlerTask crawlerTask = new CrawlerTask(stationName, date);
+		if (CURRENT_EPG_TASK.contains(crawlerTask)) {
 			synchronized (this) {
 				try {
-					logger.debug(epgTask
+					logger.debug(crawlerTask
 							+ " is wait for the other same task's notification.");
 					wait();
 				} catch (InterruptedException e) {
@@ -105,35 +172,21 @@ public class TvTaskManager {
 									+ stationName + " at " + date, e);
 				}
 
-				logger.debug(epgTask
+				logger.debug(crawlerTask
 						+ " has receive notification and try to get program table from db.");
 				return tvService.getProgramTable(stationName, date);
 			}
 		}
 
-		logger.debug(epgTask + " is try to query program table from network.");
-		CURRENT_EPG_TASK.add(epgTask);
-		Callable<List<ProgramTable>> callable = new Callable<List<ProgramTable>>() {
-
-			@Override
-			public List<ProgramTable> call() throws Exception {
-				return tvService.crawlProgramTable(stationName, date);
-			}
-		};
-		Future<List<ProgramTable>> future = executorService.submit(callable);
+		logger.debug(crawlerTask
+				+ " is try to query program table from network.");
+		CURRENT_EPG_TASK.add(crawlerTask);
 		try {
-			return future.get();
-		} catch (InterruptedException e) {
-			throw new MyTvException(
-					"thread interrupted while query program table of "
-							+ stationName + " at " + date, e);
-		} catch (ExecutionException e) {
-			throw new MyTvException("error occur while query program table of "
-					+ stationName + " at " + date + ".", e);
+			return tvService.crawlProgramTable(stationName, date);
 		} finally {
 			synchronized (this) {
-				CURRENT_EPG_TASK.remove(epgTask);
-				logger.debug(epgTask
+				CURRENT_EPG_TASK.remove(crawlerTask);
+				logger.debug(crawlerTask
 						+ " have finished to get program table data and send notification.");
 				notifyAll();
 			}

@@ -63,23 +63,20 @@ public class CrawlerGroup implements Crawler {
 	}
 
 	@Override
-	public List<ProgramTable> crawlProgramTable(String date,
-			TvStation... stations) {
-		if (stations == null || stations.length == 0 || date == null) {
+	public List<ProgramTable> crawlProgramTable(String date, TvStation station) {
+		if (station == null || date == null) {
 			logger.info("station and date must be not null.");
 			return null;
 		}
 		List<ProgramTable> resultList = new ArrayList<ProgramTable>();
-		for (TvStation station : stations) {
-			for (Crawler crawler : crawlers) {
-				if (crawler.exists(station)) {
-					List<ProgramTable> ptList = crawler.crawlProgramTable(date,
-							station);
-					if (ptList != null && ptList.size() > 0) {
-						resultList.addAll(ptList);
-					}
-					break;
+		for (Crawler crawler : crawlers) {
+			if (crawler.exists(station)) {
+				List<ProgramTable> ptList = crawler.crawlProgramTable(date,
+						station);
+				if (ptList != null && ptList.size() > 0) {
+					resultList.addAll(ptList);
 				}
+				break;
 			}
 		}
 		return resultList;

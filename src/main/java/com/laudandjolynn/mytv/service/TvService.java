@@ -96,27 +96,11 @@ public interface TvService {
 	public boolean isProgramTableExists(String stationName, String date);
 
 	/**
-	 * 判断电视台是否可抓取
-	 * 
-	 * @param station
-	 * @return
-	 */
-	public boolean isStationCrawlable(TvStation station);
-
-	/**
 	 * 抓取所有电视台
 	 * 
 	 * @return
 	 */
 	public List<TvStation> crawlAllTvStation();
-
-	/**
-	 * 抓取所有电视台
-	 * 
-	 * @param date
-	 * @return
-	 */
-	public List<ProgramTable> crawlAllProgramTable(String date);
 
 	/**
 	 * 根据名称、日期抓取电视节目表

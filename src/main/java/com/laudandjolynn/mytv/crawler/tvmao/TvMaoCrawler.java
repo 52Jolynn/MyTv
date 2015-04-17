@@ -44,8 +44,7 @@ class TvMaoCrawler extends AbstractCrawler {
 	}
 
 	@Override
-	public List<ProgramTable> crawlProgramTable(String date,
-			TvStation... stations) {
+	public List<ProgramTable> crawlProgramTable(String date, TvStation station) {
 		// TODO Auto-generated method stub
 		return null;
 	}

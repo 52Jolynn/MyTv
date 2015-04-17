@@ -32,6 +32,7 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.laudandjolynn.mytv.crawler.CrawlerTaskManager;
 import com.laudandjolynn.mytv.datasource.DataSourceManager;
 import com.laudandjolynn.mytv.exception.MyTvException;
 import com.laudandjolynn.mytv.model.TvStation;
@@ -238,7 +239,7 @@ public class Main {
 	/**
 	 * 初始化应用数据
 	 */
-	private static void initDbData(MyTvData data) {
+	private static void initDbData(final MyTvData data) {
 		TvServiceImpl tvService = new TvServiceImpl();
 		List<TvStation> stationList = tvService.getAllStation();
 		if (!data.isAllTvStationCrawled()) {
@@ -253,11 +254,17 @@ public class Main {
 
 		if (!data.isProgramTableOfTodayCrawled()) {
 			// 保存当天电视节目表
-			String today = DateUtils.today();
+			final String today = DateUtils.today();
 			logger.info("query program table of today. " + "today is " + today);
-			tvService.crawlAllProgramTable(today);
-			data.writeData(Constant.XML_TAG_PROGRAM_TABLE_DATES,
-					Constant.XML_TAG_PROGRAM_TABLE_DATE, today);
+			new Thread(new Runnable() {
+
+				@Override
+				public void run() {
+					CrawlerTaskManager.getIntance().queryAllProgramTable(today);
+					data.writeData(Constant.XML_TAG_PROGRAM_TABLE_DATES,
+							Constant.XML_TAG_PROGRAM_TABLE_DATE, today);
+				}
+			}).start();
 		}
 	}
 
@@ -275,12 +282,10 @@ public class Main {
 
 			@Override
 			public void run() {
-				TvServiceImpl epgService = new TvServiceImpl();
-				epgService.crawlAllProgramTable(cronDate);
+				CrawlerTaskManager.getIntance().queryAllProgramTable(cronDate);
 				data.writeData(Constant.XML_TAG_PROGRAM_TABLE_DATES,
 						Constant.XML_TAG_PROGRAM_TABLE_DATE, cronDate);
 			}
 		}, initDelay, 86400, TimeUnit.SECONDS);
 	}
-
 }

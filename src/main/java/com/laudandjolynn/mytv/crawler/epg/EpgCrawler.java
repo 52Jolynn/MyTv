@@ -17,18 +17,8 @@ package com.laudandjolynn.mytv.crawler.epg;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CompletionService;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorCompletionService;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import org.dom4j.DocumentException;
 import org.jsoup.Jsoup;
@@ -46,7 +36,6 @@ import com.laudandjolynn.mytv.crawler.AbstractCrawler;
 import com.laudandjolynn.mytv.crawler.Parser;
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
-import com.laudandjolynn.mytv.service.TvServiceImpl;
 import com.laudandjolynn.mytv.utils.Constant;
 import com.laudandjolynn.mytv.utils.DateUtils;
 import com.laudandjolynn.mytv.utils.MyTvUtils;
@@ -64,8 +53,6 @@ class EpgCrawler extends AbstractCrawler {
 	// cntv节目表地址
 	private final static String EPG_URL = "http://tv.cntv.cn/epg";
 	private final static String EPG_NAME = "epg";
-	private TvServiceImpl tvService = new TvServiceImpl();
-	private final static int MAX_THREAD = 5;
 
 	public EpgCrawler(Parser parser) {
 		super(parser);
@@ -84,24 +71,19 @@ class EpgCrawler extends AbstractCrawler {
 	/**
 	 * 根据电视台、日期获取电视节目表
 	 * 
-	 * @param stationName
-	 *            电视台名称
 	 * @param date
 	 *            日期，yyyy-MM-dd
+	 * @param stationName
+	 *            电视台名称
 	 * @return
 	 */
 	@Override
-	public List<ProgramTable> crawlProgramTable(String date,
-			TvStation... stations) {
-		if (stations == null || stations.length == 0 || date == null) {
+	public List<ProgramTable> crawlProgramTable(String date, TvStation station) {
+		if (station == null || date == null) {
 			logger.debug("station name or date is null.");
 			return null;
 		}
-		if (stations.length == 1) {
-			return crawlProgramTable(stations[0], date);
-		} else {
-			return crawlMultipleProgramTable(date, stations);
-		}
+		return crawlProgramTable(station, date);
 	}
 
 	@Override
@@ -230,61 +212,5 @@ class EpgCrawler extends AbstractCrawler {
 		MyTvUtils.outputCrawlData(queryDate, html, queryDate
 				+ Constant.UNDERLINE + stationName);
 		return ptList;
-	}
-
-	/**
-	 * 抓取所有电视台指定日志的电视节目表，多线程
-	 * 
-	 * @param date
-	 * @param stations
-	 * @return
-	 */
-	private List<ProgramTable> crawlMultipleProgramTable(final String date,
-			TvStation... stations) {
-		int size = stations == null ? 0 : stations.length;
-		if (size == 0) {
-			return null;
-		}
-		List<ProgramTable> resultList = new ArrayList<ProgramTable>();
-		int threadCount = tvService.getTvStationClassify().size();
-		ExecutorService executorService = Executors
-				.newFixedThreadPool(threadCount > MAX_THREAD ? MAX_THREAD
-						: threadCount);
-		CompletionService<List<ProgramTable>> completionService = new ExecutorCompletionService<List<ProgramTable>>(
-				executorService);
-		for (final TvStation station : stations) {
-			Callable<List<ProgramTable>> task = new Callable<List<ProgramTable>>() {
-				@Override
-				public List<ProgramTable> call() throws Exception {
-					return crawlProgramTable(date, station);
-				}
-			};
-			completionService.submit(task);
-		}
-		int count = 0;
-		while (count < size) {
-			Future<List<ProgramTable>> future;
-			try {
-				future = completionService.poll(5, TimeUnit.MINUTES);
-				List<ProgramTable> ptList = future.get(5, TimeUnit.MINUTES);
-				if (ptList != null) {
-					resultList.addAll(ptList);
-				}
-			} catch (InterruptedException e) {
-				logger.error("craw program table of all station at " + date
-						+ " was interrupted.", e);
-			} catch (ExecutionException e) {
-				logger.error(
-						"error occur while craw program table of all station at "
-								+ date, e);
-			} catch (TimeoutException e) {
-				logger.error("query program table of all sation at at " + date
-						+ " is timeout.", e);
-			}
-			count++;
-		}
-		executorService.shutdown();
-
-		return resultList;
 	}
 }

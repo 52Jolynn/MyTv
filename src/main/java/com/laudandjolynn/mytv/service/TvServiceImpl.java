@@ -233,29 +233,6 @@ public class TvServiceImpl implements TvService {
 	}
 
 	/**
-	 * 根据日期抓取所有电视节目表
-	 * 
-	 * @param date
-	 * @return
-	 */
-	@Override
-	public List<ProgramTable> crawlAllProgramTable(String date) {
-		List<TvStation> stationList = getAllStation();
-		// 过滤不存在的电视台
-		List<TvStation> filtedList = new ArrayList<TvStation>(
-				stationList.size());
-		for (TvStation station : stationList) {
-			if (isStationCrawlable(station)) {
-				filtedList.add(station);
-			}
-		}
-		TvStation[] stations = new TvStation[stationList.size()];
-		stations = stationList.toArray(stations);
-		return CrawlerManager.getInstance().getCrawler()
-				.crawlProgramTable(date, stations);
-	}
-
-	/**
 	 * 抓取所有电视台
 	 * 
 	 * @return
@@ -273,9 +250,4 @@ public class TvServiceImpl implements TvService {
 		return stationList;
 	}
 
-	@Override
-	public boolean isStationCrawlable(TvStation station) {
-		// TODO Auto-generated method stub
-		return false;
-	}
 }

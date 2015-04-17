@@ -23,11 +23,10 @@ public interface Crawler {
 	 * 根据电视台名称、日期抓取电视节目表
 	 * 
 	 * @param date
-	 * @param stations
+	 * @param station
 	 * @return
 	 */
-	public List<ProgramTable> crawlProgramTable(String date,
-			TvStation... stations);
+	public List<ProgramTable> crawlProgramTable(String date, TvStation station);
 
 	/**
 	 * 判断指定电视台是否可抓取
