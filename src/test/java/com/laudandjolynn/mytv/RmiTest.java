@@ -64,7 +64,6 @@ public class RmiTest extends TestCase {
 		}
 		JSONArray array = JSON.parseArray(stations);
 		System.out.println(array);
-		assertTrue(array.size() == 145);
 	}
 
 	/**
