@@ -34,8 +34,6 @@ import org.slf4j.LoggerFactory;
 
 import com.laudandjolynn.mytv.crawler.CrawlerTaskManager;
 import com.laudandjolynn.mytv.datasource.DataSourceManager;
-import com.laudandjolynn.mytv.datasource.ObjectDao;
-import com.laudandjolynn.mytv.datasource.ObjectDaoImpl;
 import com.laudandjolynn.mytv.exception.MyTvException;
 import com.laudandjolynn.mytv.model.TvStation;
 import com.laudandjolynn.mytv.service.TvServiceImpl;
@@ -243,17 +241,9 @@ public class Main {
 	 */
 	private static void initDbData(final MyTvData data) {
 		TvServiceImpl tvService = new TvServiceImpl();
-		ObjectDao dao = new ObjectDaoImpl();
 		List<TvStation> stationList = tvService.getAllStation();
 		if (!data.isAllTvStationCrawled()) {
 			// 首次抓取
-			try {
-				dao.executeUpdate("truncate table tv_station");
-			} catch (SQLException e) {
-				throw new MyTvException(
-						"error occur while tring to truncate table tv_station.",
-						e);
-			}
 			List<TvStation> crawledStations = tvService.crawlAllTvStation();
 			if (crawledStations != null) {
 				stationList.addAll(crawledStations);
@@ -264,13 +254,6 @@ public class Main {
 
 		if (!data.isProgramTableOfTodayCrawled()) {
 			// 保存当天电视节目表
-			try {
-				dao.executeUpdate("truncate table program_table");
-			} catch (SQLException e) {
-				throw new MyTvException(
-						"error occur while tring to truncate table program_table.",
-						e);
-			}
 			final String today = DateUtils.today();
 			logger.info("query program table of today. " + "today is " + today);
 			new Thread(new Runnable() {

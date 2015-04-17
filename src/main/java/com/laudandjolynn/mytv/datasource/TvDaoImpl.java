@@ -502,6 +502,67 @@ public class TvDaoImpl implements TvDao {
 		}
 	}
 
+	@Override
+	public boolean deleteProgramTable(String date) {
+		String sql = "delete from program_table where airdate='" + date + "'";
+		Connection conn = getConnection();
+		Statement stmt = null;
+		try {
+			stmt = conn.createStatement();
+			int r = stmt.executeUpdate(sql);
+			return r > 0;
+		} catch (SQLException e) {
+			throw new MyTvException(e);
+		} finally {
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (SQLException e) {
+					throw new MyTvException(e);
+				}
+			}
+
+			if (conn != null) {
+				try {
+					conn.close();
+				} catch (SQLException e) {
+					throw new MyTvException(e);
+				}
+			}
+		}
+	}
+
+	@Override
+	public boolean deleteProgramTable(String stationName, String date) {
+		String sql = "delete from program_table where stationName='"
+				+ stationName + "' and airdate='" + date + "'";
+		Connection conn = getConnection();
+		Statement stmt = null;
+		try {
+			stmt = conn.createStatement();
+			int r = stmt.executeUpdate(sql);
+			return r > 0;
+		} catch (SQLException e) {
+			throw new MyTvException(e);
+		} finally {
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (SQLException e) {
+					throw new MyTvException(e);
+				}
+			}
+
+			if (conn != null) {
+				try {
+					conn.close();
+				} catch (SQLException e) {
+					throw new MyTvException(e);
+				}
+			}
+		}
+	}
+
 	/**
 	 * 获取数据库连接
 	 * 

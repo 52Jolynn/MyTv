@@ -112,4 +112,21 @@ public interface TvService {
 	 * @return
 	 */
 	public List<ProgramTable> crawlProgramTable(String stationName, String date);
+
+	/**
+	 * 删除指定日期的电视节目表
+	 * 
+	 * @param date
+	 * @return
+	 */
+	public boolean deleteProgramTable(String date);
+
+	/**
+	 * 删除指定日期、名称的电视节目表
+	 * 
+	 * @param stationName
+	 * @param date
+	 * @return
+	 */
+	public boolean deleteProgramTable(String stationName, String date);
 }
