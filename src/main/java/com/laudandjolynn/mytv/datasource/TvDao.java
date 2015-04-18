@@ -35,7 +35,7 @@ public interface TvDao {
 	public List<TvStation> getAllStation();
 
 	/**
-	 * 根据电视台名称得到电视台对象
+	 * 根据电视台名称得到电视台对象，stationName与displayName相同
 	 * 
 	 * @param stationName
 	 * @return
@@ -54,20 +54,15 @@ public interface TvDao {
 	public TvStation getStationByDisplayName(String displayName, String classify);
 
 	/**
-	 * 判断电视台是否已经存在，比较stationName，不比较displayName
-	 * 
-	 * @param stations
-	 * @return
-	 */
-	public boolean[] isStationExists(TvStation... stations);
-
-	/**
 	 * 判断电视台是否已经存在
 	 * 
-	 * @param stationName
+	 * @param displayName
+	 *            电视台显示名称
+	 * @param classify
+	 *            电视台分类，可为null
 	 * @return
 	 */
-	public boolean isStationExists(String stationName);
+	public boolean isStationExists(String displayName, String classify);
 
 	/**
 	 * 保存电视台

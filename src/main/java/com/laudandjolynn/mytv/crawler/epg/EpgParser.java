@@ -36,7 +36,7 @@ import com.laudandjolynn.mytv.service.TvServiceImpl;
  */
 class EpgParser implements Parser {
 	private final static String CITY = "城市";
-	TvServiceImpl tvService = new TvServiceImpl();
+	private TvServiceImpl tvService = new TvServiceImpl();
 
 	/**
 	 * 解析电视台列表
@@ -141,11 +141,6 @@ class EpgParser implements Parser {
 			pt.setAirDate(date);
 			pt.setAirTime(date + " " + pc[0] + ":00");
 			pt.setProgram(pc[1]);
-			if (tvService.isStationExists(stationName)) {
-				pt.setStation(tvService.getStation(stationName).getId());
-			} else {
-				pt.setStation(tvService.getStation(stationName).getId());
-			}
 			pt.setStationName(stationName);
 			pt.setWeek(week);
 			resultList.add(pt);

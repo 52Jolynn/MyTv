@@ -161,7 +161,10 @@ public class TvDaoImpl implements TvDao {
 	@Override
 	public TvStation getStation(String stationName) {
 		String sql = "select id,name,displayName,city,classify,channel,sequence from tv_station where name='"
-				+ stationName + "' order by sequence asc";
+				+ stationName
+				+ "' and displayName='"
+				+ stationName
+				+ "' order by sequence asc";
 		TvStation station = null;
 		Connection conn = getConnection();
 		Statement stmt = null;
@@ -249,47 +252,10 @@ public class TvDaoImpl implements TvDao {
 	}
 
 	@Override
-	public boolean[] isStationExists(TvStation... stations) {
-		int length = stations.length;
-		boolean[] result = new boolean[length];
-		Connection conn = getConnection();
-		String sql = "select * from tv_station where name=?";
-		PreparedStatement stmt = null;
-		try {
-			stmt = conn.prepareStatement(sql);
-			for (int i = 0; i < length; i++) {
-				TvStation station = stations[i];
-				stmt.setString(1, station.getName());
-				ResultSet rs = stmt.executeQuery();
-				result[i] = rs.next();
-				rs.close();
-			}
-			return result;
-		} catch (SQLException e) {
-			throw new MyTvException(
-					"error occur while query state of station.", e);
-		} finally {
-			if (stmt != null) {
-				try {
-					stmt.close();
-				} catch (SQLException e) {
-					throw new MyTvException(e);
-				}
-			}
-			if (conn != null) {
-				try {
-					conn.close();
-				} catch (SQLException e) {
-					throw new MyTvException(e);
-				}
-			}
-		}
-	}
-
-	@Override
-	public boolean isStationExists(String stationName) {
-		String sql = "select * from tv_station where name='" + stationName
-				+ "'";
+	public boolean isStationExists(String displayName, String classify) {
+		String sql = "select * from tv_station where displayName='"
+				+ displayName + "'"
+				+ (classify == null ? "" : " and classify='" + classify + "'");
 		Connection conn = getConnection();
 		Statement stmt = null;
 		try {
@@ -374,7 +340,7 @@ public class TvDaoImpl implements TvDao {
 	@Override
 	public int[] save(ProgramTable... programTables) {
 		Connection conn = getConnection();
-		String insertSql = "insert into program_table (station,stationName,program,airdate,airtime,week) values(?,?,?,?,?,?)";
+		String insertSql = "insert into program_table (stationName,program,airdate,airtime,week) values(?,?,?,?,?)";
 		PreparedStatement insertStmt = null;
 		try {
 			conn.setAutoCommit(false);
@@ -382,12 +348,11 @@ public class TvDaoImpl implements TvDao {
 			int len = programTables.length;
 			for (int i = 0; i < len; i++) {
 				ProgramTable pt = programTables[i];
-				insertStmt.setInt(1, pt.getStation());
-				insertStmt.setString(2, pt.getStationName());
-				insertStmt.setString(3, pt.getProgram());
-				insertStmt.setString(4, pt.getAirDate());
-				insertStmt.setString(5, pt.getAirTime());
-				insertStmt.setInt(6, pt.getWeek());
+				insertStmt.setString(1, pt.getStationName());
+				insertStmt.setString(2, pt.getProgram());
+				insertStmt.setString(3, pt.getAirDate());
+				insertStmt.setString(4, pt.getAirTime());
+				insertStmt.setInt(5, pt.getWeek());
 				insertStmt.addBatch();
 			}
 			int[] r = insertStmt.executeBatch();
@@ -424,7 +389,7 @@ public class TvDaoImpl implements TvDao {
 
 	@Override
 	public List<ProgramTable> getProgramTable(String stationName, String date) {
-		String sql = "select id,station,stationName,program,airdate,airtime,week from program_table where stationName='"
+		String sql = "select id,stationName,program,airdate,airtime,week from program_table where stationName='"
 				+ stationName
 				+ "' and airdate='"
 				+ date
@@ -438,12 +403,11 @@ public class TvDaoImpl implements TvDao {
 			while (rs.next()) {
 				ProgramTable pt = new ProgramTable();
 				pt.setId(rs.getLong(1));
-				pt.setStation(rs.getInt(2));
-				pt.setStationName(rs.getString(3));
-				pt.setProgram(rs.getString(4));
-				pt.setAirDate(rs.getString(5));
-				pt.setAirTime(rs.getString(6));
-				pt.setWeek(rs.getInt(7));
+				pt.setStationName(rs.getString(2));
+				pt.setProgram(rs.getString(3));
+				pt.setAirDate(rs.getString(4));
+				pt.setAirTime(rs.getString(5));
+				pt.setWeek(rs.getInt(6));
 				resultList.add(pt);
 			}
 			rs.close();

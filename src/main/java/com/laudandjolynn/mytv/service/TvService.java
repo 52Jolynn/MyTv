@@ -22,10 +22,10 @@ public interface TvService {
 	/**
 	 * 判断电视台是否存在
 	 * 
-	 * @param stationName
+	 * @param station
 	 * @return
 	 */
-	public boolean isStationExists(String stationName);
+	public boolean isStationExists(TvStation station);
 
 	/**
 	 * 保存电视节目表
@@ -49,18 +49,12 @@ public interface TvService {
 	public List<TvStation> getAllStation();
 
 	/**
-	 * 根据名称获取电视台对象
-	 * 
-	 * @param stationName
-	 * @return
-	 */
-	public TvStation getStation(String stationName);
-
-	/**
 	 * 根据显示名称获取电视台对象
 	 * 
 	 * @param displayName
+	 *            电视台显示名
 	 * @param classify
+	 *            电视台分类，可以为null。为空时，将查找stationName与displayName相同的电视台
 	 * @return
 	 */
 	public TvStation getStationByDisplayName(String displayName, String classify);

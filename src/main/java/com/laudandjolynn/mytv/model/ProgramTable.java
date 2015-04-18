@@ -23,7 +23,6 @@ package com.laudandjolynn.mytv.model;
  */
 public class ProgramTable {
 	private long id;
-	private int station;
 	private String stationName;
 	private String program;
 	private String airDate;
@@ -36,14 +35,6 @@ public class ProgramTable {
 
 	public void setId(long id) {
 		this.id = id;
-	}
-
-	public int getStation() {
-		return station;
-	}
-
-	public void setStation(int station) {
-		this.station = station;
 	}
 
 	public String getStationName() {
@@ -88,10 +79,9 @@ public class ProgramTable {
 
 	@Override
 	public String toString() {
-		return "ProgramTable [id=" + id + ", station=" + station
-				+ ", stationName=" + stationName + ", program=" + program
-				+ ", airDate=" + airDate + ", airTime=" + airTime + ", week="
-				+ week + "]";
+		return "ProgramTable [id=" + id + ", stationName=" + stationName
+				+ ", program=" + program + ", airDate=" + airDate
+				+ ", airTime=" + airTime + ", week=" + week + "]";
 	}
 
 }

@@ -1,9 +1,10 @@
 package com.laudandjolynn.mytv.utils;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+
+import org.eclipse.jetty.util.ConcurrentHashSet;
 
 import com.laudandjolynn.mytv.model.TvStation;
 
@@ -14,7 +15,7 @@ import com.laudandjolynn.mytv.model.TvStation;
  * @copyright: www.laudandjolynn.com
  */
 public class MemoryCache {
-	private final static Map<String, TvStation> ALL_TV_STATION = new HashMap<String, TvStation>();
+	private final static ConcurrentHashSet<TvStation> ALL_TV_STATION = new ConcurrentHashSet<TvStation>();
 
 	private MemoryCache() {
 	}
@@ -27,8 +28,8 @@ public class MemoryCache {
 		private final static MemoryCache MEMORY_CACHE = new MemoryCache();
 	}
 
-	public Collection<TvStation> getAllCacheTvStation() {
-		return ALL_TV_STATION.values();
+	public Collection<TvStation> getAllCachedTvStation() {
+		return new ArrayList<TvStation>(ALL_TV_STATION);
 	}
 
 	/**
@@ -38,7 +39,7 @@ public class MemoryCache {
 	 */
 	public void addCache(List<TvStation> stations) {
 		for (TvStation station : stations) {
-			ALL_TV_STATION.put(station.getName(), station);
+			ALL_TV_STATION.add(station);
 		}
 	}
 
@@ -49,27 +50,17 @@ public class MemoryCache {
 	 */
 	public void addCache(TvStation... stations) {
 		for (TvStation station : stations) {
-			ALL_TV_STATION.put(station.getName(), station);
+			ALL_TV_STATION.add(station);
 		}
 	}
 
 	/**
 	 * 判断电视台是否已经存在
 	 * 
-	 * @param stationName
+	 * @param station
 	 * @return
 	 */
-	public boolean isStationExists(String stationName) {
-		return ALL_TV_STATION.containsKey(stationName);
-	}
-
-	/**
-	 * 根据名称获取电视台對象
-	 * 
-	 * @param stationName
-	 * @return
-	 */
-	public TvStation getStation(String stationName) {
-		return ALL_TV_STATION.get(stationName);
+	public boolean isStationExists(TvStation station) {
+		return ALL_TV_STATION.contains(station);
 	}
 }

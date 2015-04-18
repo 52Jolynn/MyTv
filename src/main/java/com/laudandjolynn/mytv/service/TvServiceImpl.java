@@ -50,8 +50,7 @@ public class TvServiceImpl implements TvService {
 		List<TvStation> resultList = new ArrayList<TvStation>();
 		for (int i = 0; i < size; i++) {
 			TvStation station = stations[i];
-			String stationName = station.getName();
-			if (isStationExists(stationName)) {
+			if (isStationExists(station)) {
 				continue;
 			}
 			resultList.add(station);
@@ -60,33 +59,21 @@ public class TvServiceImpl implements TvService {
 		int rsize = resultList.size();
 		if (rsize > 0) {
 			stations = new TvStation[rsize];
-			stations = resultList.toArray(stations);
-			// query from db
-			boolean[] result = tvDao.isStationExists(stations);
-			resultList.clear();
-			for (int i = 0; i < result.length; i++) {
-				if (!result[i]) {
-					resultList.add(stations[i]);
-				}
-			}
-			rsize = resultList.size();
-			if (rsize > 0) {
-				stations = new TvStation[rsize];
-				tvDao.save(resultList.toArray(stations));
-			}
+			tvDao.save(resultList.toArray(stations));
 		}
 	}
 
 	/**
 	 * 判断电视台是否存在
 	 * 
-	 * @param stationName
+	 * @param station
 	 * @return
 	 */
 	@Override
-	public boolean isStationExists(String stationName) {
-		return MemoryCache.getInstance().isStationExists(stationName)
-				|| tvDao.isStationExists(stationName);
+	public boolean isStationExists(TvStation station) {
+		return MemoryCache.getInstance().isStationExists(station)
+				|| tvDao.isStationExists(station.getDisplayName(),
+						station.getClassify());
 	}
 
 	/**
@@ -105,8 +92,7 @@ public class TvServiceImpl implements TvService {
 			ProgramTable pt = programTables[i];
 			String stationName = pt.getStationName();
 			String date = pt.getAirDate();
-			if (!isStationExists(stationName)
-					|| tvDao.isProgramTableExists(stationName, date)) {
+			if (tvDao.isProgramTableExists(stationName, date)) {
 				continue;
 			}
 			resultList.add(pt);
@@ -140,34 +126,21 @@ public class TvServiceImpl implements TvService {
 	}
 
 	/**
-	 * 根据名称获取电视台对象
-	 * 
-	 * @param stationName
-	 * @return
-	 */
-	@Override
-	public TvStation getStation(String stationName) {
-		TvStation station = MemoryCache.getInstance().getStation(stationName);
-		if (station == null) {
-			station = tvDao.getStation(stationName);
-			if (station != null) {
-				MemoryCache.getInstance().addCache(station);
-			}
-		}
-		return station;
-	}
-
-	/**
 	 * 根据显示名取得电视台对象
 	 * 
 	 * @param displayName
+	 *            电视台显示名
 	 * @param classify
+	 *            电视台分类，可以为null。为空时，将查找stationName与displayName相同的电视台
 	 * @return
 	 */
 	@Override
 	public TvStation getStationByDisplayName(String displayName, String classify) {
-		if (displayName == null || classify == null) {
+		if (displayName == null) {
 			return null;
+		}
+		if (classify == null) {
+			return tvDao.getStation(displayName);
 		}
 		return tvDao.getStationByDisplayName(displayName, classify);
 	}
@@ -223,7 +196,7 @@ public class TvServiceImpl implements TvService {
 	@Override
 	public List<ProgramTable> crawlProgramTable(String stationName, String date) {
 		List<ProgramTable> ptList = CrawlerManager.getInstance().getCrawler()
-				.crawlProgramTable(date, getStation(stationName));
+				.crawlProgramTable(date, tvDao.getStation(stationName));
 		if (ptList == null || ptList.size() == 0) {
 			return null;
 		}

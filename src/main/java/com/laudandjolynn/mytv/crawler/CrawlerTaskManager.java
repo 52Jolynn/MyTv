@@ -127,23 +127,20 @@ public class CrawlerTaskManager {
 	/**
 	 * 查询电视节目表
 	 * 
-	 * @param stationOrDisplayName
-	 *            电视台名或显示名
+	 * @param displayName
+	 *            电视台显示名
 	 * @param classify
-	 *            电视台分类
+	 *            电视台分类，可以为null。为空时，将查找stationName与displayName相同的电视台
 	 * @param date
 	 *            日期，yyyy-MM-dd
 	 * @return
 	 */
-	public List<ProgramTable> queryProgramTable(String stationOrDisplayName,
+	public List<ProgramTable> queryProgramTable(String displayName,
 			String classify, final String date) {
-		TvStation tvStation = tvService.getStation(stationOrDisplayName);
-		if (tvStation == null && classify != null) {
-			tvStation = tvService.getStationByDisplayName(stationOrDisplayName,
-					classify);
-		}
+		TvStation tvStation = tvService.getStationByDisplayName(displayName,
+				classify);
 		if (tvStation == null) {
-			throw new MyTvException(stationOrDisplayName + " isn't exists.");
+			throw new MyTvException(displayName + " isn't exists.");
 		}
 
 		final String stationName = tvStation.getName();

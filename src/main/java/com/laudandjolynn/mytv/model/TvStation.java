@@ -87,6 +87,39 @@ public class TvStation {
 	}
 
 	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((classify == null) ? 0 : classify.hashCode());
+		result = prime * result
+				+ ((displayName == null) ? 0 : displayName.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		TvStation other = (TvStation) obj;
+		if (classify == null) {
+			if (other.classify != null)
+				return false;
+		} else if (!classify.equals(other.classify))
+			return false;
+		if (displayName == null) {
+			if (other.displayName != null)
+				return false;
+		} else if (!displayName.equals(other.displayName))
+			return false;
+		return true;
+	}
+
+	@Override
 	public String toString() {
 		return "TvStation [id=" + id + ", name=" + name + ", city=" + city
 				+ ", classify=" + classify + ", sequence=" + sequence
