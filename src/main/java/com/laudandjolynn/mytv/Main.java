@@ -36,6 +36,7 @@ import com.laudandjolynn.mytv.crawler.CrawlerTaskManager;
 import com.laudandjolynn.mytv.datasource.DataSourceManager;
 import com.laudandjolynn.mytv.exception.MyTvException;
 import com.laudandjolynn.mytv.model.TvStation;
+import com.laudandjolynn.mytv.service.TvService;
 import com.laudandjolynn.mytv.service.TvServiceImpl;
 import com.laudandjolynn.mytv.utils.Constant;
 import com.laudandjolynn.mytv.utils.DateUtils;
@@ -240,7 +241,7 @@ public class Main {
 	 * 初始化应用数据
 	 */
 	private static void initDbData(final MyTvData data) {
-		TvServiceImpl tvService = new TvServiceImpl();
+		TvService tvService = new TvServiceImpl();
 		List<TvStation> stationList = tvService.getAllStation();
 		if (!data.isAllTvStationCrawled()) {
 			// 首次抓取

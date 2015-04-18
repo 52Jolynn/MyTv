@@ -35,6 +35,13 @@ public interface TvDao {
 	public List<TvStation> getAllStation();
 
 	/**
+	 * 获取所有可用于抓取的电视台对象列表
+	 * 
+	 * @return
+	 */
+	public List<TvStation> getAllCrawlableStation();
+
+	/**
 	 * 根据电视台名称得到电视台对象，stationName与displayName相同
 	 * 
 	 * @param stationName

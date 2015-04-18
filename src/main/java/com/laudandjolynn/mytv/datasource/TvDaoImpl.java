@@ -159,6 +159,50 @@ public class TvDaoImpl implements TvDao {
 	}
 
 	@Override
+	public List<TvStation> getAllCrawlableStation() {
+		String sql = "select id,name,displayName,city,classify,channel,sequence from tv_station where name=displayName order by sequence asc";
+		Connection conn = getConnection();
+		Statement stmt = null;
+		List<TvStation> stations = new ArrayList<TvStation>();
+		try {
+			stmt = conn.createStatement();
+			ResultSet rs = stmt.executeQuery(sql);
+			while (rs.next()) {
+				int index = 1;
+				TvStation station = new TvStation();
+				station.setId(rs.getInt(index++));
+				station.setName(rs.getString(index++));
+				station.setDisplayName(rs.getString(index++));
+				station.setCity(rs.getString(index++));
+				station.setClassify(rs.getString(index++));
+				station.setChannel(rs.getString(index++));
+				station.setSequence(rs.getInt(index++));
+				stations.add(station);
+			}
+		} catch (SQLException e) {
+			throw new MyTvException(e);
+		} finally {
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (SQLException e) {
+					throw new MyTvException(e);
+				}
+			}
+
+			if (conn != null) {
+				try {
+					conn.close();
+				} catch (SQLException e) {
+					throw new MyTvException(e);
+				}
+			}
+		}
+
+		return stations;
+	}
+
+	@Override
 	public TvStation getStation(String stationName) {
 		String sql = "select id,name,displayName,city,classify,channel,sequence from tv_station where name='"
 				+ stationName

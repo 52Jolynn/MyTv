@@ -49,6 +49,13 @@ public interface TvService {
 	public List<TvStation> getAllStation();
 
 	/**
+	 * 获取所有可用于抓取的电视台对象列表
+	 * 
+	 * @return
+	 */
+	public List<TvStation> getAllCrawlableStation();
+
+	/**
 	 * 根据显示名称获取电视台对象
 	 * 
 	 * @param displayName

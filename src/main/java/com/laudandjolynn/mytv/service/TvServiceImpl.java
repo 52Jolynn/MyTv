@@ -125,6 +125,11 @@ public class TvServiceImpl implements TvService {
 		return stationList;
 	}
 
+	@Override
+	public List<TvStation> getAllCrawlableStation() {
+		return tvDao.getAllCrawlableStation();
+	}
+
 	/**
 	 * 根据显示名取得电视台对象
 	 * 

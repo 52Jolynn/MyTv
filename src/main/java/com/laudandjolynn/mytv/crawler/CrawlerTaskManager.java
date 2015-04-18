@@ -68,7 +68,7 @@ public class CrawlerTaskManager {
 	 * @return
 	 */
 	public List<ProgramTable> queryAllProgramTable(final String date) {
-		List<TvStation> stationList = tvService.getAllStation();
+		List<TvStation> stationList = tvService.getAllCrawlableStation();
 		ExecutorService executorService = Executors
 				.newFixedThreadPool(processor * 2);
 		CompletionService<List<ProgramTable>> completionService = new ExecutorCompletionService<List<ProgramTable>>(
