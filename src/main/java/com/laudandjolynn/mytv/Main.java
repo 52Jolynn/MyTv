@@ -274,19 +274,20 @@ public class Main {
 	 */
 	private static void createEverydayCron(final MyTvData data) {
 		ScheduledExecutorService scheduled = new ScheduledThreadPoolExecutor(1);
-		final String cronDate = DateUtils.tommorow();
-		long initDelay = (DateUtils.string2Date(cronDate + " 00:00:00")
-				.getTime() - new Date().getTime()) / 1000;
+		long initDelay = (DateUtils.string2Date(
+				DateUtils.tommorow() + " 00:00:00").getTime() - new Date()
+				.getTime()) / 1000;
 		logger.info("cron crawler task will be automatic start after "
 				+ initDelay + " seconds.");
 		scheduled.scheduleWithFixedDelay(new Runnable() {
 
 			@Override
 			public void run() {
-				CrawlerTaskManager.getIntance().queryAllProgramTable(cronDate);
+				CrawlerTaskManager.getIntance().queryAllProgramTable(
+						DateUtils.today());
 				data.writeData(Constant.XML_TAG_PROGRAM_TABLE_DATES,
-						Constant.XML_TAG_PROGRAM_TABLE_DATE, cronDate);
+						Constant.XML_TAG_PROGRAM_TABLE_DATE, DateUtils.today());
 			}
-		}, initDelay, 86400, TimeUnit.SECONDS);
+		}, initDelay, 86460, TimeUnit.SECONDS);
 	}
 }
