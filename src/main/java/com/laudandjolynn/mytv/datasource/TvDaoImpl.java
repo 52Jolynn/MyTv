@@ -436,7 +436,7 @@ public class TvDaoImpl implements TvDao {
 				+ stationName
 				+ "' or stationName=(select stationName from tv_station_alias b where a.stationName=b.stationName and b.alias='"
 				+ stationName
-				+ "')  and airdate='"
+				+ "'))  and airdate='"
 				+ date
 				+ "' order by airtime asc";
 		Connection conn = getConnection();
