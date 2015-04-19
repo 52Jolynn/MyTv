@@ -253,10 +253,9 @@ public class TvDaoImpl implements TvDao {
 	public TvStation getStationByDisplayName(String displayName, String classify) {
 		String sql = "select id,name from tv_station a where (displayName='"
 				+ displayName
-				+ "' and classify='"
-				+ classify
-				+ "'"
-				+ ") or exists (select alias from tv_station_alias b where a.name=b.stationName and b.alias='"
+				+ "' and "
+				+ (classify == null ? "1=1" : "classify='" + classify + "'")
+				+ ") or (name=displayName and name=(select stationName from tv_station_alias b where a.name=b.stationName and b.alias='"
 				+ displayName + "')" + " order by sequence asc";
 		TvStation station = null;
 		Connection conn = getConnection();
@@ -433,9 +432,11 @@ public class TvDaoImpl implements TvDao {
 
 	@Override
 	public List<ProgramTable> getProgramTable(String stationName, String date) {
-		String sql = "select id,stationName,program,airdate,airtime,week from program_table where stationName='"
+		String sql = "select id,stationName,program,airdate,airtime,week from program_table a where (stationName='"
 				+ stationName
-				+ "' and airdate='"
+				+ "' or stationName=(select stationName from tv_station_alias b where a.stationName=b.stationName and b.alias='"
+				+ stationName
+				+ "')  and airdate='"
 				+ date
 				+ "' order by airtime asc";
 		Connection conn = getConnection();

@@ -56,6 +56,14 @@ public interface TvService {
 	public List<TvStation> getAllCrawlableStation();
 
 	/**
+	 * 根据电视台名称得到电视台对象，stationName与displayName相同
+	 * 
+	 * @param stationName
+	 * @return
+	 */
+	public TvStation getStation(String stationName);
+
+	/**
 	 * 根据显示名称获取电视台对象
 	 * 
 	 * @param displayName

@@ -35,6 +35,7 @@ import com.laudandjolynn.mytv.exception.MyTvException;
 import com.laudandjolynn.mytv.model.CrawlerTask;
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
+import com.laudandjolynn.mytv.service.TvService;
 import com.laudandjolynn.mytv.service.TvServiceImpl;
 
 /**
@@ -48,7 +49,7 @@ public class CrawlerTaskManager {
 			.getLogger(CrawlerTaskManager.class);
 	private final ConcurrentHashSet<CrawlerTask> CURRENT_EPG_TASK = new ConcurrentHashSet<CrawlerTask>();
 	private final int processor = Runtime.getRuntime().availableProcessors();
-	private TvServiceImpl tvService = new TvServiceImpl();
+	private TvService tvService = new TvServiceImpl();
 
 	private CrawlerTaskManager() {
 	}
@@ -127,7 +128,7 @@ public class CrawlerTaskManager {
 	/**
 	 * 查询电视节目表
 	 * 
-	 * @param displayName
+	 * @param stationOrDisplayName
 	 *            电视台显示名
 	 * @param classify
 	 *            电视台分类，可以为null。为空时，将查找stationName与displayName相同的电视台
@@ -135,12 +136,16 @@ public class CrawlerTaskManager {
 	 *            日期，yyyy-MM-dd
 	 * @return
 	 */
-	public List<ProgramTable> queryProgramTable(String displayName,
+	public List<ProgramTable> queryProgramTable(String stationOrDisplayName,
 			String classify, final String date) {
-		TvStation tvStation = tvService.getStationByDisplayName(displayName,
-				classify);
+		TvStation tvStation = tvService.getStation(stationOrDisplayName);
 		if (tvStation == null) {
-			throw new MyTvException(displayName + " isn't exists.");
+			tvStation = tvService.getStationByDisplayName(stationOrDisplayName,
+					classify);
+		}
+		if (tvStation == null) {
+			logger.error(stationOrDisplayName + " isn't exists.");
+			return null;
 		}
 
 		final String stationName = tvStation.getName();

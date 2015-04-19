@@ -130,6 +130,18 @@ public class TvServiceImpl implements TvService {
 		return tvDao.getAllCrawlableStation();
 	}
 
+	@Override
+	public TvStation getStation(String stationName) {
+		TvStation tvStation = MemoryCache.getInstance().getStation(stationName);
+		if (tvStation == null) {
+			tvStation = tvDao.getStation(stationName);
+			if (tvStation != null) {
+				MemoryCache.getInstance().addCache(tvStation);
+			}
+		}
+		return tvStation;
+	}
+
 	/**
 	 * 根据显示名取得电视台对象
 	 * 
@@ -144,10 +156,20 @@ public class TvServiceImpl implements TvService {
 		if (displayName == null) {
 			return null;
 		}
-		if (classify == null) {
-			return tvDao.getStation(displayName);
+		TvStation tvStation = MemoryCache.getInstance().getStation(displayName,
+				classify);
+		if (tvStation == null) {
+			if (classify == null) {
+				tvStation = tvDao.getStation(displayName);
+			} else {
+				tvStation = tvDao
+						.getStationByDisplayName(displayName, classify);
+			}
 		}
-		return tvDao.getStationByDisplayName(displayName, classify);
+		if (tvStation != null) {
+			MemoryCache.getInstance().addCache(tvStation);
+		}
+		return tvStation;
 	}
 
 	/**

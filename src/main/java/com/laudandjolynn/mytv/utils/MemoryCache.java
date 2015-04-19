@@ -63,4 +63,39 @@ public class MemoryCache {
 	public boolean isStationExists(TvStation station) {
 		return ALL_TV_STATION.contains(station);
 	}
+
+	/**
+	 * 根据名称查找电视台对象
+	 * 
+	 * @param stationName
+	 * @return
+	 */
+	public TvStation getStation(String stationName) {
+		for (TvStation station : ALL_TV_STATION) {
+			if (station.getName().equals(stationName)) {
+				return station;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * 根据电视台显示名、分类查找电视台对象
+	 * 
+	 * @param displayName
+	 * @param classify
+	 * @return
+	 */
+	public TvStation getStation(String displayName, String classify) {
+		if (classify == null) {
+			return getStation(displayName);
+		}
+		for (TvStation station : ALL_TV_STATION) {
+			if (station.getDisplayName().equals(displayName)
+					&& station.getClassify().equals(classify)) {
+				return station;
+			}
+		}
+		return null;
+	}
 }
