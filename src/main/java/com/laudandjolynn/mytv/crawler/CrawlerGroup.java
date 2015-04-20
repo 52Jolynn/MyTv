@@ -23,6 +23,15 @@ public class CrawlerGroup implements Crawler {
 			.getLogger(CrawlerGroup.class);
 
 	/**
+	 * 获取抓取器组中的所有抓取器
+	 * 
+	 * @return
+	 */
+	public List<Crawler> getCrawlers() {
+		return crawlers;
+	}
+
+	/**
 	 * 添加抓取器
 	 * 
 	 * @param crawler

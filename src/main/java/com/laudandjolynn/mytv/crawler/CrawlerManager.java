@@ -1,5 +1,7 @@
 package com.laudandjolynn.mytv.crawler;
 
+import java.util.Iterator;
+
 /**
  * @author: Laud
  * @email: htd0324@gmail.com
@@ -39,6 +41,23 @@ public class CrawlerManager {
 	}
 
 	/**
+	 * 根据抓取器名称移除抓取器
+	 * 
+	 * @param crawlerName
+	 */
+	public void removeCrawler(String crawlerName) {
+		CrawlerGroup cg = (CrawlerGroup) this.crawler;
+		Iterator<Crawler> iterator = cg.getCrawlers().iterator();
+		while (iterator.hasNext()) {
+			Crawler crawler = iterator.next();
+			if (crawler.getCrawlerName().equals(crawlerName)) {
+				iterator.remove();
+				break;
+			}
+		}
+	}
+
+	/**
 	 * 获取抓取器对象
 	 * 
 	 * @return
@@ -46,4 +65,5 @@ public class CrawlerManager {
 	public Crawler getCrawler() {
 		return crawler;
 	}
+
 }
