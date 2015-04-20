@@ -180,9 +180,6 @@ class TvMaoCrawler extends AbstractCrawler {
 
 	private List<TvStation> parse(HtmlPage htmlPage) {
 		String html = htmlPage.asXml();
-		long time = System.nanoTime();
-		MyTvUtils.outputCrawlData(getCrawlerName(), html, getCrawlerName()
-				+ Constant.UNDERLINE + time);
 		List<?> elements = htmlPage
 				.getByXPath("//div[@class='chlsnav']/div[@class='pbar']/b");
 		HtmlBold hb = (HtmlBold) elements.get(0);
