@@ -69,10 +69,20 @@ public class ProgramTable {
 		this.airTime = airTime;
 	}
 
+	/**
+	 * 1-7分别代表星期一，星期二，星期三，星期四，星期五，星期六，星期日
+	 * 
+	 * @return
+	 */
 	public int getWeek() {
 		return week;
 	}
 
+	/**
+	 * 1-7分别代表星期一，星期二，星期三，星期四，星期五，星期六，星期日
+	 * 
+	 * @param week
+	 */
 	public void setWeek(int week) {
 		this.week = week;
 	}
