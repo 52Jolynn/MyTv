@@ -56,8 +56,70 @@ try {
 ```
 
 # 主要开源软件
-1. htmlUnit-2.15
+1. htmlunit-2.15
 2. jsoup-1.8.1
 3. hessian-4.07
 4. fastjson-1.2.5
 5. jetty
+
+# 扩展接口
+```java
+package com.laudandjolynn.mytv.crawler;
+
+import java.util.List;
+
+import com.laudandjolynn.mytv.model.ProgramTable;
+import com.laudandjolynn.mytv.model.TvStation;
+
+/**
+ * @author: Laud
+ * @email: htd0324@gmail.com
+ * @date: 2015年4月15日 下午3:36:28
+ * @copyright: www.laudandjolynn.com
+ */
+public interface Crawler {
+	/**
+	 * 抓取所有电视台
+	 * 
+	 * @return
+	 */
+	public List<TvStation> crawlAllTvStation();
+
+	/**
+	 * 根据电视台名称、日期抓取电视节目表
+	 * 
+	 * @param date
+	 * @param station
+	 * @return
+	 */
+	public List<ProgramTable> crawlProgramTable(String date, TvStation station);
+
+	/**
+	 * 判断指定电视台是否可抓取
+	 * 
+	 * @param station
+	 * @return
+	 */
+	public boolean exists(TvStation station);
+
+	/**
+	 * 获取抓取器名称
+	 * 
+	 * @return
+	 */
+	public String getCrawlerName();
+
+	/**
+	 * 获取抓取地址
+	 * 
+	 * @return
+	 */
+	public String getUrl();
+
+}
+```
+如果需要添加新的抓取器，只需要实现上述接口，并添加到抓取管理器中即可：
+```java
+Crawler crawler = new NewCrawler(...);
+CrawlerManager.getInstance().addCrawler(crawler);
+```
