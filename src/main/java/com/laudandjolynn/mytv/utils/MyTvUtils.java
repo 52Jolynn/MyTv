@@ -46,17 +46,32 @@ public class MyTvUtils {
 	}
 
 	/**
+	 * 读入xml文件
+	 * 
+	 * @param file
+	 * @return
+	 * @throws DocumentException
+	 */
+	public static String readAsXml(File file) throws DocumentException {
+		SAXReader reader = new SAXReader();
+		Document xmlDoc = reader.read(file);
+		return xmlDoc.asXML();
+	}
+
+	/**
 	 * 输出抓取数据到文件
 	 * 
-	 * @param date
-	 *            日期，yyyy-MM-dd
+	 * @param dirName
+	 *            目录名称，如日期，yyyy-MM-dd
 	 * @param data
 	 *            数据
 	 * @param fileName
 	 *            文件名
 	 */
-	public static void outputCrawlData(String date, String data, String fileName) {
-		String crawlFileDir = Constant.CRAWL_FILE_PATH + date + File.separator;
+	public static void outputCrawlData(String dirName, String data,
+			String fileName) {
+		String crawlFileDir = Constant.CRAWL_FILE_PATH + dirName
+				+ File.separator;
 		File file = new File(crawlFileDir);
 		if (!file.exists()) {
 			file.mkdirs();

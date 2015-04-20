@@ -25,7 +25,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import org.eclipse.jetty.util.ConcurrentHashSet;
 import org.slf4j.Logger;
@@ -37,6 +36,7 @@ import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
 import com.laudandjolynn.mytv.service.TvService;
 import com.laudandjolynn.mytv.service.TvServiceImpl;
+import com.laudandjolynn.mytv.utils.Constant;
 
 /**
  * @author: Laud
@@ -48,7 +48,6 @@ public class CrawlerTaskManager {
 	private final static Logger logger = LoggerFactory
 			.getLogger(CrawlerTaskManager.class);
 	private final ConcurrentHashSet<CrawlerTask> CURRENT_EPG_TASK = new ConcurrentHashSet<CrawlerTask>();
-	private final int processor = Runtime.getRuntime().availableProcessors();
 	private TvService tvService = new TvServiceImpl();
 
 	private CrawlerTaskManager() {
@@ -71,7 +70,7 @@ public class CrawlerTaskManager {
 	public List<ProgramTable> queryAllProgramTable(final String date) {
 		List<TvStation> stationList = tvService.getAllCrawlableStation();
 		ExecutorService executorService = Executors
-				.newFixedThreadPool(processor * 2);
+				.newFixedThreadPool(Constant.CPU_PROCESSOR_NUM * 2);
 		CompletionService<List<ProgramTable>> completionService = new ExecutorCompletionService<List<ProgramTable>>(
 				executorService);
 		int size = stationList == null ? 0 : stationList.size();
@@ -92,20 +91,19 @@ public class CrawlerTaskManager {
 			try {
 				Future<List<ProgramTable>> future = completionService.poll(5,
 						TimeUnit.MINUTES);
-				List<ProgramTable> ptList = future.get(5, TimeUnit.MINUTES);
-				if (ptList != null) {
-					resultList.addAll(ptList);
+				if (future != null) {
+					List<ProgramTable> ptList = future.get();
+					if (ptList != null) {
+						resultList.addAll(ptList);
+					}
 				}
 			} catch (InterruptedException e) {
-				logger.error("craw program table of all station at " + date
+				logger.error("crawl program table of all station at " + date
 						+ " was interrupted.", e);
 			} catch (ExecutionException e) {
 				logger.error(
-						"error occur while craw program table of all station at "
+						"error occur while crawl program table of all station at "
 								+ date, e);
-			} catch (TimeoutException e) {
-				logger.error("query program table of all sation at at " + date
-						+ " is timeout.", e);
 			}
 			count++;
 		}

@@ -16,7 +16,7 @@ public interface Parser {
 	 * 解析电视台
 	 * 
 	 * @param html
-	 * @return
+	 * @return not null
 	 */
 	public List<TvStation> parseTvStation(String html);
 
@@ -24,7 +24,7 @@ public interface Parser {
 	 * 解析电视节目表
 	 * 
 	 * @param html
-	 * @return
+	 * @return not null
 	 */
 	public List<ProgramTable> parseProgramTable(String html);
 }

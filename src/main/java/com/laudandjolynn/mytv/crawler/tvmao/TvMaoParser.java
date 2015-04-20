@@ -52,11 +52,11 @@ class TvMaoParser implements Parser {
 			TvStation tv = new TvStation();
 			String displayName = channel.text().trim();
 			String stationName = displayName;
-			TvStation station = tvService.getStationByDisplayName(displayName,
-					classify);
-			if (station != null) {
-				stationName = station.getName();
-			}
+//			TvStation station = tvService.getStationByDisplayName(displayName,
+//					classify);
+//			if (station != null) {
+//				stationName = station.getName();
+//			}
 			tv.setName(stationName);
 			tv.setDisplayName(displayName);
 			tv.setCity(null);

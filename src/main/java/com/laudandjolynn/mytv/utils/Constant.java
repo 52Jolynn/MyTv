@@ -29,6 +29,9 @@ public class Constant {
 	public final static String CHROME_USER_AGENT = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.76 Safari/537.36";
 	public final static String FIREFOX_USER_AGENT = "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:30.0) Gecko/20100101 Firefox/30.0";
 	public final static String IE_USER_AGENT = "Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko";
+	// CPU核数
+	public static final int CPU_PROCESSOR_NUM = Runtime.getRuntime()
+			.availableProcessors();
 	// 数据文件目录
 	public final static String MY_TV_DATA_PATH = Config.getDataFilePath()
 			+ "data" + File.separator;
