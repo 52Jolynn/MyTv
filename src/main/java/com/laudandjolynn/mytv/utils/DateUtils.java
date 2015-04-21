@@ -111,6 +111,40 @@ public class DateUtils {
 	}
 
 	/**
+	 * 获取指定時間一周的日期列表
+	 * 
+	 * @param date
+	 * @return
+	 */
+	public static Date[] getWeek(Date date) {
+		Date[] dates = new Date[7];
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+		calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+		for (int i = 0; i < 7; i++) {
+			dates[i] = calendar.getTime();
+			calendar.add(Calendar.DAY_OF_YEAR, 1);
+		}
+		return dates;
+	}
+
+	/**
+	 * 获取指定时间一周的日期列表
+	 * 
+	 * @param date
+	 * @param pattern
+	 * @return
+	 */
+	public static String[] getWeek(Date date, String pattern) {
+		Date[] dates = getWeek(date);
+		String[] result = new String[dates.length];
+		for (int i = 0; i < 7; i++) {
+			result[i] = date2String(dates[i], pattern);
+		}
+		return result;
+	}
+
+	/**
 	 * 给指定日期加/减年
 	 * 
 	 * @param date

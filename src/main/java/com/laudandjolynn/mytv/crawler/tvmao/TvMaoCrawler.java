@@ -3,7 +3,12 @@ package com.laudandjolynn.mytv.crawler.tvmao;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
@@ -22,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.gargoylesoftware.htmlunit.Page;
+import com.gargoylesoftware.htmlunit.html.DomElement;
 import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
 import com.gargoylesoftware.htmlunit.html.HtmlBold;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
@@ -30,6 +36,7 @@ import com.laudandjolynn.mytv.crawler.Parser;
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
 import com.laudandjolynn.mytv.utils.Constant;
+import com.laudandjolynn.mytv.utils.DateUtils;
 import com.laudandjolynn.mytv.utils.MyTvUtils;
 import com.laudandjolynn.mytv.utils.WebCrawler;
 
@@ -102,13 +109,16 @@ class TvMaoCrawler extends AbstractCrawler {
 						size--;
 						continue;
 					}
-					if ("CCTV".equals(anchor.getTextContent())) {
+					final String city = anchor.getTextContent().trim();
+					if ("CCTV".equals(city)) {
 						Callable<List<TvStation>> task = new Callable<List<TvStation>>() {
 							@Override
 							public List<TvStation> call() throws Exception {
 								List<TvStation> stationList = new ArrayList<TvStation>();
-								stationList.addAll(parse(htmlPage));
-								stationList.addAll(findAllAndParse(htmlPage));
+								stationList
+										.addAll(getTvStations(htmlPage, city));
+								stationList.addAll(getAllTvStationOfCity(
+										htmlPage, city));
 								return stationList;
 							}
 						};
@@ -120,8 +130,9 @@ class TvMaoCrawler extends AbstractCrawler {
 								try {
 									HtmlPage hp = anchor.click();
 									List<TvStation> stationList = new ArrayList<TvStation>();
-									stationList.addAll(parse(hp));
-									stationList.addAll(findAllAndParse(hp));
+									stationList.addAll(getTvStations(hp, city));
+									stationList.addAll(getAllTvStationOfCity(
+											hp, city));
 									return stationList;
 								} catch (IOException e) {
 									logger.error("error occur while click on: "
@@ -160,7 +171,7 @@ class TvMaoCrawler extends AbstractCrawler {
 		return resultList;
 	}
 
-	private List<TvStation> findAllAndParse(HtmlPage htmlPage) {
+	private List<TvStation> getAllTvStationOfCity(HtmlPage htmlPage, String city) {
 		List<TvStation> resultList = new ArrayList<TvStation>();
 		List<?> elements = htmlPage
 				.getByXPath("//div[@class='chlsnav']//div[@class='plst']/parent::*");
@@ -168,7 +179,7 @@ class TvMaoCrawler extends AbstractCrawler {
 			HtmlAnchor anchor = (HtmlAnchor) elements.get(i);
 			try {
 				HtmlPage p = anchor.click();
-				resultList.addAll(parse(p));
+				resultList.addAll(getTvStations(p, city));
 			} catch (IOException e) {
 				logger.error("error occur while " + anchor.getTextContent()
 						+ " on click. ", e);
@@ -178,13 +189,16 @@ class TvMaoCrawler extends AbstractCrawler {
 		return resultList;
 	}
 
-	private List<TvStation> parse(HtmlPage htmlPage) {
+	private List<TvStation> getTvStations(HtmlPage htmlPage, String city) {
 		String html = htmlPage.asXml();
 		List<?> elements = htmlPage
 				.getByXPath("//div[@class='chlsnav']/div[@class='pbar']/b");
 		HtmlBold hb = (HtmlBold) elements.get(0);
 		String classify = hb.getTextContent();
 		List<TvStation> stationList = parser.parseTvStation(html);
+		for (TvStation station : stationList) {
+			station.setCity(city);
+		}
 		MyTvUtils.outputCrawlData(getCrawlerName(), html, getCrawlerName()
 				+ Constant.UNDERLINE + classify);
 		return stationList;
@@ -192,12 +206,87 @@ class TvMaoCrawler extends AbstractCrawler {
 
 	@Override
 	public List<ProgramTable> crawlProgramTable(String date, TvStation station) {
-		// TODO Auto-generated method stub
-		return null;
+		if (station == null) {
+			logger.debug("station and html page must not null.");
+			return null;
+		}
+		Date dateObj = DateUtils.string2Date(date, "yyyy-MM-dd");
+		if (dateObj == null) {
+			logger.debug("date must not null.");
+			return null;
+		}
+		String stationName = station.getName();
+		String queryDate = DateUtils.date2String(dateObj, "yyyy-MM-dd");
+		logger.info("crawl program table of " + stationName + " at "
+				+ queryDate);
+		Page page = WebCrawler.crawl(TV_MAO_URL);
+		HtmlPage htmlPage = null;
+		if (page.isHtmlPage()) {
+			htmlPage = (HtmlPage) page;
+		}
+		String city = station.getCity();
+		if (city == null) {
+			return null;
+		}
+		try {
+			htmlPage = searchStation(htmlPage, station);
+		} catch (Exception e) {
+			logger.error("error occur while search station: " + stationName, e);
+			return null;
+		}
+
+		if (htmlPage == null) {
+			logger.debug(TV_MAO_URL + " is an empty page.");
+			return null;
+		}
+
+		if (!queryDate.equals(DateUtils.today())) {
+			Set<String> availableQueryDate = new HashSet<String>();
+			String[] dates = DateUtils.getWeek(new Date(), "yyyy-MM-dd");
+			for (String d : dates) {
+				availableQueryDate.add(d);
+			}
+
+			if (availableQueryDate.contains(queryDate)) {
+				List<?> dateElements = htmlPage
+						.getByXPath("//div[@class='pgnav_wrap']//div[@class='epghdc lt']//dl[@class='commtab clear']/dd/a");
+				for (int i = 0, size = dateElements == null ? 0 : dateElements
+						.size(); i < size; i++) {
+					HtmlAnchor anchor = (HtmlAnchor) dateElements.get(i);
+					String value = anchor.getTextContent().trim();
+					if (value.matches("\\)$")
+							&& queryDate.equals(Calendar.getInstance().get(
+									Calendar.YEAR)
+									+ "-"
+									+ value.substring(2, value.length() - 1))) {
+						try {
+							htmlPage = anchor.click();
+						} catch (IOException e) {
+							logger.error(
+									"error occur while search program table of "
+											+ stationName + " at spec date: "
+											+ queryDate, e);
+							return null;
+						}
+						break;
+					}
+				}
+			}
+		}
+
+		String html = htmlPage.asXml();
+		List<ProgramTable> ptList = parser.parseProgramTable(html);
+		MyTvUtils.outputCrawlData(queryDate, html, queryDate
+				+ Constant.UNDERLINE + stationName);
+		return ptList;
 	}
 
 	@Override
 	public boolean exists(TvStation station) {
+		String city = station.getCity();
+		if (city == null) {
+			return false;
+		}
 		String tvMaoFile = Constant.CRAWL_FILE_PATH + getCrawlerName();
 		File file = new File(tvMaoFile);
 		if (file.exists()) {
@@ -231,11 +320,84 @@ class TvMaoCrawler extends AbstractCrawler {
 		Page page = WebCrawler.crawl(TV_MAO_URL);
 		if (page.isHtmlPage()) {
 			HtmlPage htmlPage = (HtmlPage) page;
+			try {
+				if ((htmlPage = searchStation(htmlPage, station)) != null) {
+					MyTvUtils.outputCrawlData(
+							getCrawlerName(),
+							htmlPage.asXml(),
+							getCrawlerName() + Constant.UNDERLINE
+									+ station.getClassify());
+					return true;
+				}
+			} catch (Exception e) {
+				logger.error(
+						"error occur while search station: "
+								+ station.getName(), e);
+				return false;
+			}
 		}
+
 		return false;
 	}
 
+	private HtmlPage searchStation(HtmlPage htmlPage, TvStation station)
+			throws Exception {
+		String city = station.getCity();
+		List<?> elements = htmlPage
+				.getByXPath("//div[@class='pgnav_wrap']/table[@class='pgnav']//a");
+		int ssize = elements == null ? 0 : elements.size();
+		for (int i = 0; i < ssize; i++) {
+			final HtmlAnchor anchor = (HtmlAnchor) elements.get(i);
+			if (!anchor.getAttribute("href").startsWith("/program/")) {
+				continue;
+			} else if (city.equals(anchor.getTextContent().trim())) {
+				try {
+					htmlPage = anchor.click();
+				} catch (IOException e) {
+					throw e;
+				}
+				break;
+			}
+		}
+		List<?> classifyElements = htmlPage
+				.getByXPath("//div[@class='chlsnav']//div[@class='plst']/parent::*");
+		String classify = station.getClassify();
+		for (int i = 0, size = classifyElements == null ? 0 : classifyElements
+				.size(); i < size; i++) {
+			HtmlAnchor anchor = (HtmlAnchor) elements.get(i);
+			if (classify.equals(anchor.getTextContent().trim())) {
+				try {
+					htmlPage = anchor.click();
+				} catch (IOException e) {
+					throw e;
+				}
+				break;
+			}
+		}
+
+		String stationName = station.getName();
+		List<?> stationElements = htmlPage
+				.getByXPath("//div[@class='chlsnav']//ul[@class='r']//li");
+		for (int i = 0, size = stationElements == null ? 0 : stationElements
+				.size(); i < size; i++) {
+			DomElement element = ((DomElement) stationElements.get(i))
+					.getFirstElementChild();
+			if (stationName.equals(element.getTextContent().trim())) {
+				if (element instanceof HtmlAnchor) {
+					try {
+						return ((HtmlAnchor) element).click();
+					} catch (IOException e) {
+						throw e;
+					}
+				}
+				break;
+			}
+		}
+		return null;
+	}
+
 	public static void main(String[] args) throws Exception {
-		new TvMaoCrawler(new TvMaoParser()).crawlAllTvStation();
+		// new TvMaoCrawler(new TvMaoParser()).crawlAllTvStation();
+		System.out.println(Arrays.deepToString(DateUtils.getWeek(new Date())));
 	}
 }
