@@ -256,7 +256,7 @@ public class TvDaoImpl implements TvDao {
 				+ "' and "
 				+ (classify == null ? "1=1" : "classify='" + classify + "'")
 				+ ") or (name=displayName and name=(select stationName from tv_station_alias b where a.name=b.stationName and b.alias='"
-				+ displayName + "')" + " order by sequence asc";
+				+ displayName + "'))" + " order by sequence asc";
 		TvStation station = null;
 		Connection conn = getConnection();
 		Statement stmt = null;
