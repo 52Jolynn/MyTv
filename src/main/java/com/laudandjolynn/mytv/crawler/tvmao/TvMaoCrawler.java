@@ -135,6 +135,10 @@ class TvMaoCrawler extends AbstractCrawler {
 									+ city + ", url: " + href);
 							HtmlPage hp = (HtmlPage) WebCrawler
 									.crawl(TV_MAO_URL_PREFIX + href);
+							try {
+								Thread.sleep(1000);
+							} catch (InterruptedException e) {
+							}
 							List<TvStation> stationList = new ArrayList<TvStation>();
 							stationList.addAll(getTvStations(hp, city));
 							stationList.addAll(getAllTvStationOfCity(hp, city));
@@ -179,6 +183,10 @@ class TvMaoCrawler extends AbstractCrawler {
 			logger.debug(anchor.getTextContent() + " program table of tvmao: "
 					+ ", url: " + href);
 			HtmlPage p = (HtmlPage) WebCrawler.crawl(TV_MAO_URL_PREFIX + href);
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+			}
 			resultList.addAll(getTvStations(p, city));
 		}
 		return resultList;
@@ -335,6 +343,10 @@ class TvMaoCrawler extends AbstractCrawler {
 				String href = anchor.getHrefAttribute();
 				htmlPage = (HtmlPage) WebCrawler
 						.crawl(TV_MAO_URL_PREFIX + href);
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+				}
 				break;
 			}
 		}
@@ -348,6 +360,10 @@ class TvMaoCrawler extends AbstractCrawler {
 				String href = anchor.getHrefAttribute();
 				htmlPage = (HtmlPage) WebCrawler
 						.crawl(TV_MAO_URL_PREFIX + href);
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+				}
 				break;
 			}
 		}

@@ -17,6 +17,7 @@ package com.laudandjolynn.mytv.utils;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.util.Random;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +40,10 @@ public class WebCrawler {
 	private final static Logger logger = LoggerFactory
 			.getLogger(WebCrawler.class);
 
+	private final static BrowserVersion[] USER_AGENTS = new BrowserVersion[] {
+			BrowserVersion.CHROME, BrowserVersion.FIREFOX_24,
+			BrowserVersion.INTERNET_EXPLORER_11 };
+
 	/**
 	 * 根据url抓取
 	 * 
@@ -60,7 +65,7 @@ public class WebCrawler {
 	 * @return
 	 */
 	public static Page crawl(String url) {
-		WebClient webClient = new WebClient(BrowserVersion.CHROME);
+		WebClient webClient = new WebClient(randomUserAgent());
 		webClient.getOptions().setJavaScriptEnabled(true);
 		webClient.getOptions().setCssEnabled(false);
 		webClient.getOptions().setThrowExceptionOnScriptError(false);
@@ -75,5 +80,16 @@ public class WebCrawler {
 		} catch (IOException e) {
 			throw new MyTvException("error occur while connect to " + url, e);
 		}
+	}
+
+	/**
+	 * 取得随机浏览器标识
+	 * 
+	 * @return
+	 */
+	private static BrowserVersion randomUserAgent() {
+		Random random = new Random();
+		int max = USER_AGENTS.length;
+		return USER_AGENTS[random.nextInt(max)];
 	}
 }
