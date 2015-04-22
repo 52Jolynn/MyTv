@@ -129,6 +129,20 @@ public class DateUtils {
 	}
 
 	/**
+	 * 获取指定时间的下一周头一天
+	 * 
+	 * @param date
+	 * @return
+	 */
+	public static Date nextWeek(Date date) {
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+		calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+		calendar.add(Calendar.WEEK_OF_YEAR, 1);
+		return calendar.getTime();
+	}
+
+	/**
 	 * 获取指定时间一周的日期列表
 	 * 
 	 * @param date
