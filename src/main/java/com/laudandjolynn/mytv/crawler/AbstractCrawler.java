@@ -2,6 +2,7 @@ package com.laudandjolynn.mytv.crawler;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.gargoylesoftware.htmlunit.Page;
@@ -19,6 +20,7 @@ import com.laudandjolynn.mytv.utils.WebCrawler;
  */
 public abstract class AbstractCrawler implements Crawler {
 	protected Parser parser = null;
+	private List<CrawlEventListener> listeners = new ArrayList<CrawlEventListener>();
 
 	public AbstractCrawler(Parser parser) {
 		this.parser = parser;
@@ -49,5 +51,10 @@ public abstract class AbstractCrawler implements Crawler {
 		}
 
 		return null;
+	}
+
+	@Override
+	public void registerCrawlEventListener(CrawlEventListener listener) {
+		this.listeners.add(listener);
 	}
 }

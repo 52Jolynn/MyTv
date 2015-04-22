@@ -101,4 +101,10 @@ public class CrawlerGroup implements Crawler {
 		return false;
 	}
 
+	@Override
+	public void registerCrawlEventListener(CrawlEventListener listener) {
+		for (Crawler crawler : crawlers) {
+			crawler.registerCrawlEventListener(listener);
+		}
+	}
 }

@@ -25,7 +25,6 @@ import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 import org.eclipse.jetty.util.ConcurrentHashSet;
 import org.slf4j.Logger;
@@ -90,13 +89,10 @@ public class CrawlerTaskManager {
 		List<ProgramTable> resultList = new ArrayList<ProgramTable>();
 		while (count < size) {
 			try {
-				Future<List<ProgramTable>> future = completionService.poll(5,
-						TimeUnit.MINUTES);
-				if (future != null) {
-					List<ProgramTable> ptList = future.get();
-					if (ptList != null) {
-						resultList.addAll(ptList);
-					}
+				Future<List<ProgramTable>> future = completionService.take();
+				List<ProgramTable> ptList = future.get();
+				if (ptList != null) {
+					resultList.addAll(ptList);
 				}
 			} catch (InterruptedException e) {
 				logger.error("crawl program table of all station at " + date
@@ -139,8 +135,11 @@ public class CrawlerTaskManager {
 
 	/**
 	 * 查询指定日期、电视台的电视节目表
-	 * @param tvStation 电视台对象
-	 * @param date 日期，yyyy-MM-dd
+	 * 
+	 * @param tvStation
+	 *            电视台对象
+	 * @param date
+	 *            日期，yyyy-MM-dd
 	 * @return
 	 */
 	public List<ProgramTable> queryProgramTable(TvStation tvStation,

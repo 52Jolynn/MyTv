@@ -50,4 +50,10 @@ public interface Crawler {
 	 */
 	public String getUrl();
 
+	/**
+	 * 注册抓取事件监听器
+	 * 
+	 * @param listener
+	 */
+	public void registerCrawlEventListener(CrawlEventListener listener);
 }

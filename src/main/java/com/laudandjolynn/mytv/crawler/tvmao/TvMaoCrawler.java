@@ -16,7 +16,6 @@ import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -71,7 +70,8 @@ class TvMaoCrawler extends AbstractCrawler {
 	public List<TvStation> crawlAllTvStation() {
 		String tvMaoFile = Constant.CRAWL_FILE_PATH + getCrawlerName();
 		File file = new File(tvMaoFile);
-		ExecutorService executorService = Executors.newFixedThreadPool(2);
+		ExecutorService executorService = Executors
+				.newFixedThreadPool(Constant.CPU_PROCESSOR_NUM);
 		CompletionService<List<TvStation>> stationCompletionService = new ExecutorCompletionService<List<TvStation>>(
 				executorService);
 		int size = 0;
@@ -158,13 +158,11 @@ class TvMaoCrawler extends AbstractCrawler {
 		int count = 0;
 		while (count < size) {
 			try {
-				Future<List<TvStation>> future = stationCompletionService.poll(
-						5, TimeUnit.MINUTES);
-				if (future != null) {
-					List<TvStation> stationList = future.get();
-					if (stationList != null) {
-						resultList.addAll(stationList);
-					}
+				Future<List<TvStation>> future = stationCompletionService
+						.take();
+				List<TvStation> stationList = future.get();
+				if (stationList != null) {
+					resultList.addAll(stationList);
 				}
 			} catch (InterruptedException e) {
 				logger.error("crawl task of all station was interrupted.", e);
