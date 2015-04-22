@@ -17,6 +17,7 @@ package com.laudandjolynn.mytv.crawler.epg;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -37,6 +38,7 @@ import com.laudandjolynn.mytv.service.TvServiceImpl;
 class EpgParser implements Parser {
 	private final static String CITY = "城市";
 	private TvServiceImpl tvService = new TvServiceImpl();
+	private final static AtomicInteger SEQUENCE = new AtomicInteger(200000);
 
 	/**
 	 * 解析电视台列表
@@ -50,7 +52,6 @@ class EpgParser implements Parser {
 		Elements classifyElements = doc.select("ul.weishi a[href]");
 		Elements stationElements = doc.select("div.md_left_right");
 		List<TvStation> resultList = new ArrayList<TvStation>();
-		int sequence = 100000;
 
 		for (int i = 0, size = classifyElements == null ? 0 : classifyElements
 				.size(); i < size; i++) {
@@ -76,7 +77,7 @@ class EpgParser implements Parser {
 				tv.setDisplayName(displayName);
 				tv.setCity(null);
 				tv.setClassify(classify);
-				tv.setSequence(++sequence);
+				tv.setSequence(SEQUENCE.incrementAndGet());
 				resultList.add(tv);
 			}
 		}
@@ -100,7 +101,7 @@ class EpgParser implements Parser {
 				tv.setDisplayName(displayName);
 				tv.setCity(cityElement.text().trim());
 				tv.setClassify(CITY);
-				tv.setSequence(++sequence);
+				tv.setSequence(SEQUENCE.incrementAndGet());
 				resultList.add(tv);
 			}
 		}

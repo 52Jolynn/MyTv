@@ -3,6 +3,7 @@ package com.laudandjolynn.mytv.crawler.tvmao;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -26,6 +27,7 @@ import com.laudandjolynn.mytv.service.TvServiceImpl;
  */
 class TvMaoParser implements Parser {
 	private TvService tvService = new TvServiceImpl();
+	private final static AtomicInteger SEQUENCE = new AtomicInteger(300000);
 
 	private enum Week {
 		SUNDAY("星期日"), MONDAY("星期一"), TUESDAY("星期二"), WEDNESDAY("星期三"), THURSDAY(
@@ -44,7 +46,6 @@ class TvMaoParser implements Parser {
 		Document doc = Jsoup.parse(html);
 		Elements classifyElements = doc.select("div.chlsnav div.pbar b");
 		String classify = classifyElements.get(0).text().trim();
-		int sequence = 300000;
 		List<TvStation> resultList = new ArrayList<TvStation>();
 		Elements channelElements = doc.select("div.chlsnav ul.r li");
 		for (Element element : channelElements) {
@@ -61,7 +62,7 @@ class TvMaoParser implements Parser {
 			tv.setDisplayName(displayName);
 			tv.setCity(null);
 			tv.setClassify(classify);
-			tv.setSequence(++sequence);
+			tv.setSequence(SEQUENCE.incrementAndGet());
 			resultList.add(tv);
 		}
 		return resultList;
