@@ -210,7 +210,8 @@ class EpgCrawler extends AbstractCrawler {
 		String html = htmlPage.asXml();
 		List<ProgramTable> ptList = parser.parseProgramTable(html);
 		MyTvUtils.outputCrawlData(queryDate, html, queryDate
-				+ Constant.UNDERLINE + stationName);
+				+ Constant.UNDERLINE + getCrawlerName() + Constant.UNDERLINE
+				+ stationName);
 		return ptList;
 	}
 }

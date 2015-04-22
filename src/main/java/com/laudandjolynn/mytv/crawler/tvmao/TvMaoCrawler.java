@@ -6,6 +6,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionService;
@@ -70,8 +71,7 @@ class TvMaoCrawler extends AbstractCrawler {
 	public List<TvStation> crawlAllTvStation() {
 		String tvMaoFile = Constant.CRAWL_FILE_PATH + getCrawlerName();
 		File file = new File(tvMaoFile);
-		ExecutorService executorService = Executors
-				.newFixedThreadPool(Constant.CPU_PROCESSOR_NUM * 2);
+		ExecutorService executorService = Executors.newFixedThreadPool(2);
 		CompletionService<List<TvStation>> stationCompletionService = new ExecutorCompletionService<List<TvStation>>(
 				executorService);
 		int size = 0;
@@ -136,8 +136,9 @@ class TvMaoCrawler extends AbstractCrawler {
 							HtmlPage hp = (HtmlPage) WebCrawler
 									.crawl(TV_MAO_URL_PREFIX + href);
 							try {
-								Thread.sleep(1000);
+								Thread.sleep(getRandomSleepTime());
 							} catch (InterruptedException e) {
+								// do nothing
 							}
 							List<TvStation> stationList = new ArrayList<TvStation>();
 							stationList.addAll(getTvStations(hp, city));
@@ -184,8 +185,9 @@ class TvMaoCrawler extends AbstractCrawler {
 					+ ", url: " + href);
 			HtmlPage p = (HtmlPage) WebCrawler.crawl(TV_MAO_URL_PREFIX + href);
 			try {
-				Thread.sleep(1000);
+				Thread.sleep(getRandomSleepTime());
 			} catch (InterruptedException e) {
+				// do nothing
 			}
 			resultList.addAll(getTvStations(p, city));
 		}
@@ -224,12 +226,22 @@ class TvMaoCrawler extends AbstractCrawler {
 		logger.info("crawl program table of " + stationName + " at "
 				+ queryDate);
 		HtmlPage htmlPage = (HtmlPage) WebCrawler.crawl(TV_MAO_URL);
+		try {
+			Thread.sleep(getRandomSleepTime());
+		} catch (InterruptedException e) {
+			// do nothing
+		}
 		String city = station.getCity();
 		if (city == null) {
 			return null;
 		}
 		try {
 			htmlPage = searchStation(htmlPage, station);
+			try {
+				Thread.sleep(getRandomSleepTime());
+			} catch (Exception e) {
+				// do nothing
+			}
 		} catch (Exception e) {
 			logger.error("error occur while search station: " + stationName, e);
 			return null;
@@ -262,6 +274,11 @@ class TvMaoCrawler extends AbstractCrawler {
 						String href = anchor.getHrefAttribute();
 						htmlPage = (HtmlPage) WebCrawler
 								.crawl(TV_MAO_URL_PREFIX + href);
+						try {
+							Thread.sleep(getRandomSleepTime());
+						} catch (InterruptedException e) {
+							// do nothing
+						}
 						break;
 					}
 				}
@@ -271,7 +288,8 @@ class TvMaoCrawler extends AbstractCrawler {
 		String html = htmlPage.asXml();
 		List<ProgramTable> ptList = parser.parseProgramTable(html);
 		MyTvUtils.outputCrawlData(queryDate, html, queryDate
-				+ Constant.UNDERLINE + stationName);
+				+ Constant.UNDERLINE + getCrawlerName() + Constant.UNDERLINE
+				+ stationName);
 		return ptList;
 	}
 
@@ -313,7 +331,17 @@ class TvMaoCrawler extends AbstractCrawler {
 
 		HtmlPage htmlPage = (HtmlPage) WebCrawler.crawl(TV_MAO_URL);
 		try {
+			Thread.sleep(getRandomSleepTime());
+		} catch (InterruptedException e) {
+			// do nothing
+		}
+		try {
 			if ((htmlPage = searchStation(htmlPage, station)) != null) {
+				try {
+					Thread.sleep(getRandomSleepTime());
+				} catch (Exception e) {
+					// do nothing
+				}
 				MyTvUtils.outputCrawlData(
 						getCrawlerName(),
 						htmlPage.asXml(),
@@ -344,8 +372,9 @@ class TvMaoCrawler extends AbstractCrawler {
 				htmlPage = (HtmlPage) WebCrawler
 						.crawl(TV_MAO_URL_PREFIX + href);
 				try {
-					Thread.sleep(1000);
+					Thread.sleep(getRandomSleepTime());
 				} catch (InterruptedException e) {
+					// do nothing
 				}
 				break;
 			}
@@ -361,8 +390,9 @@ class TvMaoCrawler extends AbstractCrawler {
 				htmlPage = (HtmlPage) WebCrawler
 						.crawl(TV_MAO_URL_PREFIX + href);
 				try {
-					Thread.sleep(1000);
+					Thread.sleep(getRandomSleepTime());
 				} catch (InterruptedException e) {
+					// do nothing
 				}
 				break;
 			}
@@ -387,4 +417,10 @@ class TvMaoCrawler extends AbstractCrawler {
 		return null;
 	}
 
+	private long getRandomSleepTime() {
+		Random random = new Random();
+		int min = 2000;
+		int max = 20000;
+		return min + random.nextInt(max) % (max - min + 1);
+	}
 }

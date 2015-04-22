@@ -16,6 +16,7 @@
 package com.laudandjolynn.mytv.crawler;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionService;
@@ -37,6 +38,7 @@ import com.laudandjolynn.mytv.model.TvStation;
 import com.laudandjolynn.mytv.service.TvService;
 import com.laudandjolynn.mytv.service.TvServiceImpl;
 import com.laudandjolynn.mytv.utils.Constant;
+import com.laudandjolynn.mytv.utils.DateUtils;
 
 /**
  * @author: Laud
@@ -136,6 +138,11 @@ public class CrawlerTaskManager {
 	 */
 	public List<ProgramTable> queryProgramTable(String stationOrDisplayName,
 			String classify, final String date) {
+		String[] weeks = DateUtils.getWeek(new Date(), "yyyy-MM-dd");
+		// 只能查询一周内的节目表
+		if (date.compareTo(weeks[0]) < 0 || date.compareTo(weeks[6]) > 0) {
+			return null;
+		}
 		TvStation tvStation = tvService.getStation(stationOrDisplayName);
 		if (tvStation == null) {
 			tvStation = tvService.getStationByDisplayName(stationOrDisplayName,

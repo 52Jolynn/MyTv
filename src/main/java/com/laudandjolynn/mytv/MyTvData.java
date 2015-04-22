@@ -31,7 +31,6 @@ import org.slf4j.LoggerFactory;
 
 import com.laudandjolynn.mytv.exception.MyTvException;
 import com.laudandjolynn.mytv.utils.Constant;
-import com.laudandjolynn.mytv.utils.DateUtils;
 import com.laudandjolynn.mytv.utils.FileUtils;
 
 /**
@@ -45,8 +44,8 @@ public class MyTvData {
 			.getLogger(MyTvData.class);
 	private boolean dataInited = false;
 	private boolean dbInited = false;
-	private boolean allTvStationCrawled = false;
-	private boolean programTableOfTodayCrawled = false;
+	private boolean stationCrawlerInited = false;
+	private boolean programCrawlerInited = false;
 
 	public MyTvData() {
 		this.loadData();
@@ -61,7 +60,9 @@ public class MyTvData {
 		File file = new File(Constant.MY_TV_DATA_FILE_PATH);
 		if (!file.exists()) {
 			this.dbInited = false;
-			this.programTableOfTodayCrawled = false;
+			this.dataInited = false;
+			this.stationCrawlerInited = false;
+			this.programCrawlerInited = false;
 			return;
 		}
 		SAXReader reader = new SAXReader();
@@ -80,24 +81,22 @@ public class MyTvData {
 			}
 			nodes = xmlDoc.selectNodes("//" + Constant.XML_TAG_STATION);
 			if (nodes != null && nodes.size() > 0) {
-				this.allTvStationCrawled = Boolean.valueOf(((Element) nodes
+				this.stationCrawlerInited = Boolean.valueOf(((Element) nodes
 						.get(0)).getText());
 			}
 
-			nodes = xmlDoc.selectNodes("//"
-					+ Constant.XML_TAG_PROGRAM_TABLE_DATE);
-			int size = nodes == null ? 0 : nodes.size();
-			for (int i = 0; i < size; i++) {
-				Element node = (Element) nodes.get(i);
-				if (node.getText().equals(DateUtils.today())) {
-					this.programTableOfTodayCrawled = true;
-				}
+			nodes = xmlDoc.selectNodes("//" + Constant.XML_TAG_PROGRAM);
+			if (nodes != null && nodes.size() > 0) {
+				this.programCrawlerInited = Boolean.valueOf(((Element) nodes
+						.get(0)).getText());
 			}
 		} catch (DocumentException e) {
 			logger.debug("can't parse xml file.  -- "
 					+ Constant.MY_TV_DATA_FILE_PATH);
 			this.dbInited = false;
-			this.programTableOfTodayCrawled = false;
+			this.dataInited = false;
+			this.stationCrawlerInited = false;
+			this.programCrawlerInited = false;
 			file.deleteOnExit();
 		}
 	}
@@ -152,16 +151,6 @@ public class MyTvData {
 	 */
 	public boolean isDbInited() {
 		return this.dbInited;
-
-	}
-
-	/**
-	 * 判断今天的节目表是否已经抓取过
-	 * 
-	 * @return
-	 */
-	public boolean isProgramTableOfTodayCrawled() {
-		return this.programTableOfTodayCrawled;
 	}
 
 	/**
@@ -174,11 +163,18 @@ public class MyTvData {
 	}
 
 	/**
-	 * 电视台是否已抓取过
-	 * 
+	 * 电视节目初始抓取任务是否完成
 	 * @return
 	 */
-	public boolean isAllTvStationCrawled() {
-		return allTvStationCrawled;
+	public boolean isProgramCrawlerInited() {
+		return programCrawlerInited;
+	}
+
+	/**
+	 * 电视台初始抓取任务是否完成
+	 * @return
+	 */
+	public boolean isStationCrawlerInited() {
+		return stationCrawlerInited;
 	}
 }
