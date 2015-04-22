@@ -42,7 +42,7 @@ public class MyTvUtils {
 	 * @return
 	 */
 	public static String readAsHtml(String path) throws IOException {
-		return new String(FileUtils.readWithNIO(path));
+		return new String(FileUtils.readWithNIO(path, "UTF-8"), "UTF-8");
 	}
 
 	/**
