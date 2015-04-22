@@ -444,8 +444,8 @@ class TvMaoCrawler extends AbstractCrawler {
 	 */
 	private long generateRandomSleepTime() {
 		Random random = new Random();
-		int min = 3000;
-		int max = 20000;
+		int min = 1000;
+		int max = 10000;
 		return min + random.nextInt(max) % (max - min + 1);
 	}
 }

@@ -223,7 +223,7 @@ public class TvServiceImpl implements TvService {
 	@Override
 	public List<ProgramTable> crawlProgramTable(String stationName, String date) {
 		List<ProgramTable> ptList = CrawlerManager.getInstance().getCrawler()
-				.crawlProgramTable(date, tvDao.getStation(stationName));
+				.crawlProgramTable(date, getStation(stationName));
 		if (ptList == null || ptList.size() == 0) {
 			return null;
 		}

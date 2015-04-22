@@ -36,7 +36,6 @@ import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
 import com.laudandjolynn.mytv.service.TvService;
 import com.laudandjolynn.mytv.service.TvServiceImpl;
-import com.laudandjolynn.mytv.utils.Constant;
 import com.laudandjolynn.mytv.utils.DateUtils;
 
 /**
@@ -70,8 +69,7 @@ public class CrawlerTaskManager {
 	 */
 	public List<ProgramTable> queryAllProgramTable(final String date) {
 		List<TvStation> stationList = tvService.getAllCrawlableStation();
-		ExecutorService executorService = Executors
-				.newFixedThreadPool(Constant.CPU_PROCESSOR_NUM);
+		ExecutorService executorService = Executors.newFixedThreadPool(2);
 		CompletionService<List<ProgramTable>> completionService = new ExecutorCompletionService<List<ProgramTable>>(
 				executorService);
 		int size = stationList == null ? 0 : stationList.size();
@@ -84,6 +82,11 @@ public class CrawlerTaskManager {
 				}
 			};
 			completionService.submit(task);
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				// do nothing
+			}
 		}
 		int count = 0;
 		List<ProgramTable> resultList = new ArrayList<ProgramTable>();
