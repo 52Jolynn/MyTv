@@ -72,7 +72,7 @@ public class HessianTest extends TestCase {
 		HessianProxyFactory proxy = new HessianProxyFactory();
 		try {
 			JolynnTv tv = (JolynnTv) proxy.create(JolynnTv.class, url);
-			String program = tv.getProgramTable("CCTV-1综合频道", "央视",
+			String program = tv.getProgramTable("凤凰卫视", "凤凰卫视电视台",
 					DateUtils.today());
 			JSONArray array = JSON.parseArray(program);
 			System.out.println(array);

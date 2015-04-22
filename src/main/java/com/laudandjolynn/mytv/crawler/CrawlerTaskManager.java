@@ -72,17 +72,16 @@ public class CrawlerTaskManager {
 	public List<ProgramTable> queryAllProgramTable(final String date) {
 		List<TvStation> stationList = tvService.getAllCrawlableStation();
 		ExecutorService executorService = Executors
-				.newFixedThreadPool(Constant.CPU_PROCESSOR_NUM * 2);
+				.newFixedThreadPool(Constant.CPU_PROCESSOR_NUM);
 		CompletionService<List<ProgramTable>> completionService = new ExecutorCompletionService<List<ProgramTable>>(
 				executorService);
 		int size = stationList == null ? 0 : stationList.size();
 		for (int i = 0; i < size; i++) {
-			TvStation tvStation = stationList.get(i);
-			final String stationName = tvStation.getName();
-			Callable<List<ProgramTable>> task = new Callable<List<ProgramTable>>() {
+			final TvStation tvStation = stationList.get(i);
+			final Callable<List<ProgramTable>> task = new Callable<List<ProgramTable>>() {
 				@Override
 				public List<ProgramTable> call() throws Exception {
-					return queryProgramTable(stationName, date);
+					return queryProgramTable(tvStation, date);
 				}
 			};
 			completionService.submit(task);
@@ -109,24 +108,12 @@ public class CrawlerTaskManager {
 			}
 			count++;
 		}
+		executorService.shutdown();
 		return resultList;
 	}
 
 	/**
-	 * 查询电视节目表
-	 * 
-	 * @param stationName
-	 *            电视台名称
-	 * @param date
-	 *            日期,yyyy-MM-dd
-	 * @return
-	 */
-	public List<ProgramTable> queryProgramTable(String stationName, String date) {
-		return queryProgramTable(stationName, null, date);
-	}
-
-	/**
-	 * 查询电视节目表
+	 * 查询指定日期、电视台的节目表
 	 * 
 	 * @param stationOrDisplayName
 	 *            电视台显示名
@@ -137,12 +124,7 @@ public class CrawlerTaskManager {
 	 * @return
 	 */
 	public List<ProgramTable> queryProgramTable(String stationOrDisplayName,
-			String classify, final String date) {
-		String[] weeks = DateUtils.getWeek(new Date(), "yyyy-MM-dd");
-		// 只能查询一周内的节目表
-		if (date.compareTo(weeks[0]) < 0 || date.compareTo(weeks[6]) > 0) {
-			return null;
-		}
+			String classify, String date) {
 		TvStation tvStation = tvService.getStation(stationOrDisplayName);
 		if (tvStation == null) {
 			tvStation = tvService.getStationByDisplayName(stationOrDisplayName,
@@ -150,6 +132,22 @@ public class CrawlerTaskManager {
 		}
 		if (tvStation == null) {
 			logger.error(stationOrDisplayName + " isn't exists.");
+			return null;
+		}
+		return queryProgramTable(tvStation, date);
+	}
+
+	/**
+	 * 查询指定日期、电视台的电视节目表
+	 * @param tvStation 电视台对象
+	 * @param date 日期，yyyy-MM-dd
+	 * @return
+	 */
+	public List<ProgramTable> queryProgramTable(TvStation tvStation,
+			final String date) {
+		String[] weeks = DateUtils.getWeek(new Date(), "yyyy-MM-dd");
+		// 只能查询一周内的节目表
+		if (date.compareTo(weeks[0]) < 0 || date.compareTo(weeks[6]) > 0) {
 			return null;
 		}
 

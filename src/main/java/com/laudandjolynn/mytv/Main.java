@@ -208,14 +208,14 @@ public class Main {
 			}
 			stmt.executeBatch();
 			conn.commit();
-			data.writeData(null, Constant.XML_TAG_STATION, "true");
+			data.writeData(null, Constant.XML_TAG_DATA, "true");
 		} catch (SQLException e) {
 			if (conn != null) {
 				try {
 					conn.rollback();
 				} catch (SQLException e1) {
 					throw new MyTvException(
-							"error occur while rollback transaction.", e);
+							"error occur while rollback transaction.", e1);
 				}
 			}
 			throw new MyTvException("error occur while execute sql on db.", e);

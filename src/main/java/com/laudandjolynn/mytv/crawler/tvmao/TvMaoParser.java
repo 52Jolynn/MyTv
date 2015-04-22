@@ -11,6 +11,8 @@ import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
 import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.laudandjolynn.mytv.crawler.Parser;
 import com.laudandjolynn.mytv.exception.MyTvException;
@@ -28,6 +30,8 @@ import com.laudandjolynn.mytv.service.TvServiceImpl;
 class TvMaoParser implements Parser {
 	private TvService tvService = new TvServiceImpl();
 	private final static AtomicInteger SEQUENCE = new AtomicInteger(300000);
+	private final static Logger logger = LoggerFactory
+			.getLogger(TvMaoParser.class);
 
 	private enum Week {
 		SUNDAY("星期日"), MONDAY("星期一"), TUESDAY("星期二"), WEDNESDAY("星期三"), THURSDAY(
@@ -94,12 +98,19 @@ class TvMaoParser implements Parser {
 
 			int i = 0;
 			// 查找节目播出时间
+			boolean foundAirTime = false;
 			for (; i < size; i++) {
 				Node child = children.get(i);
 				if (child instanceof Element
 						&& "SPAN".equalsIgnoreCase(((Element) child).tagName())) {
+					foundAirTime = true;
 					break;
 				}
+			}
+			if (!foundAirTime) {
+				logger.info("the program table of " + stationName + " at "
+						+ date + " does not exists.");
+				return resultList;
 			}
 			String airTime = ((Element) children.get(i++)).text().trim();
 			StringBuffer program = new StringBuffer();

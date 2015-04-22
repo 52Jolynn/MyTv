@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
-import org.dom4j.DocumentException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -94,23 +93,25 @@ class EpgCrawler extends AbstractCrawler {
 		String city = station.getCity();
 		String stationName = station.getName();
 		if (file.exists()) {
+			String html = null;
 			try {
-				String html = MyTvUtils.readAsXml(epgFile);
-				Document doc = Jsoup.parse(html);
-				Elements elements = null;
-				if (city == null) {
-					elements = doc.select("div.md_left_right dl h3 a.channel");
-				} else {
-					elements = doc.select("dl#cityList div.lv3 a.channel");
-				}
-				for (Element element : elements) {
-					if (stationName.equals(element.text())) {
-						return true;
-					}
-				}
-			} catch (DocumentException e) {
-				// do noting
+				html = MyTvUtils.readAsHtml(epgFile);
+			} catch (IOException e) {
+				return false;
 			}
+			Document doc = Jsoup.parse(html);
+			Elements elements = null;
+			if (city == null) {
+				elements = doc.select("div.md_left_right dl h3 a.channel");
+			} else {
+				elements = doc.select("dl#cityList div.lv3 a.channel");
+			}
+			for (Element element : elements) {
+				if (stationName.equals(element.text())) {
+					return true;
+				}
+			}
+			return false;
 		}
 		Page page = WebCrawler.crawl(EPG_URL);
 		if (!page.isHtmlPage()) {

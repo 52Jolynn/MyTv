@@ -20,9 +20,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLDecoder;
 
-import org.dom4j.Document;
-import org.dom4j.DocumentException;
-import org.dom4j.io.SAXReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.laudandjolynn.mytv.exception.MyTvException;
 
@@ -33,29 +32,17 @@ import com.laudandjolynn.mytv.exception.MyTvException;
  * @copyright: www.laudandjolynn.com
  */
 public class MyTvUtils {
+	private final static Logger logger = LoggerFactory
+			.getLogger(MyTvUtils.class);
+
 	/**
-	 * 读入xml文件
+	 * 读入html文件
 	 * 
 	 * @param path
 	 * @return
 	 */
-	public static String readAsXml(String path) throws DocumentException {
-		SAXReader reader = new SAXReader();
-		Document xmlDoc = reader.read(new File(path));
-		return xmlDoc.asXML();
-	}
-
-	/**
-	 * 读入xml文件
-	 * 
-	 * @param file
-	 * @return
-	 * @throws DocumentException
-	 */
-	public static String readAsXml(File file) throws DocumentException {
-		SAXReader reader = new SAXReader();
-		Document xmlDoc = reader.read(file);
-		return xmlDoc.asXML();
+	public static String readAsHtml(String path) throws IOException {
+		return new String(FileUtils.readWithNIO(path));
 	}
 
 	/**
@@ -83,6 +70,7 @@ public class MyTvUtils {
 			file.delete();
 		}
 		try {
+			logger.info("write data to file: " + crawlFilePath);
 			FileUtils.writeWithNIO(data, FileUtils.DEFAULT_CHARSET_NAME,
 					crawlFilePath);
 		} catch (IOException e) {

@@ -1,6 +1,7 @@
 package com.laudandjolynn.mytv.crawler.tvmao;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -17,7 +18,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import org.dom4j.DocumentException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -86,11 +86,11 @@ class TvMaoCrawler extends AbstractCrawler {
 					@Override
 					public List<TvStation> call() throws Exception {
 						try {
-							String html = MyTvUtils.readAsXml(f);
+							String html = MyTvUtils.readAsHtml(f.getPath());
 							logger.debug("parse tv station file: "
 									+ f.getPath());
 							return parser.parseTvStation(html);
-						} catch (DocumentException e) {
+						} catch (IOException e) {
 							logger.error("read as xml error: " + f.getPath(), e);
 						}
 						return null;
@@ -100,6 +100,11 @@ class TvMaoCrawler extends AbstractCrawler {
 			}
 		} else {
 			logger.info("crawl all tv station from " + getUrl() + ".");
+			try {
+				Thread.sleep(generateRandomSleepTime());
+			} catch (InterruptedException e) {
+				// do nothing
+			}
 			final HtmlPage htmlPage = (HtmlPage) WebCrawler.crawl(getUrl());
 			List<?> elements = htmlPage
 					.getByXPath("//div[@class='pgnav_wrap']/table[@class='pgnav']//a");
@@ -133,13 +138,13 @@ class TvMaoCrawler extends AbstractCrawler {
 							String href = anchor.getHrefAttribute();
 							logger.debug("a city program table of tvmao: "
 									+ city + ", url: " + href);
-							HtmlPage hp = (HtmlPage) WebCrawler
-									.crawl(TV_MAO_URL_PREFIX + href);
 							try {
-								Thread.sleep(getRandomSleepTime());
+								Thread.sleep(generateRandomSleepTime());
 							} catch (InterruptedException e) {
 								// do nothing
 							}
+							HtmlPage hp = (HtmlPage) WebCrawler
+									.crawl(TV_MAO_URL_PREFIX + href);
 							List<TvStation> stationList = new ArrayList<TvStation>();
 							stationList.addAll(getTvStations(hp, city));
 							stationList.addAll(getAllTvStationOfCity(hp, city));
@@ -183,12 +188,12 @@ class TvMaoCrawler extends AbstractCrawler {
 			String href = anchor.getHrefAttribute();
 			logger.debug(anchor.getTextContent() + " program table of tvmao: "
 					+ ", url: " + href);
-			HtmlPage p = (HtmlPage) WebCrawler.crawl(TV_MAO_URL_PREFIX + href);
 			try {
-				Thread.sleep(getRandomSleepTime());
+				Thread.sleep(generateRandomSleepTime());
 			} catch (InterruptedException e) {
 				// do nothing
 			}
+			HtmlPage p = (HtmlPage) WebCrawler.crawl(TV_MAO_URL_PREFIX + href);
 			resultList.addAll(getTvStations(p, city));
 		}
 		return resultList;
@@ -199,12 +204,12 @@ class TvMaoCrawler extends AbstractCrawler {
 		List<?> elements = htmlPage
 				.getByXPath("//div[@class='chlsnav']/div[@class='pbar']/b");
 		HtmlBold hb = (HtmlBold) elements.get(0);
-		String classify = hb.getTextContent();
+		String classify = hb.getTextContent().trim();
 		List<TvStation> stationList = parser.parseTvStation(html);
 		for (TvStation station : stationList) {
 			station.setCity(city);
 		}
-		logger.debug("some tv station found." + stationList);
+		logger.debug("tv station found." + stationList);
 		MyTvUtils.outputCrawlData(getCrawlerName(), html, getCrawlerName()
 				+ Constant.UNDERLINE + classify);
 		return stationList;
@@ -213,32 +218,29 @@ class TvMaoCrawler extends AbstractCrawler {
 	@Override
 	public List<ProgramTable> crawlProgramTable(String date, TvStation station) {
 		if (station == null) {
-			logger.debug("station and html page must not null.");
+			logger.debug("station is null while crawl program table.");
 			return null;
 		}
 		Date dateObj = DateUtils.string2Date(date, "yyyy-MM-dd");
 		if (dateObj == null) {
-			logger.debug("date must not null.");
+			logger.debug("date is null while crawl program table of "
+					+ station.getName());
 			return null;
 		}
 		String stationName = station.getName();
 		String queryDate = DateUtils.date2String(dateObj, "yyyy-MM-dd");
 		logger.info("crawl program table of " + stationName + " at "
 				+ queryDate);
-		HtmlPage htmlPage = (HtmlPage) WebCrawler.crawl(TV_MAO_URL);
 		try {
-			Thread.sleep(getRandomSleepTime());
+			Thread.sleep(generateRandomSleepTime());
 		} catch (InterruptedException e) {
 			// do nothing
 		}
-		String city = station.getCity();
-		if (city == null) {
-			return null;
-		}
+		HtmlPage htmlPage = (HtmlPage) WebCrawler.crawl(TV_MAO_URL);
 		try {
 			htmlPage = searchStation(htmlPage, station);
 			try {
-				Thread.sleep(getRandomSleepTime());
+				Thread.sleep(generateRandomSleepTime());
 			} catch (Exception e) {
 				// do nothing
 			}
@@ -248,7 +250,8 @@ class TvMaoCrawler extends AbstractCrawler {
 		}
 
 		if (htmlPage == null) {
-			logger.debug(TV_MAO_URL + " is an empty page.");
+			logger.debug("cannot get station data from " + TV_MAO_URL + " of "
+					+ stationName);
 			return null;
 		}
 
@@ -266,19 +269,19 @@ class TvMaoCrawler extends AbstractCrawler {
 						.size(); i < size; i++) {
 					HtmlAnchor anchor = (HtmlAnchor) dateElements.get(i);
 					String value = anchor.getTextContent().trim();
-					if (value.matches("\\)$")
+					if (value.endsWith(")")
 							&& queryDate.equals(Calendar.getInstance().get(
 									Calendar.YEAR)
 									+ "-"
 									+ value.substring(2, value.length() - 1))) {
 						String href = anchor.getHrefAttribute();
-						htmlPage = (HtmlPage) WebCrawler
-								.crawl(TV_MAO_URL_PREFIX + href);
 						try {
-							Thread.sleep(getRandomSleepTime());
+							Thread.sleep(generateRandomSleepTime());
 						} catch (InterruptedException e) {
 							// do nothing
 						}
+						htmlPage = (HtmlPage) WebCrawler
+								.crawl(TV_MAO_URL_PREFIX + href);
 						break;
 					}
 				}
@@ -296,57 +299,51 @@ class TvMaoCrawler extends AbstractCrawler {
 	@Override
 	public boolean exists(TvStation station) {
 		String city = station.getCity();
-		if (city == null) {
+		String classify = station.getClassify();
+		if (city == null || classify == null) {
 			return false;
 		}
-		String tvMaoFile = Constant.CRAWL_FILE_PATH + getCrawlerName();
+		String tvMaoFile = Constant.CRAWL_FILE_PATH + getCrawlerName()
+				+ File.separator + getCrawlerName() + Constant.UNDERLINE
+				+ classify;
 		File file = new File(tvMaoFile);
 		if (file.exists()) {
-			File[] files = file.listFiles();
-			for (File f : files) {
-				String html;
-				try {
-					html = MyTvUtils.readAsXml(f);
-				} catch (DocumentException e) {
-					continue;
-				}
-				Document doc = Jsoup.parse(html);
-				Elements classifyElements = doc
-						.select("div.chlsnav div.pbar b");
-				String classify = classifyElements.get(0).text().trim();
-				Elements channelElements = doc.select("div.chlsnav ul.r li");
-				for (Element element : channelElements) {
-					Element channel = element.child(0);
-					String displayName = channel.text().trim();
-					if (classify == null) {
-						if (station.getClassify() != null) {
-							continue;
-						}
-					} else if (displayName.equals(station.getName())) {
-						return true;
-					}
+			String html = null;
+			try {
+				html = MyTvUtils.readAsHtml(tvMaoFile);
+			} catch (IOException e) {
+				return false;
+			}
+			Document doc = Jsoup.parse(html);
+			Elements classifyElements = doc.select("div.chlsnav div.pbar b");
+			String classifyName = classifyElements.get(0).text().trim();
+			Elements channelElements = doc.select("div.chlsnav ul.r li");
+			for (Element element : channelElements) {
+				Element channel = element.child(0);
+				String stationName = channel.text().trim();
+				if (stationName.equals(station.getName())
+						&& classifyName.equals(classify)) {
+					return true;
 				}
 			}
+			return false;
 		}
 
-		HtmlPage htmlPage = (HtmlPage) WebCrawler.crawl(TV_MAO_URL);
 		try {
-			Thread.sleep(getRandomSleepTime());
+			Thread.sleep(generateRandomSleepTime());
 		} catch (InterruptedException e) {
 			// do nothing
 		}
+		HtmlPage htmlPage = (HtmlPage) WebCrawler.crawl(TV_MAO_URL);
 		try {
 			if ((htmlPage = searchStation(htmlPage, station)) != null) {
 				try {
-					Thread.sleep(getRandomSleepTime());
+					Thread.sleep(generateRandomSleepTime());
 				} catch (Exception e) {
 					// do nothing
 				}
-				MyTvUtils.outputCrawlData(
-						getCrawlerName(),
-						htmlPage.asXml(),
-						getCrawlerName() + Constant.UNDERLINE
-								+ station.getClassify());
+				MyTvUtils.outputCrawlData(getCrawlerName(), htmlPage.asXml(),
+						getCrawlerName() + Constant.UNDERLINE + classify);
 				return true;
 			}
 		} catch (Exception e) {
@@ -360,44 +357,62 @@ class TvMaoCrawler extends AbstractCrawler {
 
 	private HtmlPage searchStation(HtmlPage htmlPage, TvStation station) {
 		String city = station.getCity();
-		List<?> elements = htmlPage
+		List<?> cityElements = htmlPage
 				.getByXPath("//div[@class='pgnav_wrap']/table[@class='pgnav']//a");
-		int ssize = elements == null ? 0 : elements.size();
+		int ssize = cityElements == null ? 0 : cityElements.size();
+		boolean found = false;
 		for (int i = 0; i < ssize; i++) {
-			final HtmlAnchor anchor = (HtmlAnchor) elements.get(i);
+			final HtmlAnchor anchor = (HtmlAnchor) cityElements.get(i);
 			if (!anchor.getAttribute("href").startsWith("/program/")) {
 				continue;
 			} else if (city.equals(anchor.getTextContent().trim())) {
 				String href = anchor.getHrefAttribute();
-				htmlPage = (HtmlPage) WebCrawler
-						.crawl(TV_MAO_URL_PREFIX + href);
+				found = true;
 				try {
-					Thread.sleep(getRandomSleepTime());
+					Thread.sleep(generateRandomSleepTime());
 				} catch (InterruptedException e) {
 					// do nothing
 				}
+				htmlPage = (HtmlPage) WebCrawler
+						.crawl(TV_MAO_URL_PREFIX + href);
 				break;
 			}
 		}
+		if (!found) {
+			return null;
+		}
+		found = false;
 		List<?> classifyElements = htmlPage
-				.getByXPath("//div[@class='chlsnav']//div[@class='plst']/parent::*");
+				.getByXPath("//div[@class='chlsnav']/div[@class='pbar']/b");
 		String classify = station.getClassify();
-		for (int i = 0, size = classifyElements == null ? 0 : classifyElements
-				.size(); i < size; i++) {
-			HtmlAnchor anchor = (HtmlAnchor) elements.get(i);
-			if (classify.equals(anchor.getTextContent().trim())) {
-				String href = anchor.getHrefAttribute();
-				htmlPage = (HtmlPage) WebCrawler
-						.crawl(TV_MAO_URL_PREFIX + href);
-				try {
-					Thread.sleep(getRandomSleepTime());
-				} catch (InterruptedException e) {
-					// do nothing
+		HtmlBold hb = (HtmlBold) classifyElements.get(0);
+		if (classify.equals(hb.getTextContent().trim())) {
+			found = true;
+		} else {
+			classifyElements = htmlPage
+					.getByXPath("//div[@class='chlsnav']//div[@class='plst']/parent::*");
+			for (int i = 0, size = classifyElements == null ? 0
+					: classifyElements.size(); i < size; i++) {
+				HtmlAnchor anchor = (HtmlAnchor) classifyElements.get(i);
+				String elementText = anchor.getFirstElementChild()
+						.getFirstElementChild().getTextContent().trim();
+				if (classify.equals(elementText)) {
+					String href = anchor.getHrefAttribute();
+					found = true;
+					try {
+						Thread.sleep(generateRandomSleepTime());
+					} catch (InterruptedException e) {
+						// do nothing
+					}
+					htmlPage = (HtmlPage) WebCrawler.crawl(TV_MAO_URL_PREFIX
+							+ href);
+					break;
 				}
-				break;
 			}
 		}
-
+		if (!found) {
+			return null;
+		}
 		String stationName = station.getName();
 		List<?> stationElements = htmlPage
 				.getByXPath("//div[@class='chlsnav']//ul[@class='r']//li");
@@ -406,8 +421,15 @@ class TvMaoCrawler extends AbstractCrawler {
 			DomElement element = ((DomElement) stationElements.get(i))
 					.getFirstElementChild();
 			if (stationName.equals(element.getTextContent().trim())) {
-				if (element instanceof HtmlAnchor) {
+				if (element instanceof HtmlBold) {
+					return htmlPage;
+				} else if (element instanceof HtmlAnchor) {
 					String href = ((HtmlAnchor) element).getHrefAttribute();
+					try {
+						Thread.sleep(generateRandomSleepTime());
+					} catch (InterruptedException e) {
+						// do nothing
+					}
 					return (HtmlPage) WebCrawler
 							.crawl(TV_MAO_URL_PREFIX + href);
 				}
@@ -417,9 +439,14 @@ class TvMaoCrawler extends AbstractCrawler {
 		return null;
 	}
 
-	private long getRandomSleepTime() {
+	/**
+	 * 生成随机休眠时间
+	 * 
+	 * @return
+	 */
+	private long generateRandomSleepTime() {
 		Random random = new Random();
-		int min = 2000;
+		int min = 3000;
 		int max = 20000;
 		return min + random.nextInt(max) % (max - min + 1);
 	}
