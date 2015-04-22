@@ -7,4 +7,5 @@ package com.laudandjolynn.mytv.crawler;
  * @copyright: www.laudandjolynn.com
  */
 public interface CrawlEventListener {
+	public void itemFound(CrawlEvent event);
 }
