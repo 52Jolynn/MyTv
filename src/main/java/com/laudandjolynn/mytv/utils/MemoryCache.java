@@ -72,7 +72,8 @@ public class MemoryCache {
 	 */
 	public TvStation getStation(String stationName) {
 		for (TvStation station : ALL_TV_STATION) {
-			if (station.getName().equals(stationName)) {
+			if (station.getName().equals(stationName)
+					&& station.getClassify() == null) {
 				return station;
 			}
 		}

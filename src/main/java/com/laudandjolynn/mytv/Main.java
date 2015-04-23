@@ -21,9 +21,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
@@ -38,7 +36,6 @@ import org.slf4j.LoggerFactory;
 
 import com.laudandjolynn.mytv.crawler.RequestHandler;
 import com.laudandjolynn.mytv.datasource.DataSourceManager;
-import com.laudandjolynn.mytv.event.AllTvStationCrawlEndEvent;
 import com.laudandjolynn.mytv.event.CrawlEvent;
 import com.laudandjolynn.mytv.event.CrawlEventListener;
 import com.laudandjolynn.mytv.event.CrawlEventListenerAdapter;
@@ -270,49 +267,24 @@ public class Main {
 	private static void createCrawlTask(final MyTvData data,
 			final TvService tvService) {
 		CrawlEventListener listener = null;
+		final String today = DateUtils.today();
+		final ExecutorService executorService = Executors.newFixedThreadPool(2);
 		if (!data.isProgramCrawlerInited()) {
-			final String[] weeks = DateUtils.getWeek(new Date(), "yyyy-MM-dd");
-			final String today = DateUtils.today();
-			Arrays.sort(weeks, new Comparator<String>() {
-				@Override
-				public int compare(String o1, String o2) {
-					if (o1.equals(today)) {
-						return -1;
-					} else if (o2.equals(today)) {
-						return 1;
-					} else {
-						return o1.compareTo(o2);
-					}
-				}
-			});
-			final ExecutorService executorService = Executors
-					.newFixedThreadPool(Constant.CPU_PROCESSOR_NUM * 2);
 			listener = new CrawlEventListenerAdapter() {
-
 				@Override
 				public void itemFound(CrawlEvent event) {
 					if (event instanceof TvStationFoundEvent) {
 						final TvStation item = (TvStation) ((TvStationFoundEvent) event)
 								.getItem();
-						MemoryCache.getInstance().addCache(item);
-						for (final String date : weeks) {
-							executorService.submit(new Runnable() {
+						executorService.submit(new Runnable() {
 
-								@Override
-								public void run() {
-									RequestHandler.getIntance()
-											.queryProgramTable(item.getName(),
-													item.getClassify(), date);
-								}
-							});
-						}
-					}
-				}
-
-				@Override
-				public void crawlEnd(CrawlEvent event) {
-					if (event instanceof AllTvStationCrawlEndEvent) {
-						executorService.shutdown();						
+							@Override
+							public void run() {
+								RequestHandler.getIntance().queryProgramTable(
+										item.getName(), item.getClassify(),
+										today);
+							}
+						});
 					}
 				}
 			};
@@ -323,6 +295,21 @@ public class Main {
 			data.writeData(null, Constant.XML_TAG_STATION, "true");
 			data.writeData(null, Constant.XML_TAG_PROGRAM, "true");
 		}
+
+		final String[] weeks = DateUtils.getWeek(new Date(), "yyyy-MM-dd");
+		for (final String date : weeks) {
+			if (date.equals(today)) {
+				continue;
+			}
+			executorService.submit(new Runnable() {
+
+				@Override
+				public void run() {
+					crawlAllProgramTable(date, tvService);
+				}
+			});
+		}
+		executorService.shutdown();
 
 		// 启动每天定时任务
 		logger.info("create everyday crawl task.");
@@ -360,8 +347,7 @@ public class Main {
 	private static void crawlAllProgramTable(final String date,
 			TvService tvService) {
 		List<TvStation> stationList = tvService.getAllCrawlableStation();
-		ExecutorService executorService = Executors
-				.newFixedThreadPool(Constant.CPU_PROCESSOR_NUM * 2);
+		ExecutorService executorService = Executors.newFixedThreadPool(2);
 		int size = stationList == null ? 0 : stationList.size();
 		for (int i = 0; i < size; i++) {
 			final TvStation tvStation = stationList.get(i);

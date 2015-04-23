@@ -88,7 +88,7 @@ public class CrawlerGroup extends AbstractCrawler {
 	public List<TvStation> crawlAllTvStation() {
 		List<TvStation> resultList = new ArrayList<TvStation>();
 		int size = crawlers.size();
-		int maxThreadNum = Constant.CPU_PROCESSOR_NUM * 2;
+		int maxThreadNum = Constant.CPU_PROCESSOR_NUM;
 		ExecutorService executorService = Executors
 				.newFixedThreadPool(size > maxThreadNum ? maxThreadNum : size);
 		CompletionService<List<TvStation>> completionService = new ExecutorCompletionService<List<TvStation>>(

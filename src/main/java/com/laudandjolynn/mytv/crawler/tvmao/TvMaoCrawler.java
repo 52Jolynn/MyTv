@@ -9,6 +9,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
@@ -50,7 +52,7 @@ import com.laudandjolynn.mytv.utils.WebCrawler;
  * @date: 2015年4月15日 下午3:32:56
  * @copyright: www.laudandjolynn.com
  */
-class TvMaoCrawler extends AbstractCrawler {
+public class TvMaoCrawler extends AbstractCrawler {
 	private final static Logger logger = LoggerFactory
 			.getLogger(TvMaoCrawler.class);
 	// tvmao节目表地址
@@ -59,6 +61,9 @@ class TvMaoCrawler extends AbstractCrawler {
 			+ "/program/channels";
 	private final static String TV_MAO_NAME = "tvmao";
 	private final static AtomicInteger SEQUENCE = new AtomicInteger(300000);
+	// 防反爬虫
+	private final static BlockingQueue<TvMaoCrawlTask> TV_MAO_PROGRAM_TABLE_CRAWL_QUEUE = new ArrayBlockingQueue<TvMaoCrawler.TvMaoCrawlTask>(
+			2);
 
 	@Override
 	public String getCrawlerName() {
@@ -142,7 +147,7 @@ class TvMaoCrawler extends AbstractCrawler {
 		logger.info("crawl all tv station from files.");
 		List<TvStation> resultList = new ArrayList<TvStation>();
 		ExecutorService executorService = Executors
-				.newFixedThreadPool(Constant.CPU_PROCESSOR_NUM * 2);
+				.newFixedThreadPool(Constant.CPU_PROCESSOR_NUM);
 		CompletionService<List<TvStation>> completionService = new ExecutorCompletionService<List<TvStation>>(
 				executorService);
 		int size = files == null ? 0 : files.length;
@@ -228,10 +233,10 @@ class TvMaoCrawler extends AbstractCrawler {
 				.getByXPath("//div[@class='chlsnav']/div[@class='pbar']/b");
 		HtmlBold hb = (HtmlBold) elements.get(0);
 		String classify = hb.getTextContent().trim();
-		List<TvStation> stationList = parseTvStation(html, city);
-		logger.debug("tv station crawled." + stationList);
 		MyTvUtils.outputCrawlData(getCrawlerName(), html,
 				getCrawlFileName(city, classify));
+		List<TvStation> stationList = parseTvStation(html, city);
+		logger.debug("tv station crawled." + stationList);
 		return stationList;
 	}
 
@@ -241,14 +246,36 @@ class TvMaoCrawler extends AbstractCrawler {
 			logger.debug("station is null while crawl program table.");
 			return null;
 		}
+
 		Date dateObj = DateUtils.string2Date(date, "yyyy-MM-dd");
 		if (dateObj == null) {
 			logger.debug("date is null while crawl program table of "
 					+ station.getName());
 			return null;
 		}
-		String stationName = station.getName();
 		String queryDate = DateUtils.date2String(dateObj, "yyyy-MM-dd");
+		TvMaoCrawlTask task = new TvMaoCrawlTask();
+		task.date = queryDate;
+		task.tvStation = station;
+		try {
+			logger.info("crawl task of tv mao program table queue: "
+					+ TV_MAO_PROGRAM_TABLE_CRAWL_QUEUE.size());
+			TV_MAO_PROGRAM_TABLE_CRAWL_QUEUE.put(task);
+		} catch (InterruptedException e) {
+			// do nothing
+		}
+		task = TV_MAO_PROGRAM_TABLE_CRAWL_QUEUE.poll();
+		if (task != null) {
+			return crawlProgramTable(task);
+		}
+		return null;
+	}
+
+	private List<ProgramTable> crawlProgramTable(TvMaoCrawlTask task) {
+		TvStation station = task.tvStation;
+		String queryDate = task.date;
+		String stationName = station.getName();
+
 		logger.info("crawl program table of " + stationName + " at "
 				+ queryDate);
 		try {
@@ -315,7 +342,7 @@ class TvMaoCrawler extends AbstractCrawler {
 				+ stationName);
 		for (CrawlEventListener listener : listeners) {
 			listener.crawlEnd(new ProgramTableCrawlEndEvent(this, ptList,
-					station.getName(), date));
+					station.getName(), queryDate));
 		}
 		return ptList;
 	}
@@ -636,6 +663,11 @@ class TvMaoCrawler extends AbstractCrawler {
 			return 7;
 		}
 		throw new MyTvException("invalid week. " + weekString);
+	}
+
+	private class TvMaoCrawlTask {
+		private TvStation tvStation;
+		private String date;
 	}
 
 }

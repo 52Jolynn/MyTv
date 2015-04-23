@@ -86,8 +86,8 @@ public class EpgCrawler extends AbstractCrawler {
 		}
 		HtmlPage htmlPage = (HtmlPage) WebCrawler.crawl(getUrl());
 		html = htmlPage.asXml();
-		List<TvStation> stationList = parseTvStation(html);
 		MyTvUtils.outputCrawlData(getCrawlerName(), html, getCrawlFileName());
+		List<TvStation> stationList = parseTvStation(html);
 		for (CrawlEventListener listener : listeners) {
 			listener.crawlEnd(new AllTvStationCrawlEndEvent(this, stationList));
 		}
@@ -238,10 +238,10 @@ public class EpgCrawler extends AbstractCrawler {
 			}
 		}
 		String html = htmlPage.asXml();
-		List<ProgramTable> ptList = parseProgramTable(html);
 		MyTvUtils.outputCrawlData(queryDate, html, queryDate
 				+ Constant.UNDERLINE + getCrawlerName() + Constant.UNDERLINE
 				+ stationName);
+		List<ProgramTable> ptList = parseProgramTable(html);
 		return ptList;
 	}
 

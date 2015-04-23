@@ -25,7 +25,7 @@ import com.laudandjolynn.mytv.datasource.TvDaoImpl;
 import com.laudandjolynn.mytv.event.CrawlEvent;
 import com.laudandjolynn.mytv.event.CrawlEventListener;
 import com.laudandjolynn.mytv.event.CrawlEventListenerAdapter;
-import com.laudandjolynn.mytv.event.ProgramTableFoundEvent;
+import com.laudandjolynn.mytv.event.ProgramTableCrawlEndEvent;
 import com.laudandjolynn.mytv.event.TvStationFoundEvent;
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
@@ -236,11 +236,13 @@ public class TvServiceImpl implements TvService {
 		crawler.registerCrawlEventListener(new CrawlEventListenerAdapter() {
 
 			@Override
-			public void itemFound(CrawlEvent event) {
-				if (event instanceof ProgramTableFoundEvent) {
-					ProgramTable item = ((ProgramTableFoundEvent) event)
-							.getItem();
-					save(item);
+			public void crawlEnd(CrawlEvent event) {
+				if (event instanceof ProgramTableCrawlEndEvent) {
+					List<ProgramTable> resultList = ((ProgramTableCrawlEndEvent) event)
+							.getReturnValue();
+					ProgramTable[] resultArray = new ProgramTable[resultList
+							.size()];
+					save(resultList.toArray(resultArray));
 				}
 			}
 		});
@@ -268,6 +270,8 @@ public class TvServiceImpl implements TvService {
 				if (event instanceof TvStationFoundEvent) {
 					TvStation item = ((TvStationFoundEvent) event).getItem();
 					save(item);
+					// 保存之后再写入缓存，因为持久化前会判断电视台是否已经存在
+					MemoryCache.getInstance().addCache(item);
 				}
 			}
 		});
