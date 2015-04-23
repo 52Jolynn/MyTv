@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.laudandjolynn.mytv.crawler.Crawler;
-import com.laudandjolynn.mytv.crawler.CrawlerManager;
+import com.laudandjolynn.mytv.crawler.MyTvCrawlerManager;
 import com.laudandjolynn.mytv.datasource.TvDao;
 import com.laudandjolynn.mytv.datasource.TvDaoImpl;
 import com.laudandjolynn.mytv.event.CrawlEvent;
@@ -232,7 +232,7 @@ public class TvServiceImpl implements TvService {
 	public List<ProgramTable> crawlProgramTable(String stationName,
 			String date, CrawlEventListener... listeners) {
 		TvStation tvStation = getStation(stationName);
-		Crawler crawler = CrawlerManager.getInstance().getCrawler();
+		Crawler crawler = MyTvCrawlerManager.getInstance().newCrawler();
 		crawler.registerCrawlEventListener(new CrawlEventListenerAdapter() {
 
 			@Override
@@ -260,7 +260,7 @@ public class TvServiceImpl implements TvService {
 	 */
 	@Override
 	public List<TvStation> crawlAllTvStation(CrawlEventListener... listeners) {
-		Crawler crawler = CrawlerManager.getInstance().getCrawler();
+		Crawler crawler = MyTvCrawlerManager.getInstance().newCrawler();
 		crawler.registerCrawlEventListener(new CrawlEventListenerAdapter() {
 
 			@Override

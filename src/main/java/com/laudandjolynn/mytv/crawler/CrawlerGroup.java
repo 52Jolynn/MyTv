@@ -33,17 +33,17 @@ public class CrawlerGroup extends AbstractCrawler {
 	private final static String CRAWLER_GROUP_NAME = "crawlergroup";
 	private final static Logger logger = LoggerFactory
 			.getLogger(CrawlerGroup.class);
+	private CrawlEventListener listener = null;
 
 	public CrawlerGroup() {
-		registerCrawlEventListener(new CrawlEventListenerAdapter() {
+		this.listener = new CrawlEventListenerAdapter() {
 			@Override
 			public void itemFound(CrawlEvent event) {
 				for (CrawlEventListener listener : listeners) {
 					listener.itemFound(event);
 				}
 			}
-
-		});
+		};
 	}
 
 	/**
@@ -62,6 +62,7 @@ public class CrawlerGroup extends AbstractCrawler {
 	 */
 	public void addCrawler(Crawler crawler) {
 		this.crawlers.add(crawler);
+		crawler.registerCrawlEventListener(listener);
 	}
 
 	/**

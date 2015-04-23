@@ -312,9 +312,7 @@ public class Main {
 				@Override
 				public void crawlEnd(CrawlEvent event) {
 					if (event instanceof AllTvStationCrawlEndEvent) {
-						executorService.shutdown();
-						data.writeData(null, Constant.XML_TAG_STATION, "true");
-						data.writeData(null, Constant.XML_TAG_PROGRAM, "true");
+						executorService.shutdown();						
 					}
 				}
 			};
@@ -322,6 +320,8 @@ public class Main {
 		if (!data.isStationCrawlerInited()) {
 			// 首次抓取
 			tvService.crawlAllTvStation(listener);
+			data.writeData(null, Constant.XML_TAG_STATION, "true");
+			data.writeData(null, Constant.XML_TAG_PROGRAM, "true");
 		}
 
 		// 启动每天定时任务
