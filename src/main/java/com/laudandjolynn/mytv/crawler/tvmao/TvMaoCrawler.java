@@ -121,8 +121,7 @@ public class TvMaoCrawler extends AbstractCrawler {
 				resultList.addAll(getAllTvStationOfCity(htmlPage, city));
 			} else {
 				String href = anchor.getHrefAttribute();
-				logger.debug("a city program table of tvmao: " + city
-						+ ", url: " + href);
+				logger.debug("a city of tvmao: " + city + ", url: " + href);
 				try {
 					Thread.sleep(generateRandomSleepTime());
 				} catch (InterruptedException e) {
@@ -169,7 +168,7 @@ public class TvMaoCrawler extends AbstractCrawler {
 						logger.error("read as xml error: " + filePath, e);
 						return null;
 					}
-					return parseTvStation(html, city);
+					return parseTvStation(city, html);
 				}
 			};
 			completionService.submit(task);
@@ -235,7 +234,7 @@ public class TvMaoCrawler extends AbstractCrawler {
 		String classify = hb.getTextContent().trim();
 		MyTvUtils.outputCrawlData(getCrawlerName(), html,
 				getCrawlFileName(city, classify));
-		List<TvStation> stationList = parseTvStation(html, city);
+		List<TvStation> stationList = parseTvStation(city, html);
 		logger.debug("tv station crawled." + stationList);
 		return stationList;
 	}
@@ -258,15 +257,19 @@ public class TvMaoCrawler extends AbstractCrawler {
 		task.date = queryDate;
 		task.tvStation = station;
 		try {
-			logger.info("crawl task of tv mao program table queue: "
+			logger.debug("crawl task of tv mao program table queue: "
 					+ TV_MAO_PROGRAM_TABLE_CRAWL_QUEUE.size());
 			TV_MAO_PROGRAM_TABLE_CRAWL_QUEUE.put(task);
 		} catch (InterruptedException e) {
 			// do nothing
 		}
-		task = TV_MAO_PROGRAM_TABLE_CRAWL_QUEUE.poll();
+		task = TV_MAO_PROGRAM_TABLE_CRAWL_QUEUE.peek();
 		if (task != null) {
-			return crawlProgramTable(task);
+			List<ProgramTable> resultList = crawlProgramTable(task);
+			TV_MAO_PROGRAM_TABLE_CRAWL_QUEUE.remove(task);
+			logger.debug("crawl task of tv mao program table queue: "
+					+ TV_MAO_PROGRAM_TABLE_CRAWL_QUEUE.size());
+			return resultList;
 		}
 		return null;
 	}
@@ -539,6 +542,7 @@ public class TvMaoCrawler extends AbstractCrawler {
 	/**
 	 * 解析电视台对象
 	 * 
+	 * @param city
 	 * @param html
 	 * @return
 	 */
