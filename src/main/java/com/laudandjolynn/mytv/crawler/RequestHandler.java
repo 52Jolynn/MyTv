@@ -69,6 +69,7 @@ public class RequestHandler {
 	 */
 	public List<ProgramTable> queryProgramTable(String stationOrDisplayName,
 			String classify, String date) {
+		// 排队处理
 		TvStation tvStation = tvService.getStation(stationOrDisplayName);
 		if (tvStation == null) {
 			tvStation = tvService.getStationByDisplayName(stationOrDisplayName,

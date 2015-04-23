@@ -313,15 +313,15 @@ public class Main {
 				public void crawlEnd(CrawlEvent event) {
 					if (event instanceof AllTvStationCrawlEndEvent) {
 						executorService.shutdown();
+						data.writeData(null, Constant.XML_TAG_STATION, "true");
+						data.writeData(null, Constant.XML_TAG_PROGRAM, "true");
 					}
 				}
 			};
-			data.writeData(null, Constant.XML_TAG_PROGRAM, "true");
 		}
 		if (!data.isStationCrawlerInited()) {
 			// 首次抓取
 			tvService.crawlAllTvStation(listener);
-			data.writeData(null, Constant.XML_TAG_STATION, "true");
 		}
 
 		// 启动每天定时任务
@@ -360,7 +360,8 @@ public class Main {
 	private static void crawlAllProgramTable(final String date,
 			TvService tvService) {
 		List<TvStation> stationList = tvService.getAllCrawlableStation();
-		ExecutorService executorService = Executors.newFixedThreadPool(2);
+		ExecutorService executorService = Executors
+				.newFixedThreadPool(Constant.CPU_PROCESSOR_NUM * 2);
 		int size = stationList == null ? 0 : stationList.size();
 		for (int i = 0; i < size; i++) {
 			final TvStation tvStation = stationList.get(i);
