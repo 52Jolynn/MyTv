@@ -19,7 +19,7 @@ import java.rmi.RemoteException;
 import java.util.List;
 
 import com.alibaba.fastjson.JSON;
-import com.laudandjolynn.mytv.crawler.CrawlerTaskManager;
+import com.laudandjolynn.mytv.crawler.RequestHandler;
 import com.laudandjolynn.mytv.exception.MyTvException;
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
@@ -53,7 +53,7 @@ public class JolynnTvImpl implements JolynnTv {
 				|| !MyTvUtils.checkInvalidString(classify)) {
 			throw new MyTvException("invalid stationName: " + stationName);
 		}
-		List<ProgramTable> ptList = CrawlerTaskManager.getIntance()
+		List<ProgramTable> ptList = RequestHandler.getIntance()
 				.queryProgramTable(stationName, classify, date);
 		return JSON.toJSONString(ptList);
 	}

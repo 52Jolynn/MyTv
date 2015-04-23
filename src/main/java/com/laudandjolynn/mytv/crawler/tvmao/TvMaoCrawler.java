@@ -15,11 +15,13 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.nodes.Node;
+import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +31,12 @@ import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
 import com.gargoylesoftware.htmlunit.html.HtmlBold;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.laudandjolynn.mytv.crawler.AbstractCrawler;
-import com.laudandjolynn.mytv.crawler.Parser;
+import com.laudandjolynn.mytv.event.AllTvStationCrawlEndEvent;
+import com.laudandjolynn.mytv.event.CrawlEventListener;
+import com.laudandjolynn.mytv.event.ProgramTableCrawlEndEvent;
+import com.laudandjolynn.mytv.event.ProgramTableFoundEvent;
+import com.laudandjolynn.mytv.event.TvStationFoundEvent;
+import com.laudandjolynn.mytv.exception.MyTvException;
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
 import com.laudandjolynn.mytv.utils.Constant;
@@ -51,10 +58,7 @@ class TvMaoCrawler extends AbstractCrawler {
 	private final static String TV_MAO_URL = TV_MAO_URL_PREFIX
 			+ "/program/channels";
 	private final static String TV_MAO_NAME = "tvmao";
-
-	public TvMaoCrawler(Parser parser) {
-		super(parser);
-	}
+	private final static AtomicInteger SEQUENCE = new AtomicInteger(300000);
 
 	@Override
 	public String getCrawlerName() {
@@ -70,113 +74,126 @@ class TvMaoCrawler extends AbstractCrawler {
 	public List<TvStation> crawlAllTvStation() {
 		String tvMaoFile = Constant.CRAWL_FILE_PATH + getCrawlerName();
 		File file = new File(tvMaoFile);
-		ExecutorService executorService = Executors
-				.newFixedThreadPool(Constant.CPU_PROCESSOR_NUM);
-		CompletionService<List<TvStation>> stationCompletionService = new ExecutorCompletionService<List<TvStation>>(
-				executorService);
-		int size = 0;
-		List<TvStation> resultList = new ArrayList<TvStation>();
+		List<TvStation> resultList = null;
 		if (file.exists() && file.listFiles().length > 0) {
-			logger.info("crawl all tv station from files.");
-			File[] files = file.listFiles();
-			size = files == null ? 0 : files.length;
-			for (int i = 0; i < size; i++) {
-				final File f = files[i];
-				Callable<List<TvStation>> task = new Callable<List<TvStation>>() {
-					@Override
-					public List<TvStation> call() throws Exception {
-						try {
-							String html = MyTvUtils.readAsHtml(f.getPath());
-							logger.debug("parse tv station file: "
-									+ f.getPath());
-							return parser.parseTvStation(html);
-						} catch (IOException e) {
-							logger.error("read as xml error: " + f.getPath(), e);
-						}
-						return null;
-					}
-				};
-				stationCompletionService.submit(task);
-			}
+			resultList = crawlAllTvStationFromFile(file.listFiles());
 		} else {
-			logger.info("crawl all tv station from " + getUrl() + ".");
-			try {
-				Thread.sleep(generateRandomSleepTime());
-			} catch (InterruptedException e) {
-				// do nothing
+			resultList = crawlAllTvStationFromWeb();
+		}
+		for (CrawlEventListener listener : listeners) {
+			listener.crawlEnd(new AllTvStationCrawlEndEvent(this, resultList));
+		}
+		return resultList;
+	}
+
+	/**
+	 * 从web抓取数据
+	 * 
+	 * @return
+	 */
+	private List<TvStation> crawlAllTvStationFromWeb() {
+		logger.info("crawl all tv station from " + getUrl() + ".");
+		List<TvStation> resultList = new ArrayList<TvStation>();
+		try {
+			Thread.sleep(generateRandomSleepTime());
+		} catch (InterruptedException e) {
+			// do nothing
+		}
+		final HtmlPage htmlPage = (HtmlPage) WebCrawler.crawl(getUrl());
+		List<?> elements = htmlPage
+				.getByXPath("//div[@class='pgnav_wrap']/table[@class='pgnav']//a");
+		int size = elements == null ? 0 : elements.size();
+		for (int i = 0; i < size; i++) {
+			final HtmlAnchor anchor = (HtmlAnchor) elements.get(i);
+			if (!anchor.getAttribute("href").startsWith("/program/")) {
+				continue;
 			}
-			final HtmlPage htmlPage = (HtmlPage) WebCrawler.crawl(getUrl());
-			List<?> elements = htmlPage
-					.getByXPath("//div[@class='pgnav_wrap']/table[@class='pgnav']//a");
-			int ssize = size = elements == null ? 0 : elements.size();
-			for (int i = 0; i < ssize; i++) {
-				final HtmlAnchor anchor = (HtmlAnchor) elements.get(i);
-				if (!anchor.getAttribute("href").startsWith("/program/")) {
-					size--;
-					continue;
+			final String city = anchor.getTextContent().trim();
+			if ("CCTV".equals(city)) {
+				logger.debug("a city program table of tvmao: " + city
+						+ ", url: " + anchor.getHrefAttribute());
+				resultList.addAll(getTvStations(htmlPage, city));
+				resultList.addAll(getAllTvStationOfCity(htmlPage, city));
+			} else {
+				String href = anchor.getHrefAttribute();
+				logger.debug("a city program table of tvmao: " + city
+						+ ", url: " + href);
+				try {
+					Thread.sleep(generateRandomSleepTime());
+				} catch (InterruptedException e) {
+					// do nothing
 				}
-				final String city = anchor.getTextContent().trim();
-				if ("CCTV".equals(city)) {
-					Callable<List<TvStation>> task = new Callable<List<TvStation>>() {
-						@Override
-						public List<TvStation> call() throws Exception {
-							logger.debug("a city program table of tvmao: "
-									+ city + ", url: "
-									+ anchor.getHrefAttribute());
-							List<TvStation> stationList = new ArrayList<TvStation>();
-							stationList.addAll(getTvStations(htmlPage, city));
-							stationList.addAll(getAllTvStationOfCity(htmlPage,
-									city));
-							return stationList;
-						}
-					};
-					stationCompletionService.submit(task);
-				} else {
-					Callable<List<TvStation>> task = new Callable<List<TvStation>>() {
-						@Override
-						public List<TvStation> call() throws Exception {
-							String href = anchor.getHrefAttribute();
-							logger.debug("a city program table of tvmao: "
-									+ city + ", url: " + href);
-							try {
-								Thread.sleep(generateRandomSleepTime());
-							} catch (InterruptedException e) {
-								// do nothing
-							}
-							HtmlPage hp = (HtmlPage) WebCrawler
-									.crawl(TV_MAO_URL_PREFIX + href);
-							List<TvStation> stationList = new ArrayList<TvStation>();
-							stationList.addAll(getTvStations(hp, city));
-							stationList.addAll(getAllTvStationOfCity(hp, city));
-							return stationList;
-						}
-					};
-					stationCompletionService.submit(task);
-				}
+				HtmlPage hp = (HtmlPage) WebCrawler.crawl(TV_MAO_URL_PREFIX
+						+ href);
+				resultList.addAll(getTvStations(hp, city));
+				resultList.addAll(getAllTvStationOfCity(hp, city));
 			}
 		}
+		return resultList;
+	}
+
+	/**
+	 * 从本地文件抓取数据
+	 * 
+	 * @param files
+	 * @return
+	 */
+	private List<TvStation> crawlAllTvStationFromFile(File[] files) {
+		logger.info("crawl all tv station from files.");
+		List<TvStation> resultList = new ArrayList<TvStation>();
+		ExecutorService executorService = Executors
+				.newFixedThreadPool(Constant.CPU_PROCESSOR_NUM * 2);
+		CompletionService<List<TvStation>> completionService = new ExecutorCompletionService<List<TvStation>>(
+				executorService);
+		int size = files == null ? 0 : files.length;
+		for (int i = 0; i < size; i++) {
+			final File file = files[i];
+			Callable<List<TvStation>> task = new Callable<List<TvStation>>() {
+				@Override
+				public List<TvStation> call() throws Exception {
+					String filePath = file.getPath();
+					String classifyEnds = filePath.substring(0,
+							filePath.lastIndexOf(Constant.UNDERLINE));
+					String city = classifyEnds.substring(classifyEnds
+							.lastIndexOf(Constant.UNDERLINE));
+					String html = null;
+					try {
+						logger.debug("parse tv station file: " + filePath);
+						html = MyTvUtils.readAsHtml(filePath);
+					} catch (IOException e) {
+						logger.error("read as xml error: " + filePath, e);
+						return null;
+					}
+					return parseTvStation(html, city);
+				}
+			};
+			completionService.submit(task);
+		}
+		executorService.shutdown();
 		int count = 0;
 		while (count < size) {
 			try {
-				Future<List<TvStation>> future = stationCompletionService
-						.take();
-				List<TvStation> stationList = future.get();
+				List<TvStation> stationList = completionService.take().get();
 				if (stationList != null) {
 					resultList.addAll(stationList);
 				}
 			} catch (InterruptedException e) {
-				logger.error("crawl task of all station was interrupted.", e);
+				logger.error("crawl all tv station task interrupted.", e);
 			} catch (ExecutionException e) {
-				logger.error(
-						"error occur while execute crawl task of all station.",
-						e);
+				logger.error("crawl all tv station task executed fail.", e);
 			}
 			count++;
 		}
-		executorService.shutdown();
 		return resultList;
 	}
 
+	/**
+	 * 抓取指定城市下的所有电视台
+	 * 
+	 * @param htmlPage
+	 * @param city
+	 * @return
+	 */
 	private List<TvStation> getAllTvStationOfCity(HtmlPage htmlPage, String city) {
 		List<TvStation> resultList = new ArrayList<TvStation>();
 		List<?> elements = htmlPage
@@ -197,19 +214,24 @@ class TvMaoCrawler extends AbstractCrawler {
 		return resultList;
 	}
 
+	/**
+	 * 解析指定城市下的电视台
+	 * 
+	 * @param htmlPage
+	 * @param city
+	 *            所属城市
+	 * @return
+	 */
 	private List<TvStation> getTvStations(HtmlPage htmlPage, String city) {
 		String html = htmlPage.asXml();
 		List<?> elements = htmlPage
 				.getByXPath("//div[@class='chlsnav']/div[@class='pbar']/b");
 		HtmlBold hb = (HtmlBold) elements.get(0);
 		String classify = hb.getTextContent().trim();
-		List<TvStation> stationList = parser.parseTvStation(html);
-		for (TvStation station : stationList) {
-			station.setCity(city);
-		}
-		logger.debug("tv station found." + stationList);
-		MyTvUtils.outputCrawlData(getCrawlerName(), html, getCrawlerName()
-				+ Constant.UNDERLINE + classify);
+		List<TvStation> stationList = parseTvStation(html, city);
+		logger.debug("tv station crawled." + stationList);
+		MyTvUtils.outputCrawlData(getCrawlerName(), html,
+				getCrawlFileName(city, classify));
 		return stationList;
 	}
 
@@ -287,10 +309,14 @@ class TvMaoCrawler extends AbstractCrawler {
 		}
 
 		String html = htmlPage.asXml();
-		List<ProgramTable> ptList = parser.parseProgramTable(html);
+		List<ProgramTable> ptList = parseProgramTable(html);
 		MyTvUtils.outputCrawlData(queryDate, html, queryDate
 				+ Constant.UNDERLINE + getCrawlerName() + Constant.UNDERLINE
 				+ stationName);
+		for (CrawlEventListener listener : listeners) {
+			listener.crawlEnd(new ProgramTableCrawlEndEvent(this, ptList,
+					station.getName(), date));
+		}
 		return ptList;
 	}
 
@@ -301,9 +327,7 @@ class TvMaoCrawler extends AbstractCrawler {
 		if (city == null || classify == null) {
 			return false;
 		}
-		String tvMaoFile = Constant.CRAWL_FILE_PATH + getCrawlerName()
-				+ File.separator + getCrawlerName() + Constant.UNDERLINE
-				+ classify;
+		String tvMaoFile = getCrawlFilePath(station);
 		File file = new File(tvMaoFile);
 		if (file.exists()) {
 			String html = null;
@@ -335,24 +359,25 @@ class TvMaoCrawler extends AbstractCrawler {
 		HtmlPage htmlPage = (HtmlPage) WebCrawler.crawl(TV_MAO_URL);
 		try {
 			if ((htmlPage = searchStation(htmlPage, station)) != null) {
-				try {
-					Thread.sleep(generateRandomSleepTime());
-				} catch (Exception e) {
-					// do nothing
-				}
 				MyTvUtils.outputCrawlData(getCrawlerName(), htmlPage.asXml(),
-						getCrawlerName() + Constant.UNDERLINE + classify);
+						getCrawlFileName(city, classify));
 				return true;
 			}
 		} catch (Exception e) {
 			logger.error(
 					"error occur while search station: " + station.getName(), e);
-			return false;
 		}
 
 		return false;
 	}
 
+	/**
+	 * 搜索电视台在html中的位置
+	 * 
+	 * @param htmlPage
+	 * @param station
+	 * @return
+	 */
 	private HtmlPage searchStation(HtmlPage htmlPage, TvStation station) {
 		String city = station.getCity();
 		List<?> cityElements = htmlPage
@@ -438,6 +463,29 @@ class TvMaoCrawler extends AbstractCrawler {
 	}
 
 	/**
+	 * 取得将被存储的抓取文件路径
+	 * 
+	 * @param station
+	 * @return
+	 */
+	private String getCrawlFilePath(TvStation station) {
+		return Constant.CRAWL_FILE_PATH + getCrawlerName() + File.separator
+				+ getCrawlFileName(station.getCity(), station.getClassify());
+	}
+
+	/**
+	 * 取得将被存储的抓取文件名
+	 * 
+	 * @param city
+	 * @param classify
+	 * @return
+	 */
+	private String getCrawlFileName(String city, String classify) {
+		return getCrawlerName() + Constant.UNDERLINE + city
+				+ Constant.UNDERLINE + classify;
+	}
+
+	/**
 	 * 生成随机休眠时间
 	 * 
 	 * @return
@@ -445,7 +493,149 @@ class TvMaoCrawler extends AbstractCrawler {
 	private long generateRandomSleepTime() {
 		Random random = new Random();
 		int min = 1000;
-		int max = 10000;
+		int max = 3000;
 		return min + random.nextInt(max) % (max - min + 1);
 	}
+
+	private enum Week {
+		SUNDAY("星期日"), MONDAY("星期一"), TUESDAY("星期二"), WEDNESDAY("星期三"), THURSDAY(
+				"星期四"), FRIDAY("星期五"), SATURDAY("星期六");
+
+		private String value;
+
+		private Week(String value) {
+			this.value = value;
+		}
+
+	}
+
+	/**
+	 * 解析电视台对象
+	 * 
+	 * @param html
+	 * @return
+	 */
+	private List<TvStation> parseTvStation(String city, String html) {
+		Document doc = Jsoup.parse(html);
+		Elements classifyElements = doc.select("div.chlsnav div.pbar b");
+		String classify = classifyElements.get(0).text().trim();
+		List<TvStation> resultList = new ArrayList<TvStation>();
+		Elements channelElements = doc.select("div.chlsnav ul.r li");
+		for (Element element : channelElements) {
+			Element channel = element.child(0);
+			TvStation tv = new TvStation();
+			String stationName = channel.text().trim();
+			tv.setName(stationName);
+			tv.setDisplayName(stationName);
+			tv.setCity(city);
+			tv.setClassify(classify);
+			tv.setSequence(SEQUENCE.incrementAndGet());
+			for (CrawlEventListener listener : listeners) {
+				listener.itemFound(new TvStationFoundEvent(this, tv));
+			}
+			resultList.add(tv);
+		}
+		return resultList;
+	}
+
+	/**
+	 * 解析电视节目表
+	 * 
+	 * @param html
+	 * @return
+	 */
+	private List<ProgramTable> parseProgramTable(String html) {
+		Document doc = Jsoup.parse(html);
+		Elements dateElements = doc
+				.select("div.pgmain div[class=\"mt10 clear\"] b:first-child");
+		String dateAndWeek = dateElements.get(0).text().trim();
+		String[] dateAndWeekArray = dateAndWeek.split("\\s+");
+		String date = Calendar.getInstance().get(Calendar.YEAR) + "-"
+				+ dateAndWeekArray[0];
+		String weekString = dateAndWeekArray[1];
+		int week = weekStringToInt(weekString);
+		Elements stationElements = doc
+				.select("aside[class=\"related-aside rt\"] section[class=\"aside-section clear\"] div.bar");
+		String stationName = stationElements.get(0).text().trim();
+		Elements programElements = doc.select("ul#pgrow li");
+
+		List<ProgramTable> resultList = new ArrayList<ProgramTable>();
+		for (Element element : programElements) {
+			List<Node> children = element.childNodes();
+			int size = children.size();
+			if (size < 2) {
+				continue;
+			}
+
+			int i = 0;
+			// 查找节目播出时间
+			boolean foundAirTime = false;
+			for (; i < size; i++) {
+				Node child = children.get(i);
+				if (child instanceof Element
+						&& "SPAN".equalsIgnoreCase(((Element) child).tagName())) {
+					foundAirTime = true;
+					break;
+				}
+			}
+			if (!foundAirTime) {
+				logger.info("the program table of " + stationName + " at "
+						+ date + " does not exists.");
+				return resultList;
+			}
+			String airTime = ((Element) children.get(i++)).text().trim();
+			StringBuffer program = new StringBuffer();
+			// 查找节目名称
+			for (; i < size; i++) {
+				Node child = children.get(i);
+				if (child instanceof TextNode) {
+					program.append(((TextNode) child).text().trim());
+				} else if (child instanceof Element
+						&& "A".equalsIgnoreCase(((Element) child).tagName())) {
+					program.append(((Element) child).text().trim());
+					i++;
+					break;
+				}
+			}
+
+			if (i < size - 1) {
+				// 还有textnode元素
+				Node child = children.get(i);
+				if (child instanceof TextNode) {
+					program.append(((TextNode) child).text().trim());
+				}
+			}
+			ProgramTable pt = new ProgramTable();
+			pt.setAirDate(date);
+			pt.setAirTime(date + " " + airTime);
+			pt.setProgram(program.toString().trim());
+			pt.setStationName(stationName);
+			pt.setWeek(week);
+			for (CrawlEventListener listener : listeners) {
+				listener.itemFound(new ProgramTableFoundEvent(this, pt));
+			}
+			resultList.add(pt);
+		}
+		return resultList;
+	}
+
+	private int weekStringToInt(String weekString) {
+		if (Week.MONDAY.value.equals(weekString)) {
+			return 1;
+		} else if (Week.TUESDAY.value.equals(weekString)) {
+			return 2;
+		} else if (Week.WEDNESDAY.value.equals(weekString)) {
+			return 3;
+		} else if (Week.THURSDAY.value.equals(weekString)) {
+			return 4;
+		} else if (Week.FRIDAY.value.equals(weekString)) {
+			return 5;
+		} else if (Week.SATURDAY.value.equals(weekString)) {
+			return 6;
+		} else if (Week.SUNDAY.value.equals(weekString)) {
+			return 7;
+		}
+		throw new MyTvException("invalid week. " + weekString);
+	}
+
 }

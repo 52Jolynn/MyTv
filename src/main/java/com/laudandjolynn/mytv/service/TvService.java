@@ -2,6 +2,7 @@ package com.laudandjolynn.mytv.service;
 
 import java.util.List;
 
+import com.laudandjolynn.mytv.event.CrawlEventListener;
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
 
@@ -107,9 +108,11 @@ public interface TvService {
 	/**
 	 * 抓取所有电视台
 	 * 
+	 * @param listeners
+	 *            抓取事件监听器
 	 * @return
 	 */
-	public List<TvStation> crawlAllTvStation();
+	public List<TvStation> crawlAllTvStation(CrawlEventListener... listeners);
 
 	/**
 	 * 根据名称、日期抓取电视节目表
@@ -118,24 +121,11 @@ public interface TvService {
 	 *            电视台名称
 	 * @param date
 	 *            日期, yyyy-MM-dd
+	 * @param listeners
+	 *            抓取事件监听器
 	 * @return
 	 */
-	public List<ProgramTable> crawlProgramTable(String stationName, String date);
+	public List<ProgramTable> crawlProgramTable(String stationName,
+			String date, CrawlEventListener... listeners);
 
-	/**
-	 * 删除指定日期的电视节目表
-	 * 
-	 * @param date
-	 * @return
-	 */
-	public boolean deleteProgramTable(String date);
-
-	/**
-	 * 删除指定日期、名称的电视节目表
-	 * 
-	 * @param stationName
-	 * @param date
-	 * @return
-	 */
-	public boolean deleteProgramTable(String stationName, String date);
 }

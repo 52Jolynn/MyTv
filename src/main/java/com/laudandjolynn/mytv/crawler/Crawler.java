@@ -2,6 +2,7 @@ package com.laudandjolynn.mytv.crawler;
 
 import java.util.List;
 
+import com.laudandjolynn.mytv.event.CrawlEventListener;
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
 
@@ -56,4 +57,11 @@ public interface Crawler {
 	 * @param listener
 	 */
 	public void registerCrawlEventListener(CrawlEventListener listener);
+
+	/**
+	 * 删除抓取事件监听器
+	 * 
+	 * @param listener
+	 */
+	public void removeCrawlEventListener(CrawlEventListener listener);
 }

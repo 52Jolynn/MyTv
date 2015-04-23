@@ -18,9 +18,15 @@ package com.laudandjolynn.mytv.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.laudandjolynn.mytv.crawler.Crawler;
 import com.laudandjolynn.mytv.crawler.CrawlerManager;
 import com.laudandjolynn.mytv.datasource.TvDao;
 import com.laudandjolynn.mytv.datasource.TvDaoImpl;
+import com.laudandjolynn.mytv.event.CrawlEvent;
+import com.laudandjolynn.mytv.event.CrawlEventListener;
+import com.laudandjolynn.mytv.event.CrawlEventListenerAdapter;
+import com.laudandjolynn.mytv.event.ProgramTableFoundEvent;
+import com.laudandjolynn.mytv.event.TvStationFoundEvent;
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
 import com.laudandjolynn.mytv.utils.MemoryCache;
@@ -119,15 +125,19 @@ public class TvServiceImpl implements TvService {
 	@Override
 	public List<TvStation> getAllStation() {
 		List<TvStation> stationList = tvDao.getAllStation();
-		if (stationList == null || stationList.size() == 0) {
-			stationList = crawlAllTvStation();
+		if (stationList != null) {
+			MemoryCache.getInstance().addCache(stationList);
 		}
 		return stationList;
 	}
 
 	@Override
 	public List<TvStation> getAllCrawlableStation() {
-		return tvDao.getAllCrawlableStation();
+		List<TvStation> stationList = tvDao.getAllCrawlableStation();
+		if (stationList != null) {
+			MemoryCache.getInstance().addCache(stationList);
+		}
+		return stationList;
 	}
 
 	@Override
@@ -165,9 +175,9 @@ public class TvServiceImpl implements TvService {
 				tvStation = tvDao
 						.getStationByDisplayName(displayName, classify);
 			}
-		}
-		if (tvStation != null) {
-			MemoryCache.getInstance().addCache(tvStation);
+			if (tvStation != null) {
+				MemoryCache.getInstance().addCache(tvStation);
+			}
 		}
 		return tvStation;
 	}
@@ -181,11 +191,7 @@ public class TvServiceImpl implements TvService {
 	 */
 	@Override
 	public List<ProgramTable> getProgramTable(String stationName, String date) {
-		List<ProgramTable> ptList = tvDao.getProgramTable(stationName, date);
-		if (ptList == null || ptList.size() == 0) {
-			ptList = crawlProgramTable(stationName, date);
-		}
-		return ptList;
+		return tvDao.getProgramTable(stationName, date);
 	}
 
 	/**
@@ -218,56 +224,57 @@ public class TvServiceImpl implements TvService {
 	 *            电视台名称
 	 * @param date
 	 *            日期,yyyy-MM-dd
+	 * @param listeners
+	 *            抓取事件监听器
 	 * @return
 	 */
 	@Override
-	public List<ProgramTable> crawlProgramTable(String stationName, String date) {
-		List<ProgramTable> ptList = CrawlerManager.getInstance().getCrawler()
-				.crawlProgramTable(date, getStation(stationName));
-		if (ptList == null || ptList.size() == 0) {
-			return null;
+	public List<ProgramTable> crawlProgramTable(String stationName,
+			String date, CrawlEventListener... listeners) {
+		TvStation tvStation = getStation(stationName);
+		Crawler crawler = CrawlerManager.getInstance().getCrawler();
+		crawler.registerCrawlEventListener(new CrawlEventListenerAdapter() {
+
+			@Override
+			public void itemFound(CrawlEvent event) {
+				if (event instanceof ProgramTableFoundEvent) {
+					ProgramTable item = ((ProgramTableFoundEvent) event)
+							.getItem();
+					save(item);
+				}
+			}
+		});
+		for (int i = 0, length = listeners == null ? 0 : listeners.length; i < length; i++) {
+			crawler.registerCrawlEventListener(listeners[i]);
 		}
-		ProgramTable[] ptArray = new ProgramTable[ptList.size()];
-		save(ptList.toArray(ptArray));
-		return ptList;
+		return crawler.crawlProgramTable(date, tvStation);
 	}
 
 	/**
 	 * 抓取所有电视台
 	 * 
+	 * @param listeners
+	 *            抓取事件监听器
+	 * 
 	 * @return
 	 */
 	@Override
-	public List<TvStation> crawlAllTvStation() {
-		List<TvStation> stationList = CrawlerManager.getInstance().getCrawler()
-				.crawlAllTvStation();
-		if (stationList == null || stationList.size() == 0) {
-			return null;
+	public List<TvStation> crawlAllTvStation(CrawlEventListener... listeners) {
+		Crawler crawler = CrawlerManager.getInstance().getCrawler();
+		crawler.registerCrawlEventListener(new CrawlEventListenerAdapter() {
+
+			@Override
+			public void itemFound(CrawlEvent event) {
+				if (event instanceof TvStationFoundEvent) {
+					TvStation item = ((TvStationFoundEvent) event).getItem();
+					save(item);
+				}
+			}
+		});
+		for (int i = 0, length = listeners == null ? 0 : listeners.length; i < length; i++) {
+			crawler.registerCrawlEventListener(listeners[i]);
 		}
-		// 写数据到tv_station表
-		TvStation[] stationArray = new TvStation[stationList.size()];
-		save(stationList.toArray(stationArray));
-		return stationList;
+		return crawler.crawlAllTvStation();
 	}
 
-	/**
-	 * 删除指定日期的电视节目表
-	 * 
-	 * @param date
-	 * @return
-	 */
-	public boolean deleteProgramTable(String date) {
-		return tvDao.deleteProgramTable(date);
-	}
-
-	/**
-	 * 删除指定日期、名称的电视节目表
-	 * 
-	 * @param stationName
-	 * @param date
-	 * @return
-	 */
-	public boolean deleteProgramTable(String stationName, String date) {
-		return tvDao.deleteProgramTable(stationName, date);
-	}
 }

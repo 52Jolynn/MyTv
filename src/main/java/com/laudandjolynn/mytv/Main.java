@@ -21,14 +21,12 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CompletionService;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -38,8 +36,13 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.laudandjolynn.mytv.crawler.CrawlerTaskManager;
+import com.laudandjolynn.mytv.crawler.RequestHandler;
 import com.laudandjolynn.mytv.datasource.DataSourceManager;
+import com.laudandjolynn.mytv.event.AllTvStationCrawlEndEvent;
+import com.laudandjolynn.mytv.event.CrawlEvent;
+import com.laudandjolynn.mytv.event.CrawlEventListener;
+import com.laudandjolynn.mytv.event.CrawlEventListenerAdapter;
+import com.laudandjolynn.mytv.event.TvStationFoundEvent;
 import com.laudandjolynn.mytv.exception.MyTvException;
 import com.laudandjolynn.mytv.model.TvStation;
 import com.laudandjolynn.mytv.service.TvService;
@@ -249,99 +252,88 @@ public class Main {
 		if (stationList != null) {
 			MemoryCache.getInstance().addCache(stationList);
 		}
+		// 启动抓取任务
 		new Thread(new Runnable() {
 
 			@Override
 			public void run() {
-				ExecutorService executorService = Executors
-						.newFixedThreadPool(1);
-				CompletionService<Void> completionService = new ExecutorCompletionService<Void>(
-						executorService);
-				Callable<Void> stationTask = null;
-				if (!data.isStationCrawlerInited()) {
-					stationTask = new Callable<Void>() {
-						@Override
-						public Void call() throws Exception {
-							// 首次抓取
-							List<TvStation> stationList = tvService
-									.crawlAllTvStation();
-							if (stationList != null) {
-								MemoryCache.getInstance().addCache(stationList);
-							}
-							data.writeData(null, Constant.XML_TAG_STATION,
-									"true");
-							return null;
-						}
-					};
-					completionService.submit(stationTask);
-				}
-
-				if (!data.isProgramCrawlerInited()) {
-					Callable<Void> programTask = new Callable<Void>() {
-						@Override
-						public Void call() throws Exception {
-							// 保存当天电视节目表
-							String today = DateUtils.today();
-							logger.info("query program table of " + today);
-							CrawlerTaskManager.getIntance()
-									.queryAllProgramTable(today);
-							// 抓取本周其他日期的电视节目表
-							String[] weeks = DateUtils.getWeek(new Date(),
-									"yyyy-MM-dd");
-							for (String date : weeks) {
-								if (data.equals(today)) {
-									continue;
-								}
-								logger.info("query program table of " + date);
-								CrawlerTaskManager.getIntance()
-										.queryAllProgramTable(date);
-							}
-							data.writeData(null, Constant.XML_TAG_PROGRAM,
-									"true");
-							return null;
-						}
-					};
-					if (stationTask != null) {
-						try {
-							completionService.take().get();
-						} catch (InterruptedException e) {
-							throw new MyTvException(
-									"the crawl task of station is interrupted.",
-									e);
-						} catch (ExecutionException e) {
-							throw new MyTvException(
-									"the crawl task of station execute fail.",
-									e);
-						}
-						completionService.submit(programTask);
-					} else {
-						completionService.submit(programTask);
-					}
-					try {
-						completionService.take().get();
-					} catch (InterruptedException e) {
-						throw new MyTvException(
-								"the crawl task of program table is interrupted.",
-								e);
-					} catch (ExecutionException e) {
-						throw new MyTvException(
-								"the crawl task of program table is interrupted.",
-								e);
-					}
-					// 启动每天定时任务
-					logger.info("create everyday crawl task.");
-					createEverydayCron(data);
-					executorService.shutdown();
-				}
+				createCrawlTask(data, tvService);
 			}
 		}).start();
+	}
 
+	/**
+	 * 抓取任务
+	 * 
+	 * @param data
+	 */
+	private static void createCrawlTask(final MyTvData data,
+			final TvService tvService) {
+		CrawlEventListener listener = null;
+		if (!data.isProgramCrawlerInited()) {
+			final String[] weeks = DateUtils.getWeek(new Date(), "yyyy-MM-dd");
+			final String today = DateUtils.today();
+			Arrays.sort(weeks, new Comparator<String>() {
+				@Override
+				public int compare(String o1, String o2) {
+					if (o1.equals(today)) {
+						return -1;
+					} else if (o2.equals(today)) {
+						return 1;
+					} else {
+						return o1.compareTo(o2);
+					}
+				}
+			});
+			final ExecutorService executorService = Executors
+					.newFixedThreadPool(Constant.CPU_PROCESSOR_NUM * 2);
+			listener = new CrawlEventListenerAdapter() {
+
+				@Override
+				public void itemFound(CrawlEvent event) {
+					if (event instanceof TvStationFoundEvent) {
+						final TvStation item = (TvStation) ((TvStationFoundEvent) event)
+								.getItem();
+						MemoryCache.getInstance().addCache(item);
+						for (final String date : weeks) {
+							executorService.submit(new Runnable() {
+
+								@Override
+								public void run() {
+									RequestHandler.getIntance()
+											.queryProgramTable(item.getName(),
+													item.getClassify(), date);
+								}
+							});
+						}
+					}
+				}
+
+				@Override
+				public void crawlEnd(CrawlEvent event) {
+					if (event instanceof AllTvStationCrawlEndEvent) {
+						executorService.shutdown();
+					}
+				}
+			};
+			data.writeData(null, Constant.XML_TAG_PROGRAM, "true");
+		}
+		if (!data.isStationCrawlerInited()) {
+			// 首次抓取
+			tvService.crawlAllTvStation(listener);
+			data.writeData(null, Constant.XML_TAG_STATION, "true");
+		}
+
+		// 启动每天定时任务
+		logger.info("create everyday crawl task.");
+		createEverydayCron(data, tvService);
 	}
 
 	/**
 	 * 创建每天定时任务
 	 */
-	private static void createEverydayCron(final MyTvData data) {
+	private static void createEverydayCron(final MyTvData data,
+			final TvService tvService) {
 		ScheduledExecutorService scheduled = new ScheduledThreadPoolExecutor(1);
 		Date today = new Date();
 		String nextWeek = DateUtils.date2String(DateUtils.nextWeek(today),
@@ -354,9 +346,34 @@ public class Main {
 
 			@Override
 			public void run() {
-				CrawlerTaskManager.getIntance().queryAllProgramTable(
-						DateUtils.today());
+				crawlAllProgramTable(DateUtils.today(), tvService);
 			}
 		}, initDelay, 86460, TimeUnit.SECONDS);
+	}
+
+	/**
+	 * 抓取所有电视台节目表
+	 * 
+	 * @param date
+	 * @param tvService
+	 */
+	private static void crawlAllProgramTable(final String date,
+			TvService tvService) {
+		List<TvStation> stationList = tvService.getAllCrawlableStation();
+		ExecutorService executorService = Executors.newFixedThreadPool(2);
+		int size = stationList == null ? 0 : stationList.size();
+		for (int i = 0; i < size; i++) {
+			final TvStation tvStation = stationList.get(i);
+			Runnable task = new Runnable() {
+
+				@Override
+				public void run() {
+					RequestHandler.getIntance().queryProgramTable(
+							tvStation.getName(), tvStation.getClassify(), date);
+				}
+			};
+			executorService.submit(task);
+		}
+		executorService.shutdown();
 	}
 }

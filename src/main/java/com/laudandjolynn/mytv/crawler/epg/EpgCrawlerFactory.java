@@ -12,6 +12,6 @@ import com.laudandjolynn.mytv.crawler.CrawlerFactory;
 public class EpgCrawlerFactory implements CrawlerFactory {
 	@Override
 	public Crawler createCrawler() {
-		return new EpgCrawler(new EpgParser());
+		return new EpgCrawler();
 	}
 }

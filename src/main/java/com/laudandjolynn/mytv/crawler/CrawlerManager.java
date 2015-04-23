@@ -2,6 +2,8 @@ package com.laudandjolynn.mytv.crawler;
 
 import java.util.Iterator;
 
+import com.laudandjolynn.mytv.event.CrawlEventListener;
+
 /**
  * @author: Laud
  * @email: htd0324@gmail.com
@@ -9,7 +11,7 @@ import java.util.Iterator;
  * @copyright: www.laudandjolynn.com
  */
 public class CrawlerManager {
-	private Crawler crawler = new CrawlerGroupFactory().createCrawler();
+	private Crawler crawler = new MyTvCrawlerFactory().createCrawler();
 
 	private CrawlerManager() {
 	}
@@ -38,6 +40,24 @@ public class CrawlerManager {
 	 */
 	public void removeCrawler(Crawler crawler) {
 		((CrawlerGroup) this.crawler).removeCrawler(crawler);
+	}
+
+	/**
+	 * 添加抓取事件监听器
+	 * 
+	 * @param listener
+	 */
+	public void addCrawlEventListener(CrawlEventListener listener) {
+		this.crawler.registerCrawlEventListener(listener);
+	}
+
+	/**
+	 * 删除抓取事件监听器
+	 * 
+	 * @param listener
+	 */
+	public void removeCrawlEventListener(CrawlEventListener listener) {
+		this.crawler.removeCrawlEventListener(listener);
 	}
 
 	/**

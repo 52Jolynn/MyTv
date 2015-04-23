@@ -12,6 +12,6 @@ import com.laudandjolynn.mytv.crawler.CrawlerFactory;
 public class TvMaoCrawlerFactory implements CrawlerFactory {
 	@Override
 	public Crawler createCrawler() {
-		return new TvMaoCrawler(new TvMaoParser());
+		return new TvMaoCrawler();
 	}
 }

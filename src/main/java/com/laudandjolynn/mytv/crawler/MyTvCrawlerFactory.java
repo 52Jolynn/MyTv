@@ -9,7 +9,7 @@ import com.laudandjolynn.mytv.crawler.tvmao.TvMaoCrawlerFactory;
  * @date: 2015年4月16日 下午2:57:53
  * @copyright: www.laudandjolynn.com
  */
-public class CrawlerGroupFactory implements CrawlerFactory {
+public class MyTvCrawlerFactory implements CrawlerFactory {
 	@Override
 	public Crawler createCrawler() {
 		CrawlerGroup cralwerGroup = new CrawlerGroup();

@@ -1,4 +1,4 @@
-package com.laudandjolynn.mytv.crawler;
+package com.laudandjolynn.mytv.event;
 
 import java.util.EventObject;
 
