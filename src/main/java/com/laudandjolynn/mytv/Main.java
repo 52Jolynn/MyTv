@@ -344,9 +344,10 @@ public class Main {
 	private static void createEverydayCron(final MyTvData data) {
 		ScheduledExecutorService scheduled = new ScheduledThreadPoolExecutor(1);
 		Date today = new Date();
-		long initDelay = (DateUtils.string2Date(
-				DateUtils.nextWeek(today) + " 00:00:00").getTime() - today
-				.getTime()) / 1000;
+		String nextWeek = DateUtils.date2String(DateUtils.nextWeek(today),
+				"yyyy-MM-dd");
+		long initDelay = (DateUtils.string2Date(nextWeek + " 00:00:00")
+				.getTime() - today.getTime()) / 1000;
 		logger.info("cron crawler task will be automatic start after "
 				+ initDelay + " seconds.");
 		scheduled.scheduleWithFixedDelay(new Runnable() {
