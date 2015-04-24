@@ -17,8 +17,10 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -145,8 +147,11 @@ public class TvMaoCrawler extends AbstractCrawler {
 	private List<TvStation> crawlAllTvStationFromFile(File[] files) {
 		logger.info("crawl all tv station from files.");
 		List<TvStation> resultList = new ArrayList<TvStation>();
-		ExecutorService executorService = Executors
-				.newFixedThreadPool(Constant.CPU_PROCESSOR_NUM);
+		ThreadFactory threadFactory = new BasicThreadFactory.Builder()
+				.namingPattern("Mytv crawl all tv station of tvmao[%d]")
+				.build();
+		ExecutorService executorService = Executors.newFixedThreadPool(
+				Constant.CPU_PROCESSOR_NUM, threadFactory);
 		CompletionService<List<TvStation>> completionService = new ExecutorCompletionService<List<TvStation>>(
 				executorService);
 		int size = files == null ? 0 : files.length;

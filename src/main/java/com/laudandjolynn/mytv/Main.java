@@ -30,8 +30,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -257,7 +259,7 @@ public class Main {
 			public void run() {
 				createCrawlTask(data, tvService);
 			}
-		}).start();
+		}, "Mytv crawl task thread where init data[%d]").start();
 	}
 
 	/**
@@ -269,7 +271,12 @@ public class Main {
 			final TvService tvService) {
 		CrawlEventListener listener = null;
 		final String today = DateUtils.today();
-		final ExecutorService executorService = Executors.newFixedThreadPool(2);
+		ThreadFactory threadFactory = new BasicThreadFactory.Builder()
+				.namingPattern(
+						"Mytv crawl program table task where init data[%d]")
+				.build();
+		final ExecutorService executorService = Executors.newFixedThreadPool(2,
+				threadFactory);
 		if (!data.isProgramCrawlerInited()) {
 			listener = new CrawlEventListenerAdapter() {
 				@Override
@@ -277,8 +284,7 @@ public class Main {
 					if (event instanceof TvStationFoundEvent) {
 						final TvStation item = (TvStation) ((TvStationFoundEvent) event)
 								.getItem();
-						executorService.submit(new Runnable() {
-
+						executorService.execute(new Runnable() {
 							@Override
 							public void run() {
 								RequestHandler.getIntance().queryProgramTable(
@@ -321,7 +327,10 @@ public class Main {
 	 */
 	private static void createEverydayCron(final MyTvData data,
 			final TvService tvService) {
-		ScheduledExecutorService scheduled = new ScheduledThreadPoolExecutor(1);
+		ThreadFactory threadFactory = new BasicThreadFactory.Builder()
+				.namingPattern("Mytv scheduled crawl task").build();
+		ScheduledExecutorService scheduled = new ScheduledThreadPoolExecutor(1,
+				threadFactory);
 		Date today = new Date();
 		Date nextWeek = DateUtils.nextWeek(today);
 		long initDelay = (DateUtils.string2Date(nextWeek + " 00:00:00")
@@ -353,19 +362,23 @@ public class Main {
 	private static void crawlAllProgramTable(final String date,
 			TvService tvService) {
 		List<TvStation> stationList = tvService.getAllCrawlableStation();
-		ExecutorService executorService = Executors.newFixedThreadPool(2);
+		ThreadFactory threadFactory = new BasicThreadFactory.Builder()
+				.namingPattern(
+						"Mytv crawl all program table where init data[%d]")
+				.build();
+		ExecutorService executorService = Executors.newFixedThreadPool(2,
+				threadFactory);
 		int size = stationList == null ? 0 : stationList.size();
 		for (int i = 0; i < size; i++) {
 			final TvStation tvStation = stationList.get(i);
-			Runnable task = new Runnable() {
+			executorService.submit(new Runnable() {
 
 				@Override
 				public void run() {
 					RequestHandler.getIntance().queryProgramTable(
 							tvStation.getName(), tvStation.getClassify(), date);
 				}
-			};
-			executorService.submit(task);
+			});
 		}
 		executorService.shutdown();
 	}

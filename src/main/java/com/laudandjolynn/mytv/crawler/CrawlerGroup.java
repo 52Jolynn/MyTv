@@ -8,7 +8,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
+import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -89,8 +91,11 @@ public class CrawlerGroup extends AbstractCrawler {
 		List<TvStation> resultList = new ArrayList<TvStation>();
 		int size = crawlers.size();
 		int maxThreadNum = Constant.CPU_PROCESSOR_NUM;
-		ExecutorService executorService = Executors
-				.newFixedThreadPool(size > maxThreadNum ? maxThreadNum : size);
+		ThreadFactory threadFactory = new BasicThreadFactory.Builder()
+				.namingPattern("Mytv crawl all tv station of CrawlerGroup[%d]")
+				.build();
+		ExecutorService executorService = Executors.newFixedThreadPool(
+				size > maxThreadNum ? maxThreadNum : size, threadFactory);
 		CompletionService<List<TvStation>> completionService = new ExecutorCompletionService<List<TvStation>>(
 				executorService);
 		for (final Crawler crawler : crawlers) {
@@ -100,7 +105,7 @@ public class CrawlerGroup extends AbstractCrawler {
 					return crawler.crawlAllTvStation();
 				}
 			};
-			executorService.submit(task);
+			completionService.submit(task);
 		}
 		executorService.shutdown();
 		int count = 0;
