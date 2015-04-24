@@ -257,7 +257,8 @@ public class TvMaoCrawler extends AbstractCrawler {
 		task.date = queryDate;
 		task.tvStation = station;
 		try {
-			logger.debug("crawl task of tv mao program table queue: "
+			logger.debug("crawl task: " + task
+					+ ", of tv mao program table queue size: "
 					+ TV_MAO_PROGRAM_TABLE_CRAWL_QUEUE.size());
 			TV_MAO_PROGRAM_TABLE_CRAWL_QUEUE.put(task);
 		} catch (InterruptedException e) {
@@ -270,6 +271,7 @@ public class TvMaoCrawler extends AbstractCrawler {
 				List<ProgramTable> resultList = crawlProgramTable(task);
 				return resultList;
 			} finally {
+				logger.debug("remove task: " + task + " from queue.");
 				TV_MAO_PROGRAM_TABLE_CRAWL_QUEUE.remove(task);
 				logger.debug("crawl task of tv mao program table queue: "
 						+ TV_MAO_PROGRAM_TABLE_CRAWL_QUEUE.size());
@@ -676,6 +678,13 @@ public class TvMaoCrawler extends AbstractCrawler {
 	private class TvMaoCrawlTask {
 		private TvStation tvStation;
 		private String date;
+
+		@Override
+		public String toString() {
+			return "TvMaoCrawlTask [tvStation=" + tvStation + ", date=" + date
+					+ "]";
+		}
+
 	}
 
 }
