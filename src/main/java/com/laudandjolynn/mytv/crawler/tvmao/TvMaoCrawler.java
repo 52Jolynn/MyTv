@@ -159,7 +159,7 @@ public class TvMaoCrawler extends AbstractCrawler {
 					String classifyEnds = filePath.substring(0,
 							filePath.lastIndexOf(Constant.UNDERLINE));
 					String city = classifyEnds.substring(classifyEnds
-							.lastIndexOf(Constant.UNDERLINE));
+							.lastIndexOf(Constant.UNDERLINE) + 1);
 					String html = null;
 					try {
 						logger.debug("parse tv station file: " + filePath);
@@ -261,15 +261,19 @@ public class TvMaoCrawler extends AbstractCrawler {
 					+ TV_MAO_PROGRAM_TABLE_CRAWL_QUEUE.size());
 			TV_MAO_PROGRAM_TABLE_CRAWL_QUEUE.put(task);
 		} catch (InterruptedException e) {
-			// do nothing
+			TV_MAO_PROGRAM_TABLE_CRAWL_QUEUE.remove(task);
 		}
 		task = TV_MAO_PROGRAM_TABLE_CRAWL_QUEUE.peek();
+
 		if (task != null) {
-			List<ProgramTable> resultList = crawlProgramTable(task);
-			TV_MAO_PROGRAM_TABLE_CRAWL_QUEUE.remove(task);
-			logger.debug("crawl task of tv mao program table queue: "
-					+ TV_MAO_PROGRAM_TABLE_CRAWL_QUEUE.size());
-			return resultList;
+			try {
+				List<ProgramTable> resultList = crawlProgramTable(task);
+				return resultList;
+			} finally {
+				TV_MAO_PROGRAM_TABLE_CRAWL_QUEUE.remove(task);
+				logger.debug("crawl task of tv mao program table queue: "
+						+ TV_MAO_PROGRAM_TABLE_CRAWL_QUEUE.size());
+			}
 		}
 		return null;
 	}
@@ -522,8 +526,8 @@ public class TvMaoCrawler extends AbstractCrawler {
 	 */
 	private long generateRandomSleepTime() {
 		Random random = new Random();
-		int min = 1000;
-		int max = 3000;
+		int min = 500;
+		int max = 1000;
 		return min + random.nextInt(max) % (max - min + 1);
 	}
 

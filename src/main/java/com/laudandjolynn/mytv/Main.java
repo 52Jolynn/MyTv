@@ -268,7 +268,8 @@ public class Main {
 			final TvService tvService) {
 		CrawlEventListener listener = null;
 		final String today = DateUtils.today();
-		final ExecutorService executorService = Executors.newFixedThreadPool(2);
+		final ExecutorService executorService = Executors
+				.newFixedThreadPool(Constant.CPU_PROCESSOR_NUM);
 		if (!data.isProgramCrawlerInited()) {
 			listener = new CrawlEventListenerAdapter() {
 				@Override
@@ -298,7 +299,7 @@ public class Main {
 
 		final String[] weeks = DateUtils.getWeek(new Date(), "yyyy-MM-dd");
 		for (final String date : weeks) {
-			if (date.equals(today)) {
+			if (date.compareTo(today) < 1) {
 				continue;
 			}
 			executorService.submit(new Runnable() {
@@ -323,12 +324,11 @@ public class Main {
 			final TvService tvService) {
 		ScheduledExecutorService scheduled = new ScheduledThreadPoolExecutor(1);
 		Date today = new Date();
-		String nextWeek = DateUtils.date2String(DateUtils.nextWeek(today),
-				"yyyy-MM-dd");
+		Date nextWeek = DateUtils.nextWeek(today);
 		long initDelay = (DateUtils.string2Date(nextWeek + " 00:00:00")
 				.getTime() - today.getTime()) / 1000;
 		logger.info("cron crawler task will be automatic start after "
-				+ initDelay + " seconds.");
+				+ initDelay + " seconds at " + nextWeek);
 		scheduled.scheduleWithFixedDelay(new Runnable() {
 
 			@Override
