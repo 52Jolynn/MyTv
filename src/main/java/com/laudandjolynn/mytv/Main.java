@@ -21,6 +21,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -268,8 +269,7 @@ public class Main {
 			final TvService tvService) {
 		CrawlEventListener listener = null;
 		final String today = DateUtils.today();
-		final ExecutorService executorService = Executors
-				.newFixedThreadPool(Constant.CPU_PROCESSOR_NUM);
+		final ExecutorService executorService = Executors.newFixedThreadPool(2);
 		if (!data.isProgramCrawlerInited()) {
 			listener = new CrawlEventListenerAdapter() {
 				@Override
@@ -295,22 +295,21 @@ public class Main {
 			tvService.crawlAllTvStation(listener);
 			data.writeData(null, Constant.XML_TAG_STATION, "true");
 			data.writeData(null, Constant.XML_TAG_PROGRAM, "true");
-		}
-
-		final String[] weeks = DateUtils.getWeek(new Date(), "yyyy-MM-dd");
-		for (final String date : weeks) {
-			if (date.compareTo(today) < 1) {
-				continue;
-			}
-			executorService.submit(new Runnable() {
-
-				@Override
-				public void run() {
-					crawlAllProgramTable(date, tvService);
+			final String[] weeks = DateUtils.getWeek(new Date(), "yyyy-MM-dd");
+			for (final String date : weeks) {
+				if (date.compareTo(today) < 1) {
+					continue;
 				}
-			});
+				executorService.submit(new Runnable() {
+
+					@Override
+					public void run() {
+						crawlAllProgramTable(date, tvService);
+					}
+				});
+			}
+			executorService.shutdown();
 		}
-		executorService.shutdown();
 
 		// 启动每天定时任务
 		logger.info("create everyday crawl task.");
@@ -333,9 +332,16 @@ public class Main {
 
 			@Override
 			public void run() {
-				crawlAllProgramTable(DateUtils.today(), tvService);
+				Date[] weeks = DateUtils.getWeek(new Date());
+				logger.info("begin to crawl program table of "
+						+ Arrays.deepToString(weeks));
+				for (Date date : weeks) {
+					crawlAllProgramTable(
+							DateUtils.date2String(date, "yyyy-MM-dd"),
+							tvService);
+				}
 			}
-		}, initDelay, 86460, TimeUnit.SECONDS);
+		}, initDelay, 7, TimeUnit.DAYS);
 	}
 
 	/**
