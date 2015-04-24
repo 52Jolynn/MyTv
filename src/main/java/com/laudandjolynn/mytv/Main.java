@@ -259,7 +259,7 @@ public class Main {
 			public void run() {
 				createCrawlTask(data, tvService);
 			}
-		}, "Mytv crawl task thread where init data[%d]").start();
+		}, "Mytv crawl task thread where init data").start();
 	}
 
 	/**
