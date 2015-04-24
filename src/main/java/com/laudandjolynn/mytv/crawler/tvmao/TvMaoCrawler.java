@@ -150,7 +150,7 @@ public class TvMaoCrawler extends AbstractCrawler {
 		ThreadFactory threadFactory = new BasicThreadFactory.Builder()
 				.namingPattern("Mytv crawl all tv station of tvmao[%d]")
 				.build();
-		ExecutorService executorService = Executors.newFixedThreadPool(4,
+		ExecutorService executorService = Executors.newFixedThreadPool(2,
 				threadFactory);
 		CompletionService<List<TvStation>> completionService = new ExecutorCompletionService<List<TvStation>>(
 				executorService);

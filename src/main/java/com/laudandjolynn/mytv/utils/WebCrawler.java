@@ -72,13 +72,16 @@ public class WebCrawler {
 		webClient.setAjaxController(new NicelyResynchronizingAjaxController());
 		try {
 			logger.debug("begin to get page: " + url);
-			return webClient.getPage(url);
+			Page page = webClient.getPage(url);
+			return page;
 		} catch (FailingHttpStatusCodeException e) {
 			throw new MyTvException("can't connect to " + url, e);
 		} catch (MalformedURLException e) {
 			throw new MyTvException("invalid url " + url, e);
 		} catch (IOException e) {
 			throw new MyTvException("error occur while connect to " + url, e);
+		} finally {
+			webClient.closeAllWindows();
 		}
 	}
 

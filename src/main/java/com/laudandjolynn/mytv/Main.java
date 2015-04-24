@@ -275,7 +275,7 @@ public class Main {
 				.namingPattern(
 						"Mytv crawl program table task where init data[%d]")
 				.build();
-		final ExecutorService executorService = Executors.newFixedThreadPool(4,
+		final ExecutorService executorService = Executors.newFixedThreadPool(3,
 				threadFactory);
 		if (!data.isProgramCrawlerInited()) {
 			listener = new CrawlEventListenerAdapter() {
