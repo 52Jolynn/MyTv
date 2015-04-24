@@ -275,8 +275,8 @@ public class Main {
 				.namingPattern(
 						"Mytv crawl program table task where init data[%d]")
 				.build();
-		final ExecutorService executorService = Executors.newFixedThreadPool(
-				Constant.CPU_PROCESSOR_NUM, threadFactory);
+		final ExecutorService executorService = Executors.newFixedThreadPool(4,
+				threadFactory);
 		if (!data.isProgramCrawlerInited()) {
 			listener = new CrawlEventListenerAdapter() {
 				@Override
@@ -367,8 +367,8 @@ public class Main {
 				.namingPattern(
 						"Mytv crawl all program table where init data[%d]")
 				.build();
-		ExecutorService executorService = Executors.newFixedThreadPool(
-				Constant.CPU_PROCESSOR_NUM, threadFactory);
+		ExecutorService executorService = Executors.newFixedThreadPool(2,
+				threadFactory);
 		int size = stationList == null ? 0 : stationList.size();
 		for (int i = 0; i < size; i++) {
 			final TvStation tvStation = stationList.get(i);
