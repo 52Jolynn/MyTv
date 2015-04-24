@@ -275,8 +275,8 @@ public class Main {
 				.namingPattern(
 						"Mytv crawl program table task where init data[%d]")
 				.build();
-		final ExecutorService executorService = Executors.newFixedThreadPool(2,
-				threadFactory);
+		final ExecutorService executorService = Executors.newFixedThreadPool(
+				Constant.CPU_PROCESSOR_NUM, threadFactory);
 		if (!data.isProgramCrawlerInited()) {
 			listener = new CrawlEventListenerAdapter() {
 				@Override
@@ -332,7 +332,8 @@ public class Main {
 		ScheduledExecutorService scheduled = new ScheduledThreadPoolExecutor(1,
 				threadFactory);
 		Date today = new Date();
-		Date nextWeek = DateUtils.nextWeek(today);
+		String nextWeek = DateUtils.date2String(DateUtils.nextWeek(today),
+				"yyyy-MM-dd");
 		long initDelay = (DateUtils.string2Date(nextWeek + " 00:00:00")
 				.getTime() - today.getTime()) / 1000;
 		logger.info("cron crawler task will be automatic start after "
@@ -366,8 +367,8 @@ public class Main {
 				.namingPattern(
 						"Mytv crawl all program table where init data[%d]")
 				.build();
-		ExecutorService executorService = Executors.newFixedThreadPool(2,
-				threadFactory);
+		ExecutorService executorService = Executors.newFixedThreadPool(
+				Constant.CPU_PROCESSOR_NUM, threadFactory);
 		int size = stationList == null ? 0 : stationList.size();
 		for (int i = 0; i < size; i++) {
 			final TvStation tvStation = stationList.get(i);
