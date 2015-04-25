@@ -37,7 +37,7 @@ import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.laudandjolynn.mytv.crawler.RequestHandler;
+import com.laudandjolynn.mytv.crawler.CrawlAction;
 import com.laudandjolynn.mytv.datasource.DataSourceManager;
 import com.laudandjolynn.mytv.event.CrawlEvent;
 import com.laudandjolynn.mytv.event.CrawlEventListener;
@@ -253,13 +253,21 @@ public class Main {
 			MemoryCache.getInstance().addCache(stationList);
 		}
 		// 启动抓取任务
-		new Thread(new Runnable() {
+		ThreadFactory threadFactory = new BasicThreadFactory.Builder()
+				.namingPattern("Mytv_Crawl_Task[%d]").build();
+		ExecutorService executorService = Executors
+				.newSingleThreadExecutor(threadFactory);
+		executorService.execute(new Runnable() {
 
 			@Override
 			public void run() {
-				createCrawlTask(data, tvService);
+				runCrawlTask(data, tvService);
 			}
-		}, "Mytv crawl task thread where init data").start();
+		});
+		executorService.shutdown();
+		// 启动每天定时任务
+		logger.info("create everyday crawl task.");
+		createEverydayCron(data, tvService);
 	}
 
 	/**
@@ -267,15 +275,14 @@ public class Main {
 	 * 
 	 * @param data
 	 */
-	private static void createCrawlTask(final MyTvData data,
+	private static void runCrawlTask(final MyTvData data,
 			final TvService tvService) {
 		CrawlEventListener listener = null;
+
 		final String today = DateUtils.today();
 		ThreadFactory threadFactory = new BasicThreadFactory.Builder()
-				.namingPattern(
-						"Mytv crawl program table task where init data[%d]")
-				.build();
-		final ExecutorService executorService = Executors.newFixedThreadPool(3,
+				.namingPattern("Mytv_Crawl_Program_Table[%d]").build();
+		final ExecutorService executorService = Executors.newFixedThreadPool(2,
 				threadFactory);
 		if (!data.isProgramCrawlerInited()) {
 			listener = new CrawlEventListenerAdapter() {
@@ -285,9 +292,10 @@ public class Main {
 						final TvStation item = (TvStation) ((TvStationFoundEvent) event)
 								.getItem();
 						executorService.execute(new Runnable() {
+
 							@Override
 							public void run() {
-								RequestHandler.getIntance().queryProgramTable(
+								CrawlAction.getIntance().queryProgramTable(
 										item.getName(), item.getClassify(),
 										today);
 							}
@@ -296,30 +304,24 @@ public class Main {
 				}
 			};
 		}
+
 		if (!data.isStationCrawlerInited()) {
 			// 首次抓取
 			tvService.crawlAllTvStation(listener);
+			executorService.shutdown();
+
 			data.writeData(null, Constant.XML_TAG_STATION, "true");
 			data.writeData(null, Constant.XML_TAG_PROGRAM, "true");
+
+			// 抓取本周其他日期的数据
 			final String[] weeks = DateUtils.getWeek(new Date(), "yyyy-MM-dd");
 			for (final String date : weeks) {
 				if (date.compareTo(today) < 1) {
 					continue;
 				}
-				executorService.submit(new Runnable() {
-
-					@Override
-					public void run() {
-						crawlAllProgramTable(date, tvService);
-					}
-				});
+				crawlAllProgramTable(date, tvService);
 			}
-			executorService.shutdown();
 		}
-
-		// 启动每天定时任务
-		logger.info("create everyday crawl task.");
-		createEverydayCron(data, tvService);
 	}
 
 	/**
@@ -328,7 +330,7 @@ public class Main {
 	private static void createEverydayCron(final MyTvData data,
 			final TvService tvService) {
 		ThreadFactory threadFactory = new BasicThreadFactory.Builder()
-				.namingPattern("Mytv scheduled crawl task").build();
+				.namingPattern("Mytv_Scheduled_Crawl_Task").build();
 		ScheduledExecutorService scheduled = new ScheduledThreadPoolExecutor(1,
 				threadFactory);
 		Date today = new Date();
@@ -352,6 +354,7 @@ public class Main {
 				}
 			}
 		}, initDelay, 7, TimeUnit.DAYS);
+		scheduled.shutdown();
 	}
 
 	/**
@@ -363,20 +366,18 @@ public class Main {
 	private static void crawlAllProgramTable(final String date,
 			TvService tvService) {
 		List<TvStation> stationList = tvService.getAllCrawlableStation();
+		int size = stationList == null ? 0 : stationList.size();
 		ThreadFactory threadFactory = new BasicThreadFactory.Builder()
-				.namingPattern(
-						"Mytv crawl all program table where init data[%d]")
-				.build();
+				.namingPattern("Mytv_Crawl_All_Program_Table[%d]").build();
 		ExecutorService executorService = Executors.newFixedThreadPool(2,
 				threadFactory);
-		int size = stationList == null ? 0 : stationList.size();
 		for (int i = 0; i < size; i++) {
 			final TvStation tvStation = stationList.get(i);
-			executorService.submit(new Runnable() {
+			executorService.execute(new Runnable() {
 
 				@Override
 				public void run() {
-					RequestHandler.getIntance().queryProgramTable(
+					CrawlAction.getIntance().queryProgramTable(
 							tvStation.getName(), tvStation.getClassify(), date);
 				}
 			});

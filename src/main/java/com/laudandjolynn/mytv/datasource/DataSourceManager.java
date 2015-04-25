@@ -99,7 +99,8 @@ public class DataSourceManager {
 			} catch (ClassNotFoundException e) {
 				throw new MyTvException(dbDriverClass + " isn't found.", e);
 			}
-			DATA_SOURCE_PROP.setProperty(RES_KEY_DB_DRIVER_CLASS, dbDriverClass);
+			DATA_SOURCE_PROP
+					.setProperty(RES_KEY_DB_DRIVER_CLASS, dbDriverClass);
 			DBCP_PROP.setProperty(DBCP_DRIVER_CLASS_NAME, dbDriverClass);
 		}
 		if (bundle.containsKey(RES_KEY_DB_URL)) {
@@ -168,7 +169,8 @@ public class DataSourceManager {
 			}
 
 			DataSource ds = BasicDataSourceFactory.createDataSource(DBCP_PROP);
-			return ds.getConnection();
+			Connection conn = ds.getConnection();
+			return conn;
 		} catch (InstantiationException e) {
 			throw new MyTvException("can't instantce db driver: " + dsClass, e);
 		} catch (IllegalAccessException e) {

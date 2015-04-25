@@ -36,21 +36,21 @@ import com.laudandjolynn.mytv.utils.DateUtils;
  * @date: 2015年3月27日 下午11:42:27
  * @copyright: www.laudandjolynn.com
  */
-public class RequestHandler {
+public class CrawlAction {
 	private final static Logger logger = LoggerFactory
-			.getLogger(RequestHandler.class);
+			.getLogger(CrawlAction.class);
 	private final ConcurrentHashSet<CrawlerTask> CURRENT_EPG_TASK = new ConcurrentHashSet<CrawlerTask>();
 	private TvService tvService = new TvServiceImpl();
 
-	private RequestHandler() {
+	private CrawlAction() {
 	}
 
-	public static RequestHandler getIntance() {
-		return EpgTaskManagerSingletonHolder.MANAGER;
+	public static CrawlAction getIntance() {
+		return EpgTaskManagerSingletonHolder.CRAWL_ACTION;
 	}
 
 	private final static class EpgTaskManagerSingletonHolder {
-		private final static RequestHandler MANAGER = new RequestHandler();
+		private final static CrawlAction CRAWL_ACTION = new CrawlAction();
 	}
 
 	/**

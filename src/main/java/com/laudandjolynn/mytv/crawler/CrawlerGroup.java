@@ -92,8 +92,7 @@ public class CrawlerGroup extends AbstractCrawler {
 		int size = crawlers.size();
 		int maxThreadNum = Constant.CPU_PROCESSOR_NUM;
 		ThreadFactory threadFactory = new BasicThreadFactory.Builder()
-				.namingPattern("Mytv crawl all tv station of CrawlerGroup[%d]")
-				.build();
+				.namingPattern("Mytv_CrawlerGroup[%d]").build();
 		ExecutorService executorService = Executors.newFixedThreadPool(
 				size > maxThreadNum ? maxThreadNum : size, threadFactory);
 		CompletionService<List<TvStation>> completionService = new ExecutorCompletionService<List<TvStation>>(
