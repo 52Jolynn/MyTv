@@ -120,6 +120,7 @@ public class DateUtils {
 		Date[] dates = new Date[7];
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(date);
+		calendar.setFirstDayOfWeek(Calendar.MONDAY);
 		calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
 		for (int i = 0; i < 7; i++) {
 			dates[i] = calendar.getTime();
@@ -129,7 +130,7 @@ public class DateUtils {
 	}
 
 	/**
-	 * 获取指定时间的下一周头一天
+	 * 获取指定时间的下一周头一天, 每周第一天为星期一
 	 * 
 	 * @param date
 	 * @return
@@ -137,13 +138,14 @@ public class DateUtils {
 	public static Date nextWeek(Date date) {
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(date);
+		calendar.setFirstDayOfWeek(Calendar.MONDAY);
 		calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
 		calendar.add(Calendar.WEEK_OF_YEAR, 1);
 		return calendar.getTime();
 	}
 
 	/**
-	 * 获取指定时间一周的日期列表
+	 * 获取指定时间一周的日期列表，每周第一天为星期一
 	 * 
 	 * @param date
 	 * @param pattern
@@ -264,4 +266,5 @@ public class DateUtils {
 				lastDay, 0, 0, 0);
 		return calendar.getTime();
 	}
+
 }

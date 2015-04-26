@@ -334,7 +334,7 @@ public class Main {
 		Date today = new Date();
 		String nextWeek = DateUtils.date2String(DateUtils.nextWeek(today),
 				"yyyy-MM-dd");
-		long initDelay = (DateUtils.string2Date(nextWeek + " 00:00:00")
+		long initDelay = (DateUtils.string2Date(nextWeek + " 00:01:00")
 				.getTime() - today.getTime()) / 1000;
 		logger.info("cron crawler task will be automatic start after "
 				+ initDelay + " seconds at " + nextWeek);
@@ -351,7 +351,7 @@ public class Main {
 							tvService);
 				}
 			}
-		}, initDelay, 7, TimeUnit.DAYS);
+		}, initDelay, 604860, TimeUnit.SECONDS);
 		scheduled.shutdown();
 	}
 
