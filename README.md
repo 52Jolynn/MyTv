@@ -121,5 +121,5 @@ public interface Crawler {
 如果需要添加新的抓取器，只需要实现上述接口，并添加到抓取管理器中即可：
 ```java
 Crawler crawler = new NewCrawler(...);
-CrawlerManager.getInstance().addCrawler(crawler);
+MyTvCrawlerManager.getInstance().setCrawlerFactory(...)
 ```
