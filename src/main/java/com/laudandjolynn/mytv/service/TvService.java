@@ -117,15 +117,15 @@ public interface TvService {
 	/**
 	 * 根据名称、日期抓取电视节目表
 	 * 
-	 * @param stationName
-	 *            电视台名称
+	 * @param tvStation
+	 *            电视台对象
 	 * @param date
 	 *            日期, yyyy-MM-dd
 	 * @param listeners
 	 *            抓取事件监听器
 	 * @return
 	 */
-	public List<ProgramTable> crawlProgramTable(String stationName,
+	public List<ProgramTable> crawlProgramTable(TvStation tvStation,
 			String date, CrawlEventListener... listeners);
 
 }

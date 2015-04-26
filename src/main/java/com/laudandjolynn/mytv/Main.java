@@ -37,7 +37,6 @@ import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.laudandjolynn.mytv.crawler.CrawlAction;
 import com.laudandjolynn.mytv.datasource.DataSourceManager;
 import com.laudandjolynn.mytv.event.CrawlEvent;
 import com.laudandjolynn.mytv.event.CrawlEventListener;
@@ -296,8 +295,7 @@ public class Main {
 							@Override
 							public void run() {
 								CrawlAction.getIntance().queryProgramTable(
-										item.getName(), item.getClassify(),
-										today);
+										item, today);
 							}
 						});
 					}
@@ -377,8 +375,7 @@ public class Main {
 
 				@Override
 				public void run() {
-					CrawlAction.getIntance().queryProgramTable(
-							tvStation.getName(), tvStation.getClassify(), date);
+					CrawlAction.getIntance().queryProgramTable(tvStation, date);
 				}
 			});
 		}

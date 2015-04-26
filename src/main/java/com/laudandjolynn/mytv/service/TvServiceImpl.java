@@ -22,6 +22,7 @@ import com.laudandjolynn.mytv.crawler.Crawler;
 import com.laudandjolynn.mytv.crawler.MyTvCrawlerManager;
 import com.laudandjolynn.mytv.datasource.TvDao;
 import com.laudandjolynn.mytv.datasource.TvDaoImpl;
+import com.laudandjolynn.mytv.event.AllTvStationCrawlEndEvent;
 import com.laudandjolynn.mytv.event.CrawlEvent;
 import com.laudandjolynn.mytv.event.CrawlEventListener;
 import com.laudandjolynn.mytv.event.CrawlEventListenerAdapter;
@@ -220,8 +221,8 @@ public class TvServiceImpl implements TvService {
 	/**
 	 * 根据电视台名称、日期抓取电视节目表
 	 * 
-	 * @param stationName
-	 *            电视台名称
+	 * @param tvStation
+	 *            电视台对象
 	 * @param date
 	 *            日期,yyyy-MM-dd
 	 * @param listeners
@@ -229,9 +230,8 @@ public class TvServiceImpl implements TvService {
 	 * @return
 	 */
 	@Override
-	public List<ProgramTable> crawlProgramTable(String stationName,
+	public List<ProgramTable> crawlProgramTable(TvStation tvStation,
 			String date, CrawlEventListener... listeners) {
-		TvStation tvStation = getStation(stationName);
 		Crawler crawler = MyTvCrawlerManager.getInstance().newCrawler();
 		crawler.registerCrawlEventListener(new CrawlEventListenerAdapter() {
 
@@ -263,15 +263,41 @@ public class TvServiceImpl implements TvService {
 	@Override
 	public List<TvStation> crawlAllTvStation(CrawlEventListener... listeners) {
 		Crawler crawler = MyTvCrawlerManager.getInstance().newCrawler();
+		final List<TvStation> stationList = new ArrayList<TvStation>();
 		crawler.registerCrawlEventListener(new CrawlEventListenerAdapter() {
 
 			@Override
 			public void itemFound(CrawlEvent event) {
 				if (event instanceof TvStationFoundEvent) {
 					TvStation item = ((TvStationFoundEvent) event).getItem();
-					save(item);
-					// 保存之后再写入缓存，因为持久化前会判断电视台是否已经存在
-					MemoryCache.getInstance().addCache(item);
+					synchronized (stationList) {
+						int size = stationList.size();
+						if (size > 0 && size % 100 == 0) {
+							TvStation[] stations = new TvStation[size];
+							tvDao.save(stationList.toArray(stations));
+							// 保存之后再写入缓存，因为持久化前会判断电视台是否已经存在
+							MemoryCache.getInstance().addCache(stationList);
+							stationList.clear();
+						} else {
+							stationList.add(item);
+						}
+					}
+				}
+			}
+
+			@Override
+			public void crawlEnd(CrawlEvent event) {
+				if (event instanceof AllTvStationCrawlEndEvent) {
+					synchronized (stationList) {
+						if (stationList.size() > 0) {
+							TvStation[] stations = new TvStation[stationList
+									.size()];
+							tvDao.save(stationList.toArray(stations));
+							// 保存之后再写入缓存，因为持久化前会判断电视台是否已经存在
+							MemoryCache.getInstance().addCache(stationList);
+							stationList.clear();
+						}
+					}
 				}
 			}
 		});
@@ -280,5 +306,4 @@ public class TvServiceImpl implements TvService {
 		}
 		return crawler.crawlAllTvStation();
 	}
-
 }

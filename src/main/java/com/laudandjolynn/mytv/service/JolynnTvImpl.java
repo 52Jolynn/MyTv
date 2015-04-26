@@ -19,7 +19,7 @@ import java.rmi.RemoteException;
 import java.util.List;
 
 import com.alibaba.fastjson.JSON;
-import com.laudandjolynn.mytv.crawler.CrawlAction;
+import com.laudandjolynn.mytv.CrawlAction;
 import com.laudandjolynn.mytv.exception.MyTvException;
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
