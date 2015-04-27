@@ -179,24 +179,11 @@ public class Main {
 
 		Collection<Object> values = tvStationProp.values();
 		List<String> insertSqlList = new ArrayList<String>(values.size());
-		String insertSql = "insert into tv_station (name,displayName,city,classify,channel,sequence)";
+		String insertSql = "insert into my_tv (stationName,displayName,classify,channel,sequence)";
 		for (Object value : values) {
 			insertSqlList.add(insertSql + " values (" + value.toString() + ")");
 		}
 
-		Properties tvStationAliasProp = new Properties();
-		try {
-			tvStationAliasProp.load(Main.class.getResourceAsStream("/"
-					+ Constant.TV_STATION_ALIAS_INIT_DATA_FILE_NAME));
-		} catch (IOException e) {
-			throw new MyTvException("error occur while load property file: "
-					+ Constant.TV_STATION_ALIAS_INIT_DATA_FILE_NAME, e);
-		}
-		values = tvStationAliasProp.values();
-		insertSql = "insert into tv_station_alias (stationName,alias)";
-		for (Object value : values) {
-			insertSqlList.add(insertSql + " values (" + value.toString() + ")");
-		}
 		Connection conn = null;
 		Statement stmt = null;
 		try {
@@ -247,7 +234,7 @@ public class Main {
 	 */
 	private static void initDbData(final MyTvData data) {
 		final TvService tvService = new TvServiceImpl();
-		List<TvStation> stationList = tvService.getAllStation();
+		List<TvStation> stationList = tvService.getAllCrawlableStation();
 		if (stationList != null) {
 			MemoryCache.getInstance().addCache(stationList);
 		}
@@ -324,6 +311,9 @@ public class Main {
 
 	/**
 	 * 创建每天定时任务
+	 * 
+	 * @param data
+	 * @param tvService
 	 */
 	private static void createEverydayCron(final MyTvData data,
 			final TvService tvService) {

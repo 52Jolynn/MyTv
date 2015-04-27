@@ -33,19 +33,13 @@ public class JolynnTvRmiImpl extends UnicastRemoteObject implements JolynnTv {
 	}
 
 	@Override
-	public String getTvStationClassify() throws RemoteException {
-		return jolynnTv.getTvStationClassify();
+	public String getMyTvClassify() throws RemoteException {
+		return jolynnTv.getMyTvClassify();
 	}
 
 	@Override
-	public String getTvStationByClassify(String classify)
-			throws RemoteException {
-		return jolynnTv.getTvStationByClassify(classify);
-	}
-
-	@Override
-	public String getAllTvStation() throws RemoteException {
-		return jolynnTv.getAllTvStation();
+	public String getMyTvByClassify(String classify) throws RemoteException {
+		return jolynnTv.getMyTvByClassify(classify);
 	}
 
 	@Override

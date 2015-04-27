@@ -59,23 +59,22 @@ public class CrawlAction {
 	 * 查询指定日期、电视台的节目表
 	 * </pre>
 	 * 
-	 * @param stationOrDisplayName
-	 *            电视台显示名
+	 * @param name
+	 *            电视台名
 	 * @param classify
-	 *            电视台分类，可以为null。为空时，将查找stationName与displayName相同的电视台
+	 *            电视台分类
 	 * @param date
 	 *            日期，yyyy-MM-dd
 	 * @return
 	 */
-	public List<ProgramTable> queryProgramTable(String stationOrDisplayName,
-			String classify, String date) {
-		TvStation tvStation = tvService.getStation(stationOrDisplayName);
+	public List<ProgramTable> queryProgramTable(String name, String classify,
+			String date) {
+		TvStation tvStation = tvService.getStation(name);
 		if (tvStation == null) {
-			tvStation = tvService.getStationByDisplayName(stationOrDisplayName,
-					classify);
+			tvStation = tvService.getStationByDisplayName(name, classify);
 		}
 		if (tvStation == null) {
-			logger.error(stationOrDisplayName + " isn't exists.");
+			logger.error(name + " isn't exists.");
 			return null;
 		}
 		String[] weeks = DateUtils.getWeek(new Date(), "yyyy-MM-dd");

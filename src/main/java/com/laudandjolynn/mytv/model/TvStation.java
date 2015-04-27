@@ -24,10 +24,8 @@ package com.laudandjolynn.mytv.model;
 public class TvStation {
 	private int id;
 	private String name;
-	private String displayName;
 	private String city;
 	private String classify;
-	private String channel;
 	private int sequence;
 
 	public int getId() {
@@ -70,30 +68,14 @@ public class TvStation {
 		this.sequence = sequence;
 	}
 
-	public String getChannel() {
-		return channel;
-	}
-
-	public void setChannel(String channel) {
-		this.channel = channel;
-	}
-
-	public String getDisplayName() {
-		return displayName;
-	}
-
-	public void setDisplayName(String displayName) {
-		this.displayName = displayName;
-	}
-
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
+		result = prime * result + ((city == null) ? 0 : city.hashCode());
 		result = prime * result
 				+ ((classify == null) ? 0 : classify.hashCode());
-		result = prime * result
-				+ ((displayName == null) ? 0 : displayName.hashCode());
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		return result;
 	}
 
@@ -106,15 +88,20 @@ public class TvStation {
 		if (getClass() != obj.getClass())
 			return false;
 		TvStation other = (TvStation) obj;
+		if (city == null) {
+			if (other.city != null)
+				return false;
+		} else if (!city.equals(other.city))
+			return false;
 		if (classify == null) {
 			if (other.classify != null)
 				return false;
 		} else if (!classify.equals(other.classify))
 			return false;
-		if (displayName == null) {
-			if (other.displayName != null)
+		if (name == null) {
+			if (other.name != null)
 				return false;
-		} else if (!displayName.equals(other.displayName))
+		} else if (!name.equals(other.name))
 			return false;
 		return true;
 	}
@@ -122,8 +109,7 @@ public class TvStation {
 	@Override
 	public String toString() {
 		return "TvStation [id=" + id + ", name=" + name + ", city=" + city
-				+ ", classify=" + classify + ", sequence=" + sequence
-				+ ", channel=" + channel + "]";
+				+ ", classify=" + classify + ", sequence=" + sequence + "]";
 	}
 
 }

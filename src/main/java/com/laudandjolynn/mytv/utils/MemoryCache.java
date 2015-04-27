@@ -1,7 +1,5 @@
 package com.laudandjolynn.mytv.utils;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import org.eclipse.jetty.util.ConcurrentHashSet;
@@ -28,10 +26,6 @@ public class MemoryCache {
 		private final static MemoryCache MEMORY_CACHE = new MemoryCache();
 	}
 
-	public Collection<TvStation> getAllCachedTvStation() {
-		return new ArrayList<TvStation>(ALL_TV_STATION);
-	}
-
 	/**
 	 * 缓存所有电视台
 	 * 
@@ -55,16 +49,6 @@ public class MemoryCache {
 	}
 
 	/**
-	 * 判断电视台是否已经存在
-	 * 
-	 * @param station
-	 * @return
-	 */
-	public boolean isStationExists(TvStation station) {
-		return ALL_TV_STATION.contains(station);
-	}
-
-	/**
 	 * 根据名称查找电视台对象
 	 * 
 	 * @param stationName
@@ -72,31 +56,11 @@ public class MemoryCache {
 	 */
 	public TvStation getStation(String stationName) {
 		for (TvStation station : ALL_TV_STATION) {
-			if (station.getName().equals(stationName)
-					&& station.getClassify() == null) {
+			if (station.getName().equals(stationName)) {
 				return station;
 			}
 		}
 		return null;
 	}
 
-	/**
-	 * 根据电视台显示名、分类查找电视台对象
-	 * 
-	 * @param displayName
-	 * @param classify
-	 * @return
-	 */
-	public TvStation getStation(String displayName, String classify) {
-		if (classify == null) {
-			return getStation(displayName);
-		}
-		for (TvStation station : ALL_TV_STATION) {
-			if (station.getDisplayName().equals(displayName)
-					&& station.getClassify().equals(classify)) {
-				return station;
-			}
-		}
-		return null;
-	}
 }

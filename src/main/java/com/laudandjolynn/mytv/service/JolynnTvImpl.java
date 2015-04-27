@@ -21,8 +21,8 @@ import java.util.List;
 import com.alibaba.fastjson.JSON;
 import com.laudandjolynn.mytv.CrawlAction;
 import com.laudandjolynn.mytv.exception.MyTvException;
+import com.laudandjolynn.mytv.model.MyTv;
 import com.laudandjolynn.mytv.model.ProgramTable;
-import com.laudandjolynn.mytv.model.TvStation;
 import com.laudandjolynn.mytv.utils.MyTvUtils;
 
 /**
@@ -35,15 +35,9 @@ public class JolynnTvImpl implements JolynnTv {
 	private TvServiceImpl tvService = new TvServiceImpl();
 
 	@Override
-	public String getTvStationClassify() throws RemoteException {
-		List<String> classifies = tvService.getTvStationClassify();
+	public String getMyTvClassify() throws RemoteException {
+		List<String> classifies = tvService.getMyTvClassify();
 		return JSON.toJSONString(classifies);
-	}
-
-	@Override
-	public String getAllTvStation() throws RemoteException {
-		List<TvStation> stations = tvService.getAllStation();
-		return JSON.toJSONString(stations);
 	}
 
 	@Override
@@ -53,16 +47,14 @@ public class JolynnTvImpl implements JolynnTv {
 				|| !MyTvUtils.checkInvalidString(classify)) {
 			throw new MyTvException("invalid stationName: " + stationName);
 		}
-		List<ProgramTable> ptList = CrawlAction.getIntance()
-				.queryProgramTable(stationName, classify, date);
+		List<ProgramTable> ptList = CrawlAction.getIntance().queryProgramTable(
+				stationName, classify, date);
 		return JSON.toJSONString(ptList);
 	}
 
 	@Override
-	public String getTvStationByClassify(String classify)
-			throws RemoteException {
-		List<TvStation> stationList = tvService
-				.getTvStationByClassify(classify);
+	public String getMyTvByClassify(String classify) throws RemoteException {
+		List<MyTv> stationList = tvService.getMyTvByClassify(classify);
 		return JSON.toJSONString(stationList);
 	}
 

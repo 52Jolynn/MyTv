@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.laudandjolynn.mytv.exception.MyTvException;
+import com.laudandjolynn.mytv.model.MyTv;
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
 
@@ -35,8 +36,8 @@ import com.laudandjolynn.mytv.model.TvStation;
  */
 public class TvDaoImpl implements TvDao {
 	@Override
-	public List<String> getTvStationClassify() {
-		String sql = "select classify from tv_station group by classify order by sequence asc";
+	public List<String> getMyTvClassify() {
+		String sql = "select classify from my_tv group by classify order by sequence asc";
 		Connection conn = getConnection();
 		Statement stmt = null;
 		List<String> classifies = new ArrayList<String>();
@@ -70,9 +71,95 @@ public class TvDaoImpl implements TvDao {
 	}
 
 	@Override
-	public List<TvStation> getTvStationByClassify(String classify) {
-		String sql = "select id,name,displayName,city,classify,channel,sequence from tv_station where classify='"
+	public List<MyTv> getMyTvByClassify(String classify) {
+		String sql = "select id,stationName,displayName,classify,channel,sequence from my_tv where classify='"
 				+ classify + "' order by sequence asc";
+		List<MyTv> tvList = new ArrayList<MyTv>();
+		Connection conn = getConnection();
+		Statement stmt = null;
+		try {
+			stmt = conn.createStatement();
+			ResultSet rs = stmt.executeQuery(sql);
+			while (rs.next()) {
+				MyTv myTv = new MyTv();
+				int index = 1;
+				myTv.setId(rs.getInt(index++));
+				myTv.setStationName(rs.getString(index++));
+				myTv.setDisplayName(rs.getString(index++));
+				myTv.setClassify(rs.getString(index++));
+				myTv.setChannel(rs.getString(index++));
+				myTv.setSequence(rs.getInt(index++));
+				tvList.add(myTv);
+			}
+			rs.close();
+		} catch (SQLException e) {
+			throw new MyTvException(e);
+		} finally {
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (SQLException e) {
+					throw new MyTvException(e);
+				}
+			}
+
+			if (conn != null) {
+				try {
+					conn.close();
+				} catch (SQLException e) {
+					throw new MyTvException(e);
+				}
+			}
+		}
+		return tvList;
+	}
+
+	@Override
+	public List<TvStation> getAllCrawlableStation() {
+		String sql = "select id,name,city,classify,sequence from tv_station order by sequence asc";
+		Connection conn = getConnection();
+		Statement stmt = null;
+		List<TvStation> stations = new ArrayList<TvStation>();
+		try {
+			stmt = conn.createStatement();
+			ResultSet rs = stmt.executeQuery(sql);
+			while (rs.next()) {
+				int index = 1;
+				TvStation station = new TvStation();
+				station.setId(rs.getInt(index++));
+				station.setName(rs.getString(index++));
+				station.setCity(rs.getString(index++));
+				station.setClassify(rs.getString(index++));
+				station.setSequence(rs.getInt(index++));
+				stations.add(station);
+			}
+		} catch (SQLException e) {
+			throw new MyTvException(e);
+		} finally {
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (SQLException e) {
+					throw new MyTvException(e);
+				}
+			}
+
+			if (conn != null) {
+				try {
+					conn.close();
+				} catch (SQLException e) {
+					throw new MyTvException(e);
+				}
+			}
+		}
+
+		return stations;
+	}
+
+	@Override
+	public List<TvStation> getStation(String stationName) {
+		String sql = "select id,name,city,classify,sequence from tv_station where stationName='"
+				+ stationName + "' order by sequence asc";
 		List<TvStation> stationList = new ArrayList<TvStation>();
 		Connection conn = getConnection();
 		Statement stmt = null;
@@ -80,14 +167,12 @@ public class TvDaoImpl implements TvDao {
 			stmt = conn.createStatement();
 			ResultSet rs = stmt.executeQuery(sql);
 			while (rs.next()) {
-				TvStation station = new TvStation();
 				int index = 1;
+				TvStation station = new TvStation();
 				station.setId(rs.getInt(index++));
 				station.setName(rs.getString(index++));
-				station.setDisplayName(rs.getString(index++));
 				station.setCity(rs.getString(index++));
 				station.setClassify(rs.getString(index++));
-				station.setChannel(rs.getString(index++));
 				station.setSequence(rs.getInt(index++));
 				stationList.add(station);
 			}
@@ -115,99 +200,11 @@ public class TvDaoImpl implements TvDao {
 	}
 
 	@Override
-	public List<TvStation> getAllStation() {
-		String sql = "select id,name,displayName,city,classify,channel,sequence from tv_station order by sequence asc";
-		Connection conn = getConnection();
-		Statement stmt = null;
-		List<TvStation> stations = new ArrayList<TvStation>();
-		try {
-			stmt = conn.createStatement();
-			ResultSet rs = stmt.executeQuery(sql);
-			while (rs.next()) {
-				int index = 1;
-				TvStation station = new TvStation();
-				station.setId(rs.getInt(index++));
-				station.setName(rs.getString(index++));
-				station.setDisplayName(rs.getString(index++));
-				station.setCity(rs.getString(index++));
-				station.setClassify(rs.getString(index++));
-				station.setChannel(rs.getString(index++));
-				station.setSequence(rs.getInt(index++));
-				stations.add(station);
-			}
-		} catch (SQLException e) {
-			throw new MyTvException(e);
-		} finally {
-			if (stmt != null) {
-				try {
-					stmt.close();
-				} catch (SQLException e) {
-					throw new MyTvException(e);
-				}
-			}
-
-			if (conn != null) {
-				try {
-					conn.close();
-				} catch (SQLException e) {
-					throw new MyTvException(e);
-				}
-			}
-		}
-
-		return stations;
-	}
-
-	@Override
-	public List<TvStation> getAllCrawlableStation() {
-		String sql = "select id,name,displayName,city,classify,channel,sequence from tv_station where name=displayName order by sequence asc";
-		Connection conn = getConnection();
-		Statement stmt = null;
-		List<TvStation> stations = new ArrayList<TvStation>();
-		try {
-			stmt = conn.createStatement();
-			ResultSet rs = stmt.executeQuery(sql);
-			while (rs.next()) {
-				int index = 1;
-				TvStation station = new TvStation();
-				station.setId(rs.getInt(index++));
-				station.setName(rs.getString(index++));
-				station.setDisplayName(rs.getString(index++));
-				station.setCity(rs.getString(index++));
-				station.setClassify(rs.getString(index++));
-				station.setChannel(rs.getString(index++));
-				station.setSequence(rs.getInt(index++));
-				stations.add(station);
-			}
-		} catch (SQLException e) {
-			throw new MyTvException(e);
-		} finally {
-			if (stmt != null) {
-				try {
-					stmt.close();
-				} catch (SQLException e) {
-					throw new MyTvException(e);
-				}
-			}
-
-			if (conn != null) {
-				try {
-					conn.close();
-				} catch (SQLException e) {
-					throw new MyTvException(e);
-				}
-			}
-		}
-
-		return stations;
-	}
-
-	@Override
-	public TvStation getStation(String stationName) {
-		String sql = "select id,name,displayName,city,classify,channel,sequence from tv_station where name='"
-				+ stationName
-				+ "' and displayName='"
-				+ stationName
+	public TvStation getStationByDisplayName(String displayName, String classify) {
+		String sql = "select b.id,b.name,b.city,b.classify,b.sequence from my_tv a, tv_station b where a.stationName=b.name and a.displayName='"
+				+ displayName
+				+ "' and a.classify='"
+				+ classify
 				+ "' order by sequence asc";
 		TvStation station = null;
 		Connection conn = getConnection();
@@ -220,10 +217,8 @@ public class TvDaoImpl implements TvDao {
 				station = new TvStation();
 				station.setId(rs.getInt(index++));
 				station.setName(rs.getString(index++));
-				station.setDisplayName(rs.getString(index++));
 				station.setCity(rs.getString(index++));
 				station.setClassify(rs.getString(index++));
-				station.setChannel(rs.getString(index++));
 				station.setSequence(rs.getInt(index++));
 			}
 			rs.close();
@@ -250,88 +245,9 @@ public class TvDaoImpl implements TvDao {
 	}
 
 	@Override
-	public TvStation getStationByDisplayName(String displayName, String classify) {
-		String sql = "select id,name from tv_station a where (displayName='"
-				+ displayName
-				+ "' and "
-				+ (classify == null ? "1=1" : "classify='" + classify + "'")
-				+ ") or (name=displayName and name=(select stationName from tv_station_alias b where a.name=b.stationName and b.alias='"
-				+ displayName + "'))" + " order by sequence asc";
-		TvStation station = null;
-		Connection conn = getConnection();
-		Statement stmt = null;
-		try {
-			stmt = conn.createStatement();
-			ResultSet rs = stmt.executeQuery(sql);
-			if (rs.next()) {
-				int index = 1;
-				station = new TvStation();
-				station.setId(rs.getInt(index++));
-				station.setName(rs.getString(index++));
-				station.setDisplayName(displayName);
-				station.setClassify(classify);
-			}
-			rs.close();
-		} catch (SQLException e) {
-			throw new MyTvException(e);
-		} finally {
-			if (stmt != null) {
-				try {
-					stmt.close();
-				} catch (SQLException e) {
-					throw new MyTvException(e);
-				}
-			}
-
-			if (conn != null) {
-				try {
-					conn.close();
-				} catch (SQLException e) {
-					throw new MyTvException(e);
-				}
-			}
-		}
-		return station;
-	}
-
-	@Override
-	public boolean isStationExists(String displayName, String classify) {
-		String sql = "select * from tv_station where displayName='"
-				+ displayName + "'"
-				+ (classify == null ? "" : " and classify='" + classify + "'");
-		Connection conn = getConnection();
-		Statement stmt = null;
-		try {
-			stmt = conn.createStatement();
-			ResultSet rs = stmt.executeQuery(sql);
-			boolean exists = rs.next();
-			rs.close();
-			return exists;
-		} catch (SQLException e) {
-			throw new MyTvException(e);
-		} finally {
-			if (stmt != null) {
-				try {
-					stmt.close();
-				} catch (SQLException e) {
-					throw new MyTvException(e);
-				}
-			}
-
-			if (conn != null) {
-				try {
-					conn.close();
-				} catch (SQLException e) {
-					throw new MyTvException(e);
-				}
-			}
-		}
-	}
-
-	@Override
 	public int[] save(TvStation... stations) {
 		Connection conn = getConnection();
-		String insertSql = "insert into tv_station (name,displayName,city,classify,channel,sequence) values(?,?,?,?,?,?)";
+		String insertSql = "insert into tv_station (name,city,classify,sequence) values(?,?,?,?)";
 		PreparedStatement insertStmt = null;
 		try {
 			conn.setAutoCommit(false);
@@ -341,10 +257,8 @@ public class TvDaoImpl implements TvDao {
 				TvStation station = stations[i];
 				int index = 1;
 				insertStmt.setString(index++, station.getName());
-				insertStmt.setString(index++, station.getDisplayName());
 				insertStmt.setString(index++, station.getCity());
 				insertStmt.setString(index++, station.getClassify());
-				insertStmt.setString(index++, station.getChannel());
 				insertStmt.setInt(index++, station.getSequence());
 				insertStmt.addBatch();
 			}
@@ -432,11 +346,9 @@ public class TvDaoImpl implements TvDao {
 
 	@Override
 	public List<ProgramTable> getProgramTable(String stationName, String date) {
-		String sql = "select id,stationName,program,airdate,airtime,week from program_table a where (stationName='"
+		String sql = "select id,stationName,program,airdate,airtime,week from program_table a where stationName='"
 				+ stationName
-				+ "' or stationName=(select stationName from tv_station_alias b where a.stationName=b.stationName and b.alias='"
-				+ stationName
-				+ "'))  and airdate='"
+				+ "' and airdate='"
 				+ date
 				+ "' order by airtime asc";
 		Connection conn = getConnection();

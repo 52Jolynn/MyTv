@@ -3,6 +3,7 @@ package com.laudandjolynn.mytv.service;
 import java.util.List;
 
 import com.laudandjolynn.mytv.event.CrawlEventListener;
+import com.laudandjolynn.mytv.model.MyTv;
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
 
@@ -21,14 +22,6 @@ public interface TvService {
 	public void save(TvStation... stations);
 
 	/**
-	 * 判断电视台是否存在
-	 * 
-	 * @param station
-	 * @return
-	 */
-	public boolean isStationExists(TvStation station);
-
-	/**
 	 * 保存电视节目表
 	 * 
 	 * @param programTables
@@ -40,14 +33,7 @@ public interface TvService {
 	 * 
 	 * @return
 	 */
-	public List<String> getTvStationClassify();
-
-	/**
-	 * 获取所有电视台
-	 * 
-	 * @return
-	 */
-	public List<TvStation> getAllStation();
+	public List<String> getMyTvClassify();
 
 	/**
 	 * 获取所有可用于抓取的电视台对象列表
@@ -56,12 +42,6 @@ public interface TvService {
 	 */
 	public List<TvStation> getAllCrawlableStation();
 
-	/**
-	 * 根据电视台名称得到电视台对象，stationName与displayName相同
-	 * 
-	 * @param stationName
-	 * @return
-	 */
 	public TvStation getStation(String stationName);
 
 	/**
@@ -70,7 +50,7 @@ public interface TvService {
 	 * @param displayName
 	 *            电视台显示名
 	 * @param classify
-	 *            电视台分类，可以为null。为空时，将查找stationName与displayName相同的电视台
+	 *            电视台分类
 	 * @return
 	 */
 	public TvStation getStationByDisplayName(String displayName, String classify);
@@ -92,7 +72,7 @@ public interface TvService {
 	 * @param classify
 	 * @return
 	 */
-	public List<TvStation> getTvStationByClassify(String classify);
+	public List<MyTv> getMyTvByClassify(String classify);
 
 	/**
 	 * 判断指定电视台、日期的电视节目表是否已存在

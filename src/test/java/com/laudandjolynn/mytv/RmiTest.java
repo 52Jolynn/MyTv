@@ -42,7 +42,7 @@ public class RmiTest extends TestCase {
 		String classify = null;
 		try {
 			JolynnTv jolynnTv = (JolynnTv) Naming.lookup(url);
-			classify = jolynnTv.getTvStationClassify();
+			classify = jolynnTv.getMyTvClassify();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -58,7 +58,7 @@ public class RmiTest extends TestCase {
 		String stations = null;
 		try {
 			JolynnTv jolynnTv = (JolynnTv) Naming.lookup(url);
-			stations = jolynnTv.getAllTvStation();
+			stations = jolynnTv.getMyTvByClassify("番禺有线");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

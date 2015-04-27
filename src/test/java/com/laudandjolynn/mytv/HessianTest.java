@@ -41,7 +41,7 @@ public class HessianTest extends TestCase {
 		HessianProxyFactory proxy = new HessianProxyFactory();
 		try {
 			JolynnTv tv = (JolynnTv) proxy.create(JolynnTv.class, url);
-			String classify = tv.getTvStationClassify();
+			String classify = tv.getMyTvClassify();
 			JSONArray array = JSON.parseArray(classify);
 			System.out.println(array);
 			assertTrue(array.size() == 6);
@@ -57,7 +57,7 @@ public class HessianTest extends TestCase {
 		HessianProxyFactory proxy = new HessianProxyFactory();
 		try {
 			JolynnTv tv = (JolynnTv) proxy.create(JolynnTv.class, url);
-			String stations = tv.getAllTvStation();
+			String stations = tv.getMyTvByClassify("番禺有线");
 			JSONArray array = JSON.parseArray(stations);
 			System.out.println(array);
 		} catch (Exception e) {

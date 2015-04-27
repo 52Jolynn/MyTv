@@ -2,6 +2,7 @@ package com.laudandjolynn.mytv.datasource;
 
 import java.util.List;
 
+import com.laudandjolynn.mytv.model.MyTv;
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
 
@@ -17,7 +18,7 @@ public interface TvDao {
 	 * 
 	 * @return
 	 */
-	public List<String> getTvStationClassify();
+	public List<String> getMyTvClassify();
 
 	/**
 	 * 获取指定分类下的所有电视台
@@ -25,14 +26,7 @@ public interface TvDao {
 	 * @param classify
 	 * @return
 	 */
-	public List<TvStation> getTvStationByClassify(String classify);
-
-	/**
-	 * 获取所有电视台
-	 * 
-	 * @return
-	 */
-	public List<TvStation> getAllStation();
+	public List<MyTv> getMyTvByClassify(String classify);
 
 	/**
 	 * 获取所有可用于抓取的电视台对象列表
@@ -42,12 +36,13 @@ public interface TvDao {
 	public List<TvStation> getAllCrawlableStation();
 
 	/**
-	 * 根据电视台名称得到电视台对象，stationName与displayName相同
+	 * 根据电视台名称得到电视台对象
 	 * 
 	 * @param stationName
+	 *            电视台名称
 	 * @return
 	 */
-	public TvStation getStation(String stationName);
+	public List<TvStation> getStation(String stationName);
 
 	/**
 	 * 根据电视台显示名得到电视台对象
@@ -56,20 +51,9 @@ public interface TvDao {
 	 *            电视台显示名
 	 * @param classify
 	 *            电视台分类
-	 * @return 只有id、name、displayName、classify信息
-	 */
-	public TvStation getStationByDisplayName(String displayName, String classify);
-
-	/**
-	 * 判断电视台是否已经存在
-	 * 
-	 * @param displayName
-	 *            电视台显示名称
-	 * @param classify
-	 *            电视台分类，可为null
 	 * @return
 	 */
-	public boolean isStationExists(String displayName, String classify);
+	public TvStation getStationByDisplayName(String displayName, String classify);
 
 	/**
 	 * 保存电视台

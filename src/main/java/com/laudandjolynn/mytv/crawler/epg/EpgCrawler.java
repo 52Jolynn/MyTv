@@ -272,7 +272,6 @@ public class EpgCrawler extends AbstractCrawler {
 				TvStation tv = new TvStation();
 				String stationName = stationTextElements.get(j).text().trim();
 				tv.setName(stationName);
-				tv.setDisplayName(stationName);
 				tv.setCity(null);
 				tv.setClassify(classify);
 				tv.setSequence(SEQUENCE.incrementAndGet());
@@ -293,7 +292,6 @@ public class EpgCrawler extends AbstractCrawler {
 				TvStation tv = new TvStation();
 				String stationName = cityStationElements.get(j).text().trim();
 				tv.setName(stationName);
-				tv.setDisplayName(stationName);
 				tv.setCity(cityElement.text().trim());
 				tv.setClassify(CITY);
 				tv.setSequence(SEQUENCE.incrementAndGet());

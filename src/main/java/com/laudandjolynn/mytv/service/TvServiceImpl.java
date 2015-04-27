@@ -28,6 +28,7 @@ import com.laudandjolynn.mytv.event.CrawlEventListener;
 import com.laudandjolynn.mytv.event.CrawlEventListenerAdapter;
 import com.laudandjolynn.mytv.event.ProgramTableCrawlEndEvent;
 import com.laudandjolynn.mytv.event.TvStationFoundEvent;
+import com.laudandjolynn.mytv.model.MyTv;
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
 import com.laudandjolynn.mytv.utils.MemoryCache;
@@ -52,35 +53,7 @@ public class TvServiceImpl implements TvService {
 		if (size == 0) {
 			return;
 		}
-
-		// 电视台已存在则不再保存
-		List<TvStation> resultList = new ArrayList<TvStation>();
-		for (int i = 0; i < size; i++) {
-			TvStation station = stations[i];
-			if (isStationExists(station)) {
-				continue;
-			}
-			resultList.add(station);
-		}
-
-		int rsize = resultList.size();
-		if (rsize > 0) {
-			stations = new TvStation[rsize];
-			tvDao.save(resultList.toArray(stations));
-		}
-	}
-
-	/**
-	 * 判断电视台是否存在
-	 * 
-	 * @param station
-	 * @return
-	 */
-	@Override
-	public boolean isStationExists(TvStation station) {
-		return MemoryCache.getInstance().isStationExists(station)
-				|| tvDao.isStationExists(station.getDisplayName(),
-						station.getClassify());
+		tvDao.save(stations);
 	}
 
 	/**
@@ -114,22 +87,8 @@ public class TvServiceImpl implements TvService {
 	 * @return
 	 */
 	@Override
-	public List<String> getTvStationClassify() {
-		return tvDao.getTvStationClassify();
-	}
-
-	/**
-	 * 获取所有电视台列表
-	 * 
-	 * @return
-	 */
-	@Override
-	public List<TvStation> getAllStation() {
-		List<TvStation> stationList = tvDao.getAllStation();
-		if (stationList != null) {
-			MemoryCache.getInstance().addCache(stationList);
-		}
-		return stationList;
+	public List<String> getMyTvClassify() {
+		return tvDao.getMyTvClassify();
 	}
 
 	@Override
@@ -145,8 +104,9 @@ public class TvServiceImpl implements TvService {
 	public TvStation getStation(String stationName) {
 		TvStation tvStation = MemoryCache.getInstance().getStation(stationName);
 		if (tvStation == null) {
-			tvStation = tvDao.getStation(stationName);
-			if (tvStation != null) {
+			List<TvStation> stationList = tvDao.getStation(stationName);
+			if (stationList.size() > 0) {
+				tvStation = stationList.get(0);
 				MemoryCache.getInstance().addCache(tvStation);
 			}
 		}
@@ -164,21 +124,10 @@ public class TvServiceImpl implements TvService {
 	 */
 	@Override
 	public TvStation getStationByDisplayName(String displayName, String classify) {
-		if (displayName == null) {
-			return null;
-		}
-		TvStation tvStation = MemoryCache.getInstance().getStation(displayName,
+		TvStation tvStation = tvDao.getStationByDisplayName(displayName,
 				classify);
-		if (tvStation == null) {
-			if (classify == null) {
-				tvStation = tvDao.getStation(displayName);
-			} else {
-				tvStation = tvDao
-						.getStationByDisplayName(displayName, classify);
-			}
-			if (tvStation != null) {
-				MemoryCache.getInstance().addCache(tvStation);
-			}
+		if (tvStation != null) {
+			MemoryCache.getInstance().addCache(tvStation);
 		}
 		return tvStation;
 	}
@@ -202,8 +151,8 @@ public class TvServiceImpl implements TvService {
 	 * @return
 	 */
 	@Override
-	public List<TvStation> getTvStationByClassify(String classify) {
-		return tvDao.getTvStationByClassify(classify);
+	public List<MyTv> getMyTvByClassify(String classify) {
+		return tvDao.getMyTvByClassify(classify);
 	}
 
 	/**

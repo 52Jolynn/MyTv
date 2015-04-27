@@ -31,7 +31,7 @@ public interface JolynnTv extends Remote {
 	 * @throws RemoteException
 	 * @return
 	 */
-	public String getTvStationClassify() throws RemoteException;
+	public String getMyTvClassify() throws RemoteException;
 
 	/**
 	 * 根据电视台分类获取分类下的所有电视台
@@ -40,16 +40,7 @@ public interface JolynnTv extends Remote {
 	 * @return
 	 * @throws RemoteException
 	 */
-	public String getTvStationByClassify(String classify)
-			throws RemoteException;
-
-	/**
-	 * 获取所有电视台
-	 * 
-	 * @throws RemoteException
-	 * @return
-	 */
-	public String getAllTvStation() throws RemoteException;
+	public String getMyTvByClassify(String classify) throws RemoteException;
 
 	/**
 	 * 获取指定电视台、日期的节目表

@@ -568,7 +568,6 @@ public class TvMaoCrawler extends AbstractCrawler {
 			TvStation tv = new TvStation();
 			String stationName = channel.text().trim();
 			tv.setName(stationName);
-			tv.setDisplayName(stationName);
 			tv.setCity(city);
 			tv.setClassify(classify);
 			tv.setSequence(SEQUENCE.incrementAndGet());
