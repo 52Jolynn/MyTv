@@ -111,28 +111,34 @@ public class TvMaoCrawler extends AbstractCrawler {
 				.getByXPath("//div[@class='pgnav_wrap']/table[@class='pgnav']//a");
 		int size = elements == null ? 0 : elements.size();
 		for (int i = 0; i < size; i++) {
-			final HtmlAnchor anchor = (HtmlAnchor) elements.get(i);
-			if (!anchor.getAttribute("href").startsWith("/program/")) {
-				continue;
-			}
-			final String city = anchor.getTextContent().trim();
-			if ("CCTV".equals(city)) {
-				logger.debug("a city program table of tvmao: " + city
-						+ ", url: " + anchor.getHrefAttribute());
-				resultList.addAll(getTvStations(htmlPage, city));
-				resultList.addAll(getAllTvStationOfCity(htmlPage, city));
-			} else {
-				String href = anchor.getHrefAttribute();
-				logger.debug("a city of tvmao: " + city + ", url: " + href);
-				try {
-					Thread.sleep(generateRandomSleepTime());
-				} catch (InterruptedException e) {
-					// do nothing
+			HtmlAnchor anchor = null;
+			try {
+				anchor = (HtmlAnchor) elements.get(i);
+				if (!anchor.getAttribute("href").startsWith("/program/")) {
+					continue;
 				}
-				HtmlPage hp = (HtmlPage) WebCrawler.crawl(TV_MAO_URL_PREFIX
-						+ href);
-				resultList.addAll(getTvStations(hp, city));
-				resultList.addAll(getAllTvStationOfCity(hp, city));
+				final String city = anchor.getTextContent().trim();
+				if ("CCTV".equals(city)) {
+					logger.debug("a city program table of tvmao: " + city
+							+ ", url: " + anchor.getHrefAttribute());
+					resultList.addAll(getTvStations(htmlPage, city));
+					resultList.addAll(getAllTvStationOfCity(htmlPage, city));
+				} else {
+					String href = anchor.getHrefAttribute();
+					logger.debug("a city of tvmao: " + city + ", url: " + href);
+					try {
+						Thread.sleep(generateRandomSleepTime());
+					} catch (InterruptedException e) {
+						// do nothing
+					}
+					HtmlPage hp = (HtmlPage) WebCrawler.crawl(TV_MAO_URL_PREFIX
+							+ href);
+					resultList.addAll(getTvStations(hp, city));
+					resultList.addAll(getAllTvStationOfCity(hp, city));
+				}
+			} catch (Exception e) {
+				logger.error("error occur while crawl tv station.", e);
+				continue;
 			}
 		}
 		return resultList;
@@ -208,17 +214,24 @@ public class TvMaoCrawler extends AbstractCrawler {
 		List<?> elements = htmlPage
 				.getByXPath("//div[@class='chlsnav']//div[@class='plst']/parent::*");
 		for (int i = 0, size = elements == null ? 0 : elements.size(); i < size; i++) {
-			HtmlAnchor anchor = (HtmlAnchor) elements.get(i);
-			String href = anchor.getHrefAttribute();
-			logger.debug(anchor.getTextContent() + " program table of tvmao: "
-					+ ", url: " + href);
 			try {
-				Thread.sleep(generateRandomSleepTime());
-			} catch (InterruptedException e) {
-				// do nothing
+				HtmlAnchor anchor = (HtmlAnchor) elements.get(i);
+				String href = anchor.getHrefAttribute();
+				logger.debug(anchor.getTextContent()
+						+ " program table of tvmao: " + ", url: " + href);
+				try {
+					Thread.sleep(generateRandomSleepTime());
+				} catch (InterruptedException e) {
+					// do nothing
+				}
+				HtmlPage p = (HtmlPage) WebCrawler.crawl(TV_MAO_URL_PREFIX
+						+ href);
+				resultList.addAll(getTvStations(p, city));
+			} catch (Exception e) {
+				logger.error("error occur while get all tv station of city: "
+						+ city, e);
+				continue;
 			}
-			HtmlPage p = (HtmlPage) WebCrawler.crawl(TV_MAO_URL_PREFIX + href);
-			resultList.addAll(getTvStations(p, city));
 		}
 		return resultList;
 	}
