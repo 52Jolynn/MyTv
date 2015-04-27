@@ -158,7 +158,7 @@ public class TvDaoImpl implements TvDao {
 
 	@Override
 	public List<TvStation> getStation(String stationName) {
-		String sql = "select id,name,city,classify,sequence from tv_station where stationName='"
+		String sql = "select id,name,city,classify,sequence from tv_station where name='"
 				+ stationName + "' order by sequence asc";
 		List<TvStation> stationList = new ArrayList<TvStation>();
 		Connection conn = getConnection();
