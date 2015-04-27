@@ -44,7 +44,6 @@ public class HessianTest extends TestCase {
 			String classify = tv.getMyTvClassify();
 			JSONArray array = JSON.parseArray(classify);
 			System.out.println(array);
-			assertTrue(array.size() == 6);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
