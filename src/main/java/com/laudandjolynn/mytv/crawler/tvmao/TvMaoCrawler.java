@@ -20,6 +20,8 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
+import org.apache.commons.pool.BaseKeyedPoolableObjectFactory;
+import org.apache.commons.pool.impl.GenericKeyedObjectPool;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -29,6 +31,7 @@ import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.gargoylesoftware.htmlunit.Page;
 import com.gargoylesoftware.htmlunit.html.DomElement;
 import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
 import com.gargoylesoftware.htmlunit.html.HtmlBold;
@@ -65,6 +68,8 @@ public class TvMaoCrawler extends AbstractCrawler {
 	// 防反爬虫
 	private final static BlockingQueue<TvMaoCrawlTask> TV_MAO_PROGRAM_TABLE_CRAWL_QUEUE = new ArrayBlockingQueue<TvMaoCrawler.TvMaoCrawlTask>(
 			2);
+	private final static GenericKeyedObjectPool<TvMaoObjectKey, HtmlPage> TV_MAO_PAGES = new GenericKeyedObjectPool<TvMaoObjectKey, HtmlPage>(
+			new TvMaoPageObjectFactory(), 1000);
 
 	@Override
 	public String getCrawlerName() {
@@ -100,34 +105,59 @@ public class TvMaoCrawler extends AbstractCrawler {
 	private List<TvStation> crawlAllTvStationFromWeb() {
 		logger.info("crawl all tv station from " + getUrl() + ".");
 		List<TvStation> resultList = new ArrayList<TvStation>();
-		final HtmlPage htmlPage = (HtmlPage) WebCrawler.crawl(getUrl());
-		List<?> elements = htmlPage
-				.getByXPath("//div[@class='pgnav_wrap']/table[@class='pgnav']//a");
-		int size = elements == null ? 0 : elements.size();
-		for (int i = 0; i < size; i++) {
-			HtmlAnchor anchor = null;
-			try {
-				anchor = (HtmlAnchor) elements.get(i);
-				if (!anchor.getAttribute("href").startsWith("/program/")) {
+
+		String today = DateUtils.today();
+		HtmlPage htmlPage = null;
+		TvMaoObjectKey key = new TvMaoObjectKey(getUrl(), today);
+		try {
+			htmlPage = TV_MAO_PAGES.borrowObject(key);
+			List<?> elements = htmlPage
+					.getByXPath("//div[@class='pgnav_wrap']/table[@class='pgnav']//a");
+			int size = elements == null ? 0 : elements.size();
+			for (int i = 0; i < size; i++) {
+				HtmlAnchor anchor = null;
+				HtmlPage hp = null;
+				TvMaoObjectKey hpKey = null;
+				try {
+					anchor = (HtmlAnchor) elements.get(i);
+					if (!anchor.getAttribute("href").startsWith("/program/")) {
+						continue;
+					}
+					final String city = anchor.getTextContent().trim();
+					if ("CCTV".equals(city)) {
+						logger.debug("a city program table of tvmao: " + city
+								+ ", url: " + anchor.getHrefAttribute());
+						resultList.addAll(getTvStations(htmlPage, city));
+						resultList
+								.addAll(getAllTvStationOfCity(htmlPage, city));
+					} else {
+						String href = anchor.getHrefAttribute();
+						String url = TV_MAO_URL_PREFIX + href;
+						hpKey = new TvMaoObjectKey(url, today);
+						logger.debug("a city of tvmao: " + city + ", url: "
+								+ url);
+						hp = TV_MAO_PAGES.borrowObject(hpKey);
+						resultList.addAll(getTvStations(hp, city));
+						resultList.addAll(getAllTvStationOfCity(hp, city));
+					}
+				} catch (Exception e) {
+					logger.error("error occur while crawl tv station.", e);
 					continue;
+				} finally {
+					if (hp != null) {
+						TV_MAO_PAGES.returnObject(hpKey, hp);
+					}
 				}
-				final String city = anchor.getTextContent().trim();
-				if ("CCTV".equals(city)) {
-					logger.debug("a city program table of tvmao: " + city
-							+ ", url: " + anchor.getHrefAttribute());
-					resultList.addAll(getTvStations(htmlPage, city));
-					resultList.addAll(getAllTvStationOfCity(htmlPage, city));
-				} else {
-					String href = anchor.getHrefAttribute();
-					logger.debug("a city of tvmao: " + city + ", url: " + href);
-					HtmlPage hp = (HtmlPage) WebCrawler.crawl(TV_MAO_URL_PREFIX
-							+ href);
-					resultList.addAll(getTvStations(hp, city));
-					resultList.addAll(getAllTvStationOfCity(hp, city));
+			}
+		} catch (Exception e) {
+			logger.error("borrow " + getUrl() + " fail.", e);
+		} finally {
+			if (htmlPage != null) {
+				try {
+					TV_MAO_PAGES.returnObject(key, htmlPage);
+				} catch (Exception e) {
+					logger.error("return " + getUrl() + " fail.", e);
 				}
-			} catch (Exception e) {
-				logger.error("error occur while crawl tv station.", e);
-				continue;
 			}
 		}
 		return resultList;
@@ -629,7 +659,7 @@ public class TvMaoCrawler extends AbstractCrawler {
 		throw new MyTvException("invalid week. " + weekString);
 	}
 
-	private class TvMaoCrawlTask {
+	private final class TvMaoCrawlTask {
 		private TvStation tvStation;
 		private String date;
 
@@ -641,4 +671,67 @@ public class TvMaoCrawler extends AbstractCrawler {
 
 	}
 
+	private final static class TvMaoPageObjectFactory extends
+			BaseKeyedPoolableObjectFactory<TvMaoObjectKey, HtmlPage> {
+
+		@Override
+		public HtmlPage makeObject(TvMaoObjectKey key) throws Exception {
+			Page page = WebCrawler.crawl(key.url);
+			if (page.isHtmlPage()) {
+				return (HtmlPage) page;
+			}
+			throw new MyTvException("invalid web page which url: " + key.url);
+		}
+
+		@Override
+		public void destroyObject(TvMaoObjectKey key, HtmlPage obj)
+				throws Exception {
+			String today = DateUtils.today();
+			if (!key.date.equals(today)) {
+				super.destroyObject(key, obj);
+			}
+		}
+	}
+
+	private final static class TvMaoObjectKey {
+		private String url;
+		private String date;
+
+		public TvMaoObjectKey(String url, String date) {
+			super();
+			this.url = url;
+			this.date = date;
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((date == null) ? 0 : date.hashCode());
+			result = prime * result + ((url == null) ? 0 : url.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			TvMaoObjectKey other = (TvMaoObjectKey) obj;
+			if (date == null) {
+				if (other.date != null)
+					return false;
+			} else if (!date.equals(other.date))
+				return false;
+			if (url == null) {
+				if (other.url != null)
+					return false;
+			} else if (!url.equals(other.url))
+				return false;
+			return true;
+		}
+	}
 }
