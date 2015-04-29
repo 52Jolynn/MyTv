@@ -44,6 +44,8 @@ import com.laudandjolynn.mytv.event.CrawlEventListenerAdapter;
 import com.laudandjolynn.mytv.event.TvStationFoundEvent;
 import com.laudandjolynn.mytv.exception.MyTvException;
 import com.laudandjolynn.mytv.model.TvStation;
+import com.laudandjolynn.mytv.proxy.MyTvProxyManager;
+import com.laudandjolynn.mytv.proxy.XiciNetProxy;
 import com.laudandjolynn.mytv.service.TvService;
 import com.laudandjolynn.mytv.service.TvServiceImpl;
 import com.laudandjolynn.mytv.utils.Constant;
@@ -240,7 +242,7 @@ public class Main {
 		}
 		// 启动抓取任务
 		ThreadFactory threadFactory = new BasicThreadFactory.Builder()
-				.namingPattern("Mytv_Crawl_Task[%d]").build();
+				.namingPattern("Mytv_Crawl_Task_%d").build();
 		ExecutorService executorService = Executors
 				.newSingleThreadExecutor(threadFactory);
 		executorService.execute(new Runnable() {
@@ -267,9 +269,9 @@ public class Main {
 
 		final String today = DateUtils.today();
 		ThreadFactory threadFactory = new BasicThreadFactory.Builder()
-				.namingPattern("Mytv_Crawl_Program_Table[%d]").build();
-		final ExecutorService executorService = Executors.newFixedThreadPool(2,
-				threadFactory);
+				.namingPattern("Mytv_Crawl_Program_Table_%d").build();
+		final ExecutorService executorService = Executors.newFixedThreadPool(
+				Constant.CPU_PROCESSOR_NUM, threadFactory);
 		if (!data.isProgramCrawlerInited()) {
 			listener = new CrawlEventListenerAdapter() {
 				@Override
@@ -289,6 +291,9 @@ public class Main {
 				}
 			};
 		}
+
+		// 获取代理服务器
+		MyTvProxyManager.getInstance().prepareProxies(new XiciNetProxy());
 
 		if (!data.isStationCrawlerInited()) {
 			// 首次抓取
@@ -319,7 +324,7 @@ public class Main {
 			final TvService tvService) {
 		ThreadFactory threadFactory = new BasicThreadFactory.Builder()
 				.namingPattern("Mytv_Scheduled_Crawl_Task").build();
-		ScheduledExecutorService scheduled = new ScheduledThreadPoolExecutor(1,
+		ScheduledExecutorService scheduled = new ScheduledThreadPoolExecutor(2,
 				threadFactory);
 		Date today = new Date();
 		String nextWeek = DateUtils.date2String(DateUtils.nextWeek(today),
@@ -342,6 +347,20 @@ public class Main {
 				}
 			}
 		}, initDelay, 604860, TimeUnit.SECONDS);
+
+		// 定期刷新代理服务器列表
+		String nextDate = DateUtils.tommorow() + " 23:00:00";
+		long proxyCheckInitDelay = (DateUtils.string2Date(nextDate).getTime() - today
+				.getTime()) / 1000;
+		logger.info("cron refresh proxy task will be automatic start after "
+				+ initDelay + " seconds at " + nextDate);
+		scheduled.scheduleWithFixedDelay(new Runnable() {
+
+			@Override
+			public void run() {
+				MyTvProxyManager.getInstance().refresh();
+			}
+		}, proxyCheckInitDelay, 86400, TimeUnit.SECONDS);
 		scheduled.shutdown();
 	}
 
@@ -356,9 +375,9 @@ public class Main {
 		List<TvStation> stationList = tvService.getAllCrawlableStation();
 		int size = stationList == null ? 0 : stationList.size();
 		ThreadFactory threadFactory = new BasicThreadFactory.Builder()
-				.namingPattern("Mytv_Crawl_All_Program_Table[%d]").build();
-		ExecutorService executorService = Executors.newFixedThreadPool(2,
-				threadFactory);
+				.namingPattern("Mytv_Crawl_All_Program_Table_%d").build();
+		ExecutorService executorService = Executors.newFixedThreadPool(
+				Constant.CPU_PROCESSOR_NUM, threadFactory);
 		for (int i = 0; i < size; i++) {
 			final TvStation tvStation = stationList.get(i);
 			executorService.execute(new Runnable() {

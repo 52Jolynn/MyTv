@@ -1,3 +1,18 @@
+/*******************************************************************************
+ * Copyright 2015 htd0324@gmail.com
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ ******************************************************************************/
 package com.laudandjolynn.mytv.crawler.tvmao;
 
 import java.io.File;
@@ -45,6 +60,7 @@ import com.laudandjolynn.mytv.event.TvStationFoundEvent;
 import com.laudandjolynn.mytv.exception.MyTvException;
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
+import com.laudandjolynn.mytv.proxy.MyTvProxyManager;
 import com.laudandjolynn.mytv.utils.Constant;
 import com.laudandjolynn.mytv.utils.DateUtils;
 import com.laudandjolynn.mytv.utils.MyTvUtils;
@@ -67,7 +83,8 @@ public class TvMaoCrawler extends AbstractCrawler {
 	private final static AtomicInteger SEQUENCE = new AtomicInteger(300000);
 	// 防反爬虫
 	private final static BlockingQueue<TvMaoCrawlTask> TV_MAO_PROGRAM_TABLE_CRAWL_QUEUE = new ArrayBlockingQueue<TvMaoCrawler.TvMaoCrawlTask>(
-			2);
+			MyTvProxyManager.getInstance().getProxySize() == 0 ? 2
+					: MyTvProxyManager.getInstance().getProxySize());
 	private final static GenericKeyedObjectPool<TvMaoObjectKey, HtmlPage> TV_MAO_PAGES = new GenericKeyedObjectPool<TvMaoObjectKey, HtmlPage>(
 			new TvMaoPageObjectFactory(), 1000);
 
@@ -173,8 +190,7 @@ public class TvMaoCrawler extends AbstractCrawler {
 		logger.info("crawl all tv station from files.");
 		List<TvStation> resultList = new ArrayList<TvStation>();
 		ThreadFactory threadFactory = new BasicThreadFactory.Builder()
-				.namingPattern("Mytv crawl all tv station of tvmao[%d]")
-				.build();
+				.namingPattern("Mytv_Crawl_All_TV_Station_Of_TvMao_%d").build();
 		ExecutorService executorService = Executors.newFixedThreadPool(2,
 				threadFactory);
 		CompletionService<List<TvStation>> completionService = new ExecutorCompletionService<List<TvStation>>(
@@ -236,6 +252,9 @@ public class TvMaoCrawler extends AbstractCrawler {
 			try {
 				HtmlAnchor anchor = (HtmlAnchor) elements.get(i);
 				String href = anchor.getHrefAttribute();
+				if (!href.startsWith("/program/")) {
+					continue;
+				}
 				logger.debug(anchor.getTextContent()
 						+ " program table of tvmao: " + ", url: " + href);
 				HtmlPage p = (HtmlPage) WebCrawler.crawl(TV_MAO_URL_PREFIX

@@ -13,21 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package com.laudandjolynn.mytv.event;
+package com.laudandjolynn.mytv.proxy;
 
-import java.util.EventObject;
+import java.util.List;
+
+import com.laudandjolynn.mytv.model.Proxy;
 
 /**
  * @author: Laud
  * @email: htd0324@gmail.com
- * @date: 2015年4月22日 下午5:23:00
+ * @date: 2015年4月28日 下午5:44:44
  * @copyright: www.laudandjolynn.com
  */
-public class CrawlEvent extends EventObject {
-	private static final long serialVersionUID = -5496065547903238418L;
-
-	public CrawlEvent(Object source) {
-		super(source);
-	}
-
+public interface ProxyProvider {
+	public List<Proxy> getProxies();
 }

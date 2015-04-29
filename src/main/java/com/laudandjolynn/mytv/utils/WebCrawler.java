@@ -26,9 +26,12 @@ import com.gargoylesoftware.htmlunit.BrowserVersion;
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
 import com.gargoylesoftware.htmlunit.NicelyResynchronizingAjaxController;
 import com.gargoylesoftware.htmlunit.Page;
+import com.gargoylesoftware.htmlunit.ProxyConfig;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.laudandjolynn.mytv.exception.MyTvException;
+import com.laudandjolynn.mytv.model.Proxy;
+import com.laudandjolynn.mytv.proxy.MyTvProxyManager;
 
 /**
  * @author: Laud
@@ -65,15 +68,30 @@ public class WebCrawler {
 	 * @return
 	 */
 	public static Page crawl(String url) {
-		WebClient webClient = new WebClient(randomUserAgent());
+		Proxy proxy = MyTvProxyManager.getInstance().pickProxy();
+		WebClient webClient = null;
+		if (proxy != null) {
+			webClient = new WebClient(randomUserAgent());
+			ProxyConfig pc = new ProxyConfig(proxy.getIp(), proxy.getPort());
+			pc.addHostsToProxyBypass("tv.cntv.cn/epg");
+			if (MyTvProxyManager.PROXY_ANONYMOUS_HIGH.equals(proxy
+					.getAnonymous())) {
+				pc.addHostsToProxyBypass("www.tvmao.com");
+			}
+			pc.setSocksProxy(proxy.isSock());
+			webClient.getOptions().setProxyConfig(pc);
+		} else {
+			webClient = new WebClient(randomUserAgent());
+		}
 		webClient.getOptions().setJavaScriptEnabled(true);
 		webClient.getOptions().setCssEnabled(false);
 		webClient.getOptions().setThrowExceptionOnScriptError(false);
 		webClient.setAjaxController(new NicelyResynchronizingAjaxController());
+
 		try {
-			logger.debug("begin to get page: " + url);
-			Page page = webClient.getPage(url);
-			return page;
+			logger.info("begin to get page: " + url
+					+ (proxy != null ? ", using: " + proxy : ""));
+			return webClient.getPage(url);
 		} catch (FailingHttpStatusCodeException e) {
 			throw new MyTvException("can't connect to " + url, e);
 		} catch (MalformedURLException e) {
