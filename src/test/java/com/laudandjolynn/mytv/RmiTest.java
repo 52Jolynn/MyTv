@@ -47,8 +47,7 @@ public class RmiTest extends TestCase {
 			e.printStackTrace();
 		}
 		JSONArray array = JSON.parseArray(classify);
-		System.out.println(array);
-		assertTrue(array.size() == 6);
+		assertNotNull(array);
 	}
 
 	/**
@@ -63,23 +62,22 @@ public class RmiTest extends TestCase {
 			e.printStackTrace();
 		}
 		JSONArray array = JSON.parseArray(stations);
-		System.out.println(array);
+		assertNotNull(array);
 	}
 
 	/**
 	 * 测试电视节目
 	 */
 	public void testEpgProgram() {
-
 		String program = null;
 		try {
 			JolynnTv jolynnTv = (JolynnTv) Naming.lookup(url);
-			program = jolynnTv.getProgramTable("CCTV-1 综合", "央视",
+			program = jolynnTv.getProgramTable("CCTV-1 综合", "番禺有线",
 					DateUtils.today());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		JSONArray array = JSON.parseArray(program);
-		System.out.println(array);
+		assertNotNull(array);
 	}
 }

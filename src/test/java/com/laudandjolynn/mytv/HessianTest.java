@@ -43,7 +43,7 @@ public class HessianTest extends TestCase {
 			JolynnTv tv = (JolynnTv) proxy.create(JolynnTv.class, url);
 			String classify = tv.getMyTvClassify();
 			JSONArray array = JSON.parseArray(classify);
-			System.out.println(array);
+			assertNotNull(array);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -58,7 +58,7 @@ public class HessianTest extends TestCase {
 			JolynnTv tv = (JolynnTv) proxy.create(JolynnTv.class, url);
 			String stations = tv.getMyTvByClassify("番禺有线");
 			JSONArray array = JSON.parseArray(stations);
-			System.out.println(array);
+			assertNotNull(array);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -71,10 +71,10 @@ public class HessianTest extends TestCase {
 		HessianProxyFactory proxy = new HessianProxyFactory();
 		try {
 			JolynnTv tv = (JolynnTv) proxy.create(JolynnTv.class, url);
-			String program = tv.getProgramTable("凤凰卫视", "凤凰卫视电视台",
+			String program = tv.getProgramTable("CCTV-1 综合", "番禺有线",
 					DateUtils.today());
 			JSONArray array = JSON.parseArray(program);
-			System.out.println(array);
+			assertNotNull(array);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

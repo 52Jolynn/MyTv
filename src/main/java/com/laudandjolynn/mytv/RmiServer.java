@@ -50,7 +50,7 @@ public class RmiServer implements Server {
 
 	@Override
 	public void start() {
-		logger.info("epg bind to: " + url);
+		logger.info("rmi bind to: " + url);
 		try {
 			JolynnTv jolynnTv = new JolynnTvRmiImpl(new JolynnTvImpl());
 			StaticIpSocketFactory factory = new StaticIpSocketFactory();
