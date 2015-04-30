@@ -9,6 +9,10 @@ import java.net.SocketAddress;
 import java.net.SocketException;
 import java.util.Enumeration;
 
+import org.slf4j.LoggerFactory;
+
+import org.slf4j.Logger;
+
 /**
  * @author: Laud
  * @email: htd0324@gmail.com
@@ -16,6 +20,9 @@ import java.util.Enumeration;
  * @copyright: www.laudandjolynn.com
  */
 public class NetworkUtils {
+	private final static Logger logger = LoggerFactory
+			.getLogger(NetworkUtils.class);
+
 	/**
 	 * 判断是否可达
 	 * 
@@ -46,6 +53,12 @@ public class NetworkUtils {
 					return true;
 				} catch (IOException e) {
 					continue;
+				} finally {
+					try {
+						socket.close();
+					} catch (IOException e) {
+						logger.error(e.getMessage(), e);
+					}
 				}
 			}
 		}

@@ -22,16 +22,19 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
@@ -60,7 +63,6 @@ import com.laudandjolynn.mytv.event.TvStationFoundEvent;
 import com.laudandjolynn.mytv.exception.MyTvException;
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
-import com.laudandjolynn.mytv.proxy.MyTvProxyManager;
 import com.laudandjolynn.mytv.utils.Constant;
 import com.laudandjolynn.mytv.utils.DateUtils;
 import com.laudandjolynn.mytv.utils.MyTvUtils;
@@ -82,11 +84,13 @@ public class TvMaoCrawler extends AbstractCrawler {
 	private final static String TV_MAO_NAME = "tvmao";
 	private final static AtomicInteger SEQUENCE = new AtomicInteger(300000);
 	// 防反爬虫
-	private final static BlockingQueue<TvMaoCrawlTask> TV_MAO_PROGRAM_TABLE_CRAWL_QUEUE = new ArrayBlockingQueue<TvMaoCrawler.TvMaoCrawlTask>(
-			MyTvProxyManager.getInstance().getProxySize() == 0 ? 2
-					: MyTvProxyManager.getInstance().getProxySize());
+	private final static int MAX_ACTIVITY_CRALWER_SIZE = 2;
+	private final static ScheduledExecutorService SCHEDULED_EXECUTOR_SERVICE = new ScheduledThreadPoolExecutor(
+			Constant.CPU_PROCESSOR_NUM);
 	private final static GenericKeyedObjectPool<TvMaoObjectKey, HtmlPage> TV_MAO_PAGES = new GenericKeyedObjectPool<TvMaoObjectKey, HtmlPage>(
-			new TvMaoPageObjectFactory(), 1000);
+			new TvMaoPageObjectFactory(), MAX_ACTIVITY_CRALWER_SIZE,
+			GenericKeyedObjectPool.WHEN_EXHAUSTED_BLOCK, 1000,
+			MAX_ACTIVITY_CRALWER_SIZE);
 
 	@Override
 	public String getCrawlerName() {
@@ -153,6 +157,7 @@ public class TvMaoCrawler extends AbstractCrawler {
 						hpKey = new TvMaoObjectKey(url, today);
 						logger.debug("a city of tvmao: " + city + ", url: "
 								+ url);
+						TimeUnit.MILLISECONDS.sleep(generateRandomSleepTime());
 						hp = TV_MAO_PAGES.borrowObject(hpKey);
 						resultList.addAll(getTvStations(hp, city));
 						resultList.addAll(getAllTvStationOfCity(hp, city));
@@ -257,6 +262,7 @@ public class TvMaoCrawler extends AbstractCrawler {
 				}
 				logger.debug(anchor.getTextContent()
 						+ " program table of tvmao: " + ", url: " + href);
+				TimeUnit.MILLISECONDS.sleep(generateRandomSleepTime());
 				HtmlPage p = (HtmlPage) WebCrawler.crawl(TV_MAO_URL_PREFIX
 						+ href);
 				resultList.addAll(getTvStations(p, city));
@@ -304,29 +310,25 @@ public class TvMaoCrawler extends AbstractCrawler {
 			return null;
 		}
 		String queryDate = DateUtils.date2String(dateObj, "yyyy-MM-dd");
-		TvMaoCrawlTask task = new TvMaoCrawlTask();
+		final TvMaoCrawlTask task = new TvMaoCrawlTask();
 		task.date = queryDate;
 		task.tvStation = station;
-		try {
-			logger.debug("crawl task: " + task
-					+ ", of tv mao program table queue size: "
-					+ TV_MAO_PROGRAM_TABLE_CRAWL_QUEUE.size());
-			TV_MAO_PROGRAM_TABLE_CRAWL_QUEUE.put(task);
-		} catch (InterruptedException e) {
-			TV_MAO_PROGRAM_TABLE_CRAWL_QUEUE.remove(task);
-		}
-		task = TV_MAO_PROGRAM_TABLE_CRAWL_QUEUE.peek();
 
-		if (task != null) {
-			try {
-				List<ProgramTable> resultList = crawlProgramTable(task);
-				return resultList;
-			} finally {
-				logger.debug("remove task: " + task + " from queue.");
-				TV_MAO_PROGRAM_TABLE_CRAWL_QUEUE.remove(task);
-				logger.debug("crawl task of tv mao program table queue: "
-						+ TV_MAO_PROGRAM_TABLE_CRAWL_QUEUE.size());
-			}
+		ScheduledFuture<List<ProgramTable>> future = SCHEDULED_EXECUTOR_SERVICE
+				.schedule(new Callable<List<ProgramTable>>() {
+					@Override
+					public List<ProgramTable> call() throws Exception {
+						return crawlProgramTable(task);
+					}
+				}, generateRandomSleepTime(), TimeUnit.MILLISECONDS);
+		try {
+			return future.get();
+		} catch (InterruptedException e) {
+			logger.error("crawl task interrupted while crawl program table of "
+					+ station + " at " + queryDate, e);
+		} catch (ExecutionException e) {
+			logger.error("crawl task executed fail while crawl program table of "
+					+ station + " at " + queryDate, e);
 		}
 		return null;
 	}
@@ -752,5 +754,17 @@ public class TvMaoCrawler extends AbstractCrawler {
 				return false;
 			return true;
 		}
+	}
+
+	/**
+	 * 生成随机休眠时间
+	 * 
+	 * @return
+	 */
+	private long generateRandomSleepTime() {
+		Random random = new Random();
+		int min = 100;
+		int max = 1000;
+		return min + random.nextInt(max) % (max - min + 1);
 	}
 }

@@ -129,7 +129,7 @@ public class CrawlAction {
 		}
 
 		logger.debug(crawlerTask
-				+ " is try to query program table from network.");
+				+ " is trying to query program table from network.");
 		CURRENT_EPG_TASK.add(crawlerTask);
 		try {
 			return tvService.crawlProgramTable(tvStation, date);

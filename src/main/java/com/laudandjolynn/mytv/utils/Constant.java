@@ -50,6 +50,7 @@ public class Constant {
 	public final static String DOT = ".";
 	public final static String COMMA = ",";
 	public final static String UNDERLINE = "_";
+	public final static String COLON = ":";
 
 	static {
 		File file = new File(MY_TV_DATA_PATH);

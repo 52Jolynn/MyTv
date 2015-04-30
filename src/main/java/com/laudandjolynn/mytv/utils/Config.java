@@ -32,6 +32,7 @@ public class Config {
 	private final static String RES_KEY_CONFIG_HESSIAN_PORT = "hessian_port";
 	private final static String RES_KEY_CONFIG_RMI_PORT = "rmi_port";
 	private final static String RES_KEY_CONFIG_DB_TYPE = "db_type";
+	private final static String RES_KEY_CONFIG_PROXIES = "proxies";
 
 	private static DbType dbType = DbType.SQLITE;
 	private static String dataFilePath = MyTvUtils.getRunningPath(Config.class);
@@ -89,6 +90,14 @@ public class Config {
 
 	public static DbType getDbType() {
 		return dbType;
+	}
+
+	public static String getConfigFileName() {
+		return CONFIG_FILE_NAME;
+	}
+
+	public static String getResKeyConfigProxies() {
+		return RES_KEY_CONFIG_PROXIES;
 	}
 
 	public enum DbType {

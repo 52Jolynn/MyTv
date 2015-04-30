@@ -73,12 +73,6 @@ public class WebCrawler {
 		if (proxy != null) {
 			webClient = new WebClient(randomUserAgent());
 			ProxyConfig pc = new ProxyConfig(proxy.getIp(), proxy.getPort());
-			pc.addHostsToProxyBypass("tv.cntv.cn/epg");
-			if (MyTvProxyManager.PROXY_ANONYMOUS_HIGH.equals(proxy
-					.getAnonymous())) {
-				pc.addHostsToProxyBypass("www.tvmao.com");
-			}
-			pc.setSocksProxy(proxy.isSock());
 			webClient.getOptions().setProxyConfig(pc);
 		} else {
 			webClient = new WebClient(randomUserAgent());

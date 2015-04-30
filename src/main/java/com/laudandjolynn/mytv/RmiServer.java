@@ -53,6 +53,8 @@ public class RmiServer implements Server {
 		logger.info("rmi bind to: " + url);
 		try {
 			JolynnTv jolynnTv = new JolynnTvRmiImpl(new JolynnTvImpl());
+			System.setProperty("java.rmi.server.hostname",
+					Config.NET_CONFIG.getIp());
 			StaticIpSocketFactory factory = new StaticIpSocketFactory();
 			LocateRegistry.createRegistry(Config.NET_CONFIG.getRmiPort(),
 					factory, factory);
@@ -82,4 +84,5 @@ public class RmiServer implements Server {
 					Config.NET_CONFIG.getRmiPort());
 		}
 	}
+
 }
