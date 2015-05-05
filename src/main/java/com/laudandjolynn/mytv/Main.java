@@ -327,9 +327,9 @@ public class Main {
 				threadFactory);
 		Date today = new Date();
 		String nextWeek = DateUtils.date2String(DateUtils.nextWeek(today),
-				"yyyy-MM-dd");
-		long initDelay = (DateUtils.string2Date(nextWeek + " 00:01:00")
-				.getTime() - today.getTime()) / 1000;
+				"yyyy-MM-dd 00:01:00");
+		long initDelay = (DateUtils.string2Date(nextWeek).getTime() - today
+				.getTime()) / 1000;
 		logger.info("cron crawler task will be automatic start after "
 				+ initDelay + " seconds at " + nextWeek);
 		scheduled.scheduleWithFixedDelay(new Runnable() {
@@ -363,6 +363,7 @@ public class Main {
 
 			@Override
 			public void run() {
+				logger.debug("begin to refresh proxies.");
 				MyTvProxyManager.getInstance().refresh();
 			}
 		}, proxyCheckInitDelay, 86400, TimeUnit.SECONDS);
