@@ -63,6 +63,7 @@ import com.laudandjolynn.mytv.event.TvStationFoundEvent;
 import com.laudandjolynn.mytv.exception.MyTvException;
 import com.laudandjolynn.mytv.model.ProgramTable;
 import com.laudandjolynn.mytv.model.TvStation;
+import com.laudandjolynn.mytv.proxy.MyTvProxyManager;
 import com.laudandjolynn.mytv.utils.Constant;
 import com.laudandjolynn.mytv.utils.DateUtils;
 import com.laudandjolynn.mytv.utils.MyTvUtils;
@@ -91,6 +92,7 @@ public class TvMaoCrawler extends AbstractCrawler {
 			new TvMaoPageObjectFactory(), MAX_ACTIVITY_CRALWER_SIZE,
 			GenericKeyedObjectPool.WHEN_EXHAUSTED_BLOCK, 1000,
 			MAX_ACTIVITY_CRALWER_SIZE);
+	private final static Random RANDOM = new Random();
 
 	@Override
 	public String getCrawlerName() {
@@ -157,7 +159,7 @@ public class TvMaoCrawler extends AbstractCrawler {
 						hpKey = new TvMaoObjectKey(url, today);
 						logger.debug("a city of tvmao: " + city + ", url: "
 								+ url);
-						TimeUnit.MILLISECONDS.sleep(generateRandomSleepTime());
+						TimeUnit.MILLISECONDS.sleep(getRandomSleepTime());
 						hp = TV_MAO_PAGES.borrowObject(hpKey);
 						resultList.addAll(getTvStations(hp, city));
 						resultList.addAll(getAllTvStationOfCity(hp, city));
@@ -262,7 +264,7 @@ public class TvMaoCrawler extends AbstractCrawler {
 				}
 				logger.debug(anchor.getTextContent()
 						+ " program table of tvmao: " + ", url: " + href);
-				TimeUnit.MILLISECONDS.sleep(generateRandomSleepTime());
+				TimeUnit.MILLISECONDS.sleep(getRandomSleepTime());
 				HtmlPage p = (HtmlPage) WebCrawler.crawl(TV_MAO_URL_PREFIX
 						+ href);
 				resultList.addAll(getTvStations(p, city));
@@ -320,15 +322,16 @@ public class TvMaoCrawler extends AbstractCrawler {
 					public List<ProgramTable> call() throws Exception {
 						return crawlProgramTable(task);
 					}
-				}, generateRandomSleepTime(), TimeUnit.MILLISECONDS);
+				}, getScheduleFrequency(), TimeUnit.MILLISECONDS);
 		try {
 			return future.get();
 		} catch (InterruptedException e) {
 			logger.error("crawl task interrupted while crawl program table of "
 					+ station + " at " + queryDate, e);
 		} catch (ExecutionException e) {
-			logger.error("crawl task executed fail while crawl program table of "
-					+ station + " at " + queryDate, e);
+			logger.error(
+					"crawl task executed fail while crawl program table of "
+							+ station + " at " + queryDate, e);
 		}
 		return null;
 	}
@@ -757,14 +760,29 @@ public class TvMaoCrawler extends AbstractCrawler {
 	}
 
 	/**
-	 * 生成随机休眠时间
+	 * 生成随机数字
 	 * 
 	 * @return
 	 */
-	private long generateRandomSleepTime() {
-		Random random = new Random();
-		int min = 1000;
-		int max = 2000;
-		return min + random.nextInt(max) % (max - min + 1);
+	private long getRandomNumber(int min, int max) {
+		return min + RANDOM.nextInt(max) % (max - min + 1);
+	}
+
+	private long getRandomSleepTime() {
+		return getRandomNumber(0, 30);
+	}
+
+	/**
+	 * 获取调度频率
+	 * 
+	 * @return
+	 */
+	private long getScheduleFrequency() {
+		int proxySize = MyTvProxyManager.getInstance().getProxySize();
+		if (proxySize == 0) {
+			return getRandomNumber(1000, 2000);
+		} else {
+			return getRandomNumber(1000, 2000) / proxySize;
+		}
 	}
 }
