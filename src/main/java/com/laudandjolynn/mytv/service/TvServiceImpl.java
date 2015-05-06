@@ -255,4 +255,19 @@ public class TvServiceImpl implements TvService {
 		}
 		return crawler.crawlAllTvStation();
 	}
+
+	@Override
+	public List<TvStation> getDisplayedTvStation() {
+		return tvDao.getDisplayedTvStation();
+	}
+
+	@Override
+	public List<MyTv> getMyTv() {
+		return tvDao.getMyTv();
+	}
+
+	@Override
+	public boolean isInMyTv(TvStation tvStation) {
+		return MemoryCache.getInstance().isInMyTv(tvStation);
+	}
 }

@@ -423,6 +423,91 @@ public class TvDaoImpl implements TvDao {
 		}
 	}
 
+	@Override
+	public List<TvStation> getDisplayedTvStation() {
+		String sql = "select id,name,city,classify,sequence from tv_station where name in (select stationName from my_tv) group by name order by sequence;";
+		List<TvStation> stationList = new ArrayList<TvStation>();
+		Connection conn = getConnection();
+		Statement stmt = null;
+		try {
+			stmt = conn.createStatement();
+			ResultSet rs = stmt.executeQuery(sql);
+			while (rs.next()) {
+				int index = 1;
+				TvStation station = new TvStation();
+				station.setId(rs.getInt(index++));
+				station.setName(rs.getString(index++));
+				station.setCity(rs.getString(index++));
+				station.setClassify(rs.getString(index++));
+				station.setSequence(rs.getInt(index++));
+				stationList.add(station);
+			}
+			rs.close();
+		} catch (SQLException e) {
+			throw new MyTvException(e);
+		} finally {
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (SQLException e) {
+					throw new MyTvException(e);
+				}
+			}
+
+			if (conn != null) {
+				try {
+					conn.close();
+				} catch (SQLException e) {
+					throw new MyTvException(e);
+				}
+			}
+		}
+		return stationList;
+	}
+
+	@Override
+	public List<MyTv> getMyTv() {
+		String sql = "select id,stationName,displayName,classify,channel,sequence from my_tv order by sequence asc";
+		List<MyTv> tvList = new ArrayList<MyTv>();
+		Connection conn = getConnection();
+		Statement stmt = null;
+		try {
+			stmt = conn.createStatement();
+			ResultSet rs = stmt.executeQuery(sql);
+			while (rs.next()) {
+				MyTv myTv = new MyTv();
+				int index = 1;
+				myTv.setId(rs.getInt(index++));
+				myTv.setStationName(rs.getString(index++));
+				myTv.setDisplayName(rs.getString(index++));
+				myTv.setClassify(rs.getString(index++));
+				myTv.setChannel(rs.getString(index++));
+				myTv.setSequence(rs.getInt(index++));
+				tvList.add(myTv);
+			}
+			rs.close();
+		} catch (SQLException e) {
+			throw new MyTvException(e);
+		} finally {
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (SQLException e) {
+					throw new MyTvException(e);
+				}
+			}
+
+			if (conn != null) {
+				try {
+					conn.close();
+				} catch (SQLException e) {
+					throw new MyTvException(e);
+				}
+			}
+		}
+		return tvList;
+	}
+
 	/**
 	 * 获取数据库连接
 	 * 

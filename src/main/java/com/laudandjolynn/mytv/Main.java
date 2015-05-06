@@ -43,6 +43,7 @@ import com.laudandjolynn.mytv.event.CrawlEventListener;
 import com.laudandjolynn.mytv.event.CrawlEventListenerAdapter;
 import com.laudandjolynn.mytv.event.TvStationFoundEvent;
 import com.laudandjolynn.mytv.exception.MyTvException;
+import com.laudandjolynn.mytv.model.MyTv;
 import com.laudandjolynn.mytv.model.TvStation;
 import com.laudandjolynn.mytv.proxy.ConfigProxy;
 import com.laudandjolynn.mytv.proxy.MyTvProxyManager;
@@ -240,6 +241,10 @@ public class Main {
 		if (stationList != null) {
 			MemoryCache.getInstance().addCache(stationList);
 		}
+		List<MyTv> myTvList = tvService.getMyTv();
+		if (myTvList != null) {
+			MemoryCache.getInstance().addMyTvCache(myTvList);
+		}
 		// 启动抓取任务
 		ThreadFactory threadFactory = new BasicThreadFactory.Builder()
 				.namingPattern("Mytv_Crawl_Task_%d").build();
@@ -279,6 +284,11 @@ public class Main {
 					if (event instanceof TvStationFoundEvent) {
 						final TvStation item = (TvStation) ((TvStationFoundEvent) event)
 								.getItem();
+						if (!tvService.isInMyTv(item)
+								|| CrawlAction.getIntance().isInQuerying(item,
+										today)) {
+							return;
+						}
 						executorService.execute(new Runnable() {
 
 							@Override
@@ -295,6 +305,8 @@ public class Main {
 		// 获取代理服务器
 		logger.info("It is trying to find some proxyies.");
 		MyTvProxyManager.getInstance().prepareProxies(new ConfigProxy());
+		logger.info("found " + MyTvProxyManager.getInstance().getProxySize()
+				+ " proxies.");
 
 		if (!data.isStationCrawlerInited()) {
 			// 首次抓取
@@ -302,9 +314,11 @@ public class Main {
 
 			// 抓取本周其他日期的数据
 			String[] weeks = DateUtils.getWeek(new Date(), "yyyy-MM-dd");
+			List<TvStation> stationList = tvService.getDisplayedTvStation();
 			for (String date : weeks) {
 				if (date.compareTo(today) >= 1) {
-					crawlAllProgramTable(executorService, date, tvService);
+					crawlAllProgramTable(stationList, executorService, date,
+							tvService);
 				}
 			}
 			executorService.shutdown();
@@ -344,8 +358,9 @@ public class Main {
 						.build();
 				ExecutorService executorService = Executors.newFixedThreadPool(
 						Constant.CPU_PROCESSOR_NUM, threadFactory);
+				List<TvStation> stationList = tvService.getDisplayedTvStation();
 				for (Date date : weeks) {
-					crawlAllProgramTable(executorService,
+					crawlAllProgramTable(stationList, executorService,
 							DateUtils.date2String(date, "yyyy-MM-dd"),
 							tvService);
 				}
@@ -371,15 +386,15 @@ public class Main {
 	}
 
 	/**
-	 * 抓取所有电视台节目表
+	 * 抓取所有客户端显示的电视台节目表
 	 * 
 	 * @param executorService
 	 * @param date
 	 * @param tvService
 	 */
-	private static void crawlAllProgramTable(ExecutorService executorService,
-			final String date, TvService tvService) {
-		List<TvStation> stationList = tvService.getAllCrawlableStation();
+	private static void crawlAllProgramTable(List<TvStation> stationList,
+			ExecutorService executorService, final String date,
+			TvService tvService) {
 		int size = stationList == null ? 0 : stationList.size();
 		for (int i = 0; i < size; i++) {
 			final TvStation tvStation = stationList.get(i);

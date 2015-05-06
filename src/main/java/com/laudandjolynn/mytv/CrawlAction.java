@@ -147,4 +147,15 @@ public class CrawlAction {
 		}
 	}
 
+	/**
+	 * 是否已经在查询指定电视台、日期的电视节目表
+	 * 
+	 * @param tvStation
+	 * @param date
+	 * @return
+	 */
+	protected boolean isInQuerying(TvStation tvStation, String date) {
+		return CURRENT_EPG_TASK.contains(new CrawlerTask(tvStation.getName(),
+				date));
+	}
 }

@@ -104,4 +104,18 @@ public interface TvDao {
 	 */
 	public boolean isProgramTableExists(String stationName, String date);
 
+	/**
+	 * 获取所有在客户端显示的电视台
+	 * 
+	 * @return
+	 */
+	public List<TvStation> getDisplayedTvStation();
+
+	/**
+	 * 获取所有我的电视台
+	 * 
+	 * @return
+	 */
+	public List<MyTv> getMyTv();
+
 }

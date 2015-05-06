@@ -123,4 +123,26 @@ public interface TvService {
 	public List<ProgramTable> crawlProgramTable(TvStation tvStation,
 			String date, CrawlEventListener... listeners);
 
+	/**
+	 * 获取所有在客户端显示的电视台
+	 * 
+	 * @return
+	 */
+	public List<TvStation> getDisplayedTvStation();
+
+	/**
+	 * 获取所有我的电视台
+	 * 
+	 * @return
+	 */
+	public List<MyTv> getMyTv();
+
+	/**
+	 * 判断电视台是否是客户端显示的电视台
+	 * 
+	 * @param tvStation
+	 * @return
+	 */
+	public boolean isInMyTv(TvStation tvStation);
+
 }

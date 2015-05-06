@@ -19,6 +19,7 @@ import java.util.List;
 
 import org.eclipse.jetty.util.ConcurrentHashSet;
 
+import com.laudandjolynn.mytv.model.MyTv;
 import com.laudandjolynn.mytv.model.TvStation;
 
 /**
@@ -29,6 +30,7 @@ import com.laudandjolynn.mytv.model.TvStation;
  */
 public class MemoryCache {
 	private final static ConcurrentHashSet<TvStation> ALL_TV_STATION = new ConcurrentHashSet<TvStation>();
+	private final static ConcurrentHashSet<MyTv> ALL_MY_TV = new ConcurrentHashSet<MyTv>();
 
 	private MemoryCache() {
 	}
@@ -47,9 +49,7 @@ public class MemoryCache {
 	 * @param stations
 	 */
 	public void addCache(List<TvStation> stations) {
-		for (TvStation station : stations) {
-			ALL_TV_STATION.add(station);
-		}
+		ALL_TV_STATION.addAll(stations);
 	}
 
 	/**
@@ -78,4 +78,27 @@ public class MemoryCache {
 		return null;
 	}
 
+	/**
+	 * 将客户端显示的电视台加入缓存
+	 * 
+	 * @param stations
+	 */
+	public void addMyTvCache(List<MyTv> mytvList) {
+		ALL_MY_TV.addAll(mytvList);
+	}
+
+	/**
+	 * 判断电视台是否是客户端显示的电视台
+	 * 
+	 * @param tvStation
+	 * @return
+	 */
+	public boolean isInMyTv(TvStation tvStation) {
+		for (MyTv myTv : ALL_MY_TV) {
+			if (myTv.getStationName().equals(tvStation.getName())) {
+				return true;
+			}
+		}
+		return false;
+	}
 }
