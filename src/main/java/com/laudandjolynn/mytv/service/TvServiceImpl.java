@@ -41,6 +41,7 @@ import com.laudandjolynn.mytv.utils.MemoryCache;
  */
 public class TvServiceImpl implements TvService {
 	private TvDao tvDao = new TvDaoImpl();
+	private final static int TV_STATION_PERSISTENT_THRESHOLD = 100;
 
 	/**
 	 * 保存电视台
@@ -221,7 +222,8 @@ public class TvServiceImpl implements TvService {
 					TvStation item = ((TvStationFoundEvent) event).getItem();
 					synchronized (stationList) {
 						int size = stationList.size();
-						if (size > 0 && size % 100 == 0) {
+						if (size > 0
+								&& size % TV_STATION_PERSISTENT_THRESHOLD == 0) {
 							TvStation[] stations = new TvStation[size];
 							tvDao.save(stationList.toArray(stations));
 							// 保存之后再写入缓存，因为持久化前会判断电视台是否已经存在

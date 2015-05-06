@@ -30,7 +30,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
@@ -232,11 +231,7 @@ public class Main {
 
 	}
 
-	/**
-	 * 初始化应用数据
-	 */
-	private static void initDbData(final MyTvData data) {
-		final TvService tvService = new TvServiceImpl();
+	private static void makeCache(TvService tvService) {
 		List<TvStation> stationList = tvService.getAllCrawlableStation();
 		if (stationList != null) {
 			MemoryCache.getInstance().addCache(stationList);
@@ -245,11 +240,19 @@ public class Main {
 		if (myTvList != null) {
 			MemoryCache.getInstance().addMyTvCache(myTvList);
 		}
+	}
+
+	/**
+	 * 初始化应用数据
+	 */
+	private static void initDbData(final MyTvData data) {
+		final TvService tvService = new TvServiceImpl();
+		makeCache(tvService);
+
 		// 启动抓取任务
-		ThreadFactory threadFactory = new BasicThreadFactory.Builder()
-				.namingPattern("Mytv_Crawl_Task_%d").build();
 		ExecutorService executorService = Executors
-				.newSingleThreadExecutor(threadFactory);
+				.newSingleThreadExecutor(new BasicThreadFactory.Builder()
+						.namingPattern("Mytv_Crawl_Task_%d").build());
 		executorService.execute(new Runnable() {
 
 			@Override
@@ -271,12 +274,10 @@ public class Main {
 	private static void runCrawlTask(final MyTvData data,
 			final TvService tvService) {
 		CrawlEventListener listener = null;
-
 		final String today = DateUtils.today();
-		ThreadFactory threadFactory = new BasicThreadFactory.Builder()
-				.namingPattern("Mytv_Crawl_Program_Table_%d").build();
 		final ExecutorService executorService = Executors.newFixedThreadPool(
-				Constant.CPU_PROCESSOR_NUM, threadFactory);
+				Constant.CPU_PROCESSOR_NUM, new BasicThreadFactory.Builder()
+						.namingPattern("Mytv_Crawl_Program_Table_%d").build());
 		if (!data.isProgramCrawlerInited()) {
 			listener = new CrawlEventListenerAdapter() {
 				@Override
@@ -335,17 +336,16 @@ public class Main {
 	 */
 	private static void createEverydayCron(final MyTvData data,
 			final TvService tvService) {
-		ThreadFactory threadFactory = new BasicThreadFactory.Builder()
-				.namingPattern("Mytv_Scheduled_Crawl_Task").build();
-		ScheduledExecutorService scheduled = new ScheduledThreadPoolExecutor(2,
-				threadFactory);
+		ScheduledExecutorService scheduled = new ScheduledThreadPoolExecutor(3,
+				new BasicThreadFactory.Builder().namingPattern(
+						"Mytv_Scheduled_Task").build());
 		Date today = new Date();
 		String nextWeek = DateUtils.date2String(DateUtils.nextWeek(today),
 				"yyyy-MM-dd 00:01:00");
-		long initDelay = (DateUtils.string2Date(nextWeek).getTime() - today
+		long crawlTaskInitDelay = (DateUtils.string2Date(nextWeek).getTime() - today
 				.getTime()) / 1000;
 		logger.info("cron crawler task will be automatic start after "
-				+ initDelay + " seconds at " + nextWeek);
+				+ crawlTaskInitDelay + " seconds at " + nextWeek);
 		scheduled.scheduleWithFixedDelay(new Runnable() {
 
 			@Override
@@ -353,11 +353,12 @@ public class Main {
 				Date[] weeks = DateUtils.getWeek(new Date());
 				logger.info("begin to crawl program table of "
 						+ Arrays.deepToString(weeks));
-				ThreadFactory threadFactory = new BasicThreadFactory.Builder()
-						.namingPattern("Mytv_Schedule_Crawl_Program_Table_%d")
-						.build();
-				ExecutorService executorService = Executors.newFixedThreadPool(
-						Constant.CPU_PROCESSOR_NUM, threadFactory);
+				ExecutorService executorService = Executors
+						.newFixedThreadPool(
+								Constant.CPU_PROCESSOR_NUM,
+								new BasicThreadFactory.Builder().namingPattern(
+										"Mytv_Schedule_Crawl_Program_Table_%d")
+										.build());
 				List<TvStation> stationList = tvService.getDisplayedTvStation();
 				for (Date date : weeks) {
 					crawlAllProgramTable(stationList, executorService,
@@ -366,22 +367,35 @@ public class Main {
 				}
 				executorService.shutdown();
 			}
-		}, initDelay, 604860, TimeUnit.SECONDS);
+		}, crawlTaskInitDelay, 604860, TimeUnit.SECONDS);
 
 		// 定期刷新代理服务器列表
 		String nextDate = DateUtils.tommorow() + " 23:00:00";
-		long proxyCheckInitDelay = (DateUtils.string2Date(nextDate).getTime() - today
+		long commonInitDelay = (DateUtils.string2Date(nextDate).getTime() - today
 				.getTime()) / 1000;
 		logger.info("cron refresh proxy task will be automatic start after "
-				+ initDelay + " seconds at " + nextDate);
+				+ commonInitDelay + " seconds at " + nextDate);
 		scheduled.scheduleWithFixedDelay(new Runnable() {
 
 			@Override
 			public void run() {
-				logger.debug("begin to refresh proxies.");
+				logger.info("begin to refresh proxies.");
 				MyTvProxyManager.getInstance().refresh();
 			}
-		}, proxyCheckInitDelay, 86400, TimeUnit.SECONDS);
+		}, commonInitDelay, 86400, TimeUnit.SECONDS);
+
+		// 刷缓存
+		logger.info("cron refresh cache task will be automatic start after "
+				+ commonInitDelay + " seconds at " + nextDate);
+		scheduled.scheduleWithFixedDelay(new Runnable() {
+
+			@Override
+			public void run() {
+				logger.info("begin to refresh caches.");
+				makeCache(tvService);
+			}
+		}, commonInitDelay, 86400, TimeUnit.SECONDS);
+
 		scheduled.shutdown();
 	}
 
