@@ -396,7 +396,8 @@ public class Main {
 			}
 		}, commonInitDelay, 86400, TimeUnit.SECONDS);
 
-		scheduled.shutdown();
+		// scheduled不能关闭，否则定时任务将不再被接受并执行
+		// scheduled.shutdown();
 	}
 
 	/**
