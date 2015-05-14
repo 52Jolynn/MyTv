@@ -118,8 +118,32 @@ public interface Crawler {
 
 }
 ```
-如果需要添加新的抓取器，只需要实现上述接口，并添加到抓取管理器中即可：
+支持自定义抓取器工厂，实现CrawlerFactory接口，并设置到MyTvCrawlerManager即可。
 ```java
-Crawler crawler = new NewCrawler(...);
-MyTvCrawlerManager.getInstance().setCrawlerFactory(...)
+package com.laudandjolynn.mytv.crawler;
+
+import com.laudandjolynn.mytv.crawler.epg.EpgCrawlerFactory;
+import com.laudandjolynn.mytv.crawler.tvmao.TvMaoCrawlerFactory;
+
+/**
+ * @author: Laud
+ * @email: htd0324@gmail.com
+ * @date: 2015年4月16日 下午2:57:53
+ * @copyright: www.laudandjolynn.com
+ */
+public class MyTvCrawlerFactory implements CrawlerFactory {
+	@Override
+	public Crawler createCrawler() {
+		CrawlerGroup cralwerGroup = new CrawlerGroup();
+		cralwerGroup.addCrawler(new EpgCrawlerFactory().createCrawler());
+		cralwerGroup.addCrawler(new TvMaoCrawlerFactory().createCrawler());
+		return cralwerGroup;
+	}
+
+}
+```
+
+```java
+CrawlerFactory factory = new MyTvCrawlerFactory();
+MyTvCrawlerManager.getInstance().setCrawlerFactory(factory);
 ```
