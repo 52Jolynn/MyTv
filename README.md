@@ -1,8 +1,7 @@
 # MyTv
 这是一个抓取国内各大电视台节目表的服务端。同时使用Hessian提供REST API，供第三方应用调用，如android、iOS等。
 
-# 代理配置
-## config.properties
+# 代理配置(config.properties)
 以,分隔，填入代理ip:port即可。
 
 # API列表
