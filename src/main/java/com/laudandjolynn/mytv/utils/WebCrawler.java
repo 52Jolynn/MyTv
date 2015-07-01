@@ -28,7 +28,6 @@ import com.gargoylesoftware.htmlunit.NicelyResynchronizingAjaxController;
 import com.gargoylesoftware.htmlunit.Page;
 import com.gargoylesoftware.htmlunit.ProxyConfig;
 import com.gargoylesoftware.htmlunit.WebClient;
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.laudandjolynn.mytv.exception.MyTvException;
 import com.laudandjolynn.mytv.model.Proxy;
 import com.laudandjolynn.mytv.proxy.MyTvProxyManager;
@@ -48,34 +47,41 @@ public class WebCrawler {
 			BrowserVersion.INTERNET_EXPLORER_11 };
 
 	/**
-	 * 根据url抓取
-	 * 
-	 * @param url
-	 * @return
-	 */
-	public static String crawlAsXml(String url) {
-		Page page = crawl(url);
-		if (page instanceof HtmlPage) {
-			return ((HtmlPage) page).asXml();
-		}
-		throw new MyTvException("my crawler is only to get html page.");
-	}
-
-	/**
 	 * 使用htmlunit抓取网页
 	 * 
 	 * @param url
 	 * @return
 	 */
 	public static Page crawl(String url) {
+		return crawl(url, randomUserAgent());
+	}
+
+	/**
+	 * 使用htmlunit抓取网页
+	 * 
+	 * @param url
+	 * @param userAgent
+	 * @param cookie
+	 * @return
+	 */
+	public static Page crawl(String url, String userAgent) {
+		return crawl(url, new BrowserVersion(WebCrawler.class.getName(), "1.0",
+				userAgent, 1.0f));
+	}
+
+	/**
+	 * 使用htmlunit抓取网页
+	 * 
+	 * @param url
+	 * @param browserVersion
+	 * @return
+	 */
+	private static Page crawl(String url, BrowserVersion browserVersion) {
 		Proxy proxy = MyTvProxyManager.getInstance().pickProxy();
-		WebClient webClient = null;
+		WebClient webClient = new WebClient(browserVersion);
 		if (proxy != null) {
-			webClient = new WebClient(randomUserAgent());
 			ProxyConfig pc = new ProxyConfig(proxy.getIp(), proxy.getPort());
 			webClient.getOptions().setProxyConfig(pc);
-		} else {
-			webClient = new WebClient(randomUserAgent());
 		}
 		webClient.getOptions().setJavaScriptEnabled(true);
 		webClient.getOptions().setCssEnabled(false);
