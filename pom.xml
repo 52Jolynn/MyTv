@@ -19,7 +19,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<jettyVersion>9.4.21.v20190926</jettyVersion>
+		<jettyVersion>9.4.24.v20191120</jettyVersion>
 	</properties>
 
 	<dependencies>
